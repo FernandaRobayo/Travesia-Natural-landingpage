@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Travesia Natural</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body data-screen="login">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="login-shell">
+      <section class="login-visual-panel" aria-label="Presentacion de Travesia Natural">
+        <div class="login-visual-overlay"></div>
+        <div class="login-visual-content">
+          <h1>Travesia Natural</h1>
+          <div class="login-visual-copy">
+            <h2>El puente entre la exploracion salvaje y la gestion precisa.</h2>
+            <p>Plataforma integral para ecosistemas vivos.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="login-form-panel" aria-labelledby="login-title">
+        <div class="login-card">
+          <h2 id="login-title">Iniciar Sesion</h2>
+          <p class="login-subtitle">Bienvenido de vuelta al ecosistema.</p>
+
+          <div class="login-tabs" aria-label="Tipos de acceso">
+            <button class="login-tab is-active" type="button">Acceso cliente</button>
+            <button class="login-tab" type="button">Staff / operacion</button>
+          </div>
+
+          <form class="login-form" data-form="login" novalidate>
+            <div class="login-field">
+              <label for="login-id">Correo electronico</label>
+              <div class="login-input-wrap">
+                <span class="login-input-icon" aria-hidden="true">@</span>
+                <input
+                  id="login-id"
+                  name="login-id"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="ejemplo@correo.com"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="login-field">
+              <label for="login-password">Contrasena</label>
+              <div class="login-input-wrap">
+                <span class="login-input-icon" aria-hidden="true">*</span>
+                <input
+                  id="login-password"
+                  name="login-password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="........"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="login-links">
+              <a class="login-forgot-link" href="#">&iquest;Olvidaste tu contrasena?</a>
+            </div>
+
+            <button class="login-submit" type="submit">
+              <span>Ingresar</span>
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+
+            <p class="feedback" data-feedback="login" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
