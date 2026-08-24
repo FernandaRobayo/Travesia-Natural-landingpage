@@ -3,22 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inicio | Travesia Natural</title>
+    <title>Inicio | Universal Tour Operator Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="main.css?v=20260824-1" />
   </head>
-  <body data-screen="inicio">
+  <body data-screen="inicio" data-theme="platform">
     <div class="inicio-shell">
       <header class="inicio-topbar">
-        <a class="inicio-brand-name" href="#">Traves&iacute;a Natural</a>
+        <a class="inicio-brand-name" href="#" data-copy="brandName">Universal Tour Operator Platform</a>
 
         <div class="inicio-topbar-actions">
-          <a class="inicio-entry-button" href="login.html">Entrar al sistema</a>
+          <a class="inicio-entry-button" href="login.html" data-route="login" data-copy="topbarCta">Entrar al sistema</a>
         </div>
       </header>
 
@@ -26,54 +26,53 @@
         <section class="inicio-experience-panel">
           <div class="inicio-overlay"></div>
           <div class="inicio-experience-content">
-            <span class="inicio-eyebrow">EXPLORADOR</span>
-            <h1>Vive la Experiencia.</h1>
-            <p>
-              Sum&eacute;rgete en el coraz&oacute;n del ecosistema. Dise&ntilde;a tu
-              viaje, conecta con la comunidad y descubre refugios naturales
-              intocados.
+            <span class="inicio-eyebrow" data-copy="experienceEyebrow">CANAL CLIENTE</span>
+            <h1 data-copy="experienceTitle">Experiencias configurables para cada operador.</h1>
+            <p data-copy="experienceBody">
+              La misma base permite presentar destinos, experiencias y contenido
+              comercial con identidad propia para cada marca turística.
             </p>
           </div>
 
           <button class="inicio-cta-button" type="button">
-            <span>Comienza tu Aventura</span>
+            <span data-copy="experienceCta">Explorar experiencia</span>
             <span aria-hidden="true">&rarr;</span>
           </button>
         </section>
 
         <section class="inicio-operations-panel">
           <div class="inicio-operations-content">
-            <span class="inicio-eyebrow soft">OPERADOR BASE</span>
-            <h2>Gestiona la Operaci&oacute;n.</h2>
-            <p>
-              Control total del ecosistema log&iacute;stico. Monitorea recursos,
-              gestiona inventarios y asegura el flujo continuo de las expediciones.
+            <span class="inicio-eyebrow soft" data-copy="operationsEyebrow">CANAL INTERNO</span>
+            <h2 data-copy="operationsTitle">Operación clara, estable y reutilizable.</h2>
+            <p data-copy="operationsBody">
+              La capa interna prioriza productividad, estados operativos y control
+              del negocio sin depender del branding promocional de la marca.
             </p>
 
             <div class="inicio-action-row">
-              <a class="inicio-staff-button" href="login.html">Acceso Staff</a>
-              <a class="inicio-qr-button" href="indice.html" aria-label="Ver indice">Indice</a>
+              <a class="inicio-staff-button" href="login.html" data-route="login" data-copy="staffButton">Acceso staff</a>
+              <a class="inicio-qr-button" href="indice.html" aria-label="Ver índice" data-route="index" data-copy="indexButton">Índice</a>
             </div>
 
             <article class="inicio-status-card">
               <div class="inicio-status-head">
-                <strong>LOG&Iacute;STICA ACTIVA</strong>
+                <strong data-copy="statusTitle">OPERACIÓN ACTIVA</strong>
                 <span aria-hidden="true">+</span>
               </div>
               <div class="inicio-status-line"></div>
               <div class="inicio-status-item">
                 <div class="inicio-status-copy">
                   <span class="inicio-dot"></span>
-                  <span>Expedici&oacute;n A</span>
+                  <span data-copy="statusItemOne">Reservas de temporada</span>
                 </div>
-                <span class="inicio-status-tag">En ruta</span>
+                <span class="inicio-status-tag" data-copy="statusTagOne">Estable</span>
               </div>
               <div class="inicio-status-item">
                 <div class="inicio-status-copy">
                   <span class="inicio-dot"></span>
-                  <span>Inventario Base Sur</span>
+                  <span data-copy="statusItemTwo">Inventario operativo</span>
                 </div>
-                <span class="inicio-status-tag">Revisi&oacute;n req.</span>
+                <span class="inicio-status-tag" data-copy="statusTagTwo">Revisión</span>
               </div>
             </article>
           </div>
@@ -81,14 +80,16 @@
       </main>
 
       <footer class="inicio-footer">
-        <p>&copy; 2024 Traves&iacute;a Natural - Ecosistema Vivo</p>
+        <p data-copy="footerNote">&copy; 2026 Plataforma base para operadores turísticos</p>
         <nav aria-label="Footer">
-          <a href="#">Sostenibilidad</a>
-          <a href="#">T&eacute;rminos</a>
-          <a href="#">Privacidad</a>
-          <a href="#">Contacto</a>
+          <a href="#" data-copy="footerLinkOne">Capacidades</a>
+          <a href="#" data-copy="footerLinkTwo">Seguridad</a>
+          <a href="#" data-copy="footerLinkThree">Privacidad</a>
+          <a href="#" data-copy="footerLinkFour">Contacto</a>
         </nav>
       </footer>
     </div>
+
+    <script src="app.js"></script>
   </body>
 </html>

@@ -3,68 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Travesía Natural | Acceso principal</title>
+  <title>Universal Tour Operator Platform | Escenarios de producto</title>
   <meta
     name="description"
-    content="Página principal de acceso a Travesía Natural."
+    content="Comparativa entre la plataforma base multitenant y la configuración de Travesía Natural."
   >
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   >
-  <link rel="stylesheet" href="styles.css?v=20260820-1">
+  <link rel="stylesheet" href="styles.css?v=20260824-1">
 </head>
 <body>
   <main class="landing-shell">
     <section class="hero-block">
       <div class="brand-row">
         <div class="brand-copy">
-          <h1>Travesía Natural</h1>
-          <p>Sistema de información para gestión turística</p>
+          <span class="hero-kicker">MISMO PRODUCTO · DOS ESCENARIOS</span>
+          <h1>Universal Tour Operator Platform</h1>
+          <p>
+            Base compartida para operadores turísticos con identidad visual,
+            contenido y operación configurables por tenant.
+          </p>
         </div>
       </div>
 
       <div class="intro-copy">
         <p>
-          Plataforma interna orientada a organizar reservas, operación, logística,
-          experiencias, clientes y administración del negocio turístico.
-        </p>
-        <p>
-          Entorno de acceso para administración y colaboración operativa, pensado
-          como punto de entrada previo al login y al mockup del sistema.
+          Este mockup ahora separa claramente la plataforma neutral del primer
+          tenant real. La arquitectura UX, los componentes y la navegación se
+          mantienen; cambia únicamente la capa temática y el contenido de marca.
         </p>
       </div>
     </section>
 
-    <section class="access-block" aria-labelledby="access-title">
+    <section class="comparison-block" aria-labelledby="scenario-title">
       <div class="section-head">
-        <h2 id="access-title">ACCESO PRINCIPAL</h2>
-        <span class="status-pill">INTERNO</span>
+        <h2 id="scenario-title">Escenarios disponibles</h2>
+        <span class="status-pill">CORE + TENANT THEME</span>
       </div>
 
       <p class="section-copy">
-        Ingresa al flujo actual de Travesía Natural para continuar hacia la primera
-        pantalla del mockup y la experiencia interna del sistema.
+        Usa estas dos entradas para presentar la misma plataforma como producto
+        base o como experiencia ya configurada para Travesía Natural.
       </p>
 
-      <a class="access-card featured" href="landing/index.html">
-        <div class="card-head">
-          <strong>Abrir Travesía Natural</strong>
-          <span class="card-arrow" aria-hidden="true">→</span>
-        </div>
-        <p>Entrar al mockup principal y continuar al sistema.</p>
-      </a>
-
-      <div class="link-grid">
-        <a class="access-card secondary-card" href="landing/indice.html">
-          <div class="card-head">
-            <strong>Índice del mockup</strong>
-            <span class="card-arrow" aria-hidden="true">→</span>
+      <div class="scenario-grid">
+        <article class="scenario-card platform-card">
+          <div class="scenario-meta">
+            <span class="scenario-tag neutral">Escenario A</span>
+            <span class="scenario-note">Platform theme</span>
           </div>
-          <p>Vista general de las pantallas disponibles para revisión.</p>
-        </a>
+          <h3>Universal Tour Operator Platform</h3>
+          <p>
+            Presentación comercial neutral para operadores turísticos. Expone la
+            plataforma base, su reutilización y la separación de instancias.
+          </p>
+          <ul class="scenario-points">
+            <li>Core Design System común</li>
+            <li>Branding configurable por operador</li>
+            <li>Canal cliente y canal interno compartidos</li>
+          </ul>
+          <div class="scenario-actions">
+            <a class="access-card featured" href="landing/index.html?theme=platform">
+              <div class="card-head">
+                <strong>Abrir escenario plataforma</strong>
+                <span class="card-arrow" aria-hidden="true">&rarr;</span>
+              </div>
+              <p>Landing y acceso usando el theme neutral del core.</p>
+            </a>
+            <a class="inline-link" href="landing/indice.html?theme=platform">Ver índice neutral</a>
+          </div>
+        </article>
+
+        <article class="scenario-card tenant-card">
+          <div class="scenario-meta">
+            <span class="scenario-tag branded">Escenario B</span>
+            <span class="scenario-note">Tenant theme</span>
+          </div>
+          <h3>Travesía Natural</h3>
+          <p>
+            La misma plataforma adaptada al primer operador real, conservando la
+            estructura funcional y reforzando la identidad editorial de marca.
+          </p>
+          <ul class="scenario-points">
+            <li>Editorial premium y tono de expedición natural</li>
+            <li>Componentes core sin duplicación</li>
+            <li>Backoffice subordinado al sistema base</li>
+          </ul>
+          <div class="scenario-actions">
+            <a class="access-card tenant-featured" href="landing/index.html?theme=travesia-natural">
+              <div class="card-head">
+                <strong>Abrir Travesía Natural</strong>
+                <span class="card-arrow" aria-hidden="true">&rarr;</span>
+              </div>
+              <p>Landing y acceso con el tenant theme ya configurado.</p>
+            </a>
+            <a class="inline-link" href="landing/indice.html?theme=travesia-natural">Ver índice de Travesía</a>
+          </div>
+        </article>
       </div>
     </section>
   </main>

@@ -3,43 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | Travesia Natural</title>
+    <title>Login | Universal Tour Operator Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="main.css?v=20260824-1" />
   </head>
-  <body data-screen="login">
+  <body data-screen="login" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
     <main id="contenido" class="login-shell">
-      <section class="login-visual-panel" aria-label="Presentacion de Travesia Natural">
+      <section class="login-visual-panel" aria-label="Presentación del producto">
         <div class="login-visual-overlay"></div>
         <div class="login-visual-content">
-          <h1>Travesia Natural</h1>
+          <h1 data-copy="brandName">Universal Tour Operator Platform</h1>
           <div class="login-visual-copy">
-            <h2>El puente entre la exploracion salvaje y la gestion precisa.</h2>
-            <p>Plataforma integral para ecosistemas vivos.</p>
+            <h2 data-copy="loginHeroTitle">Una misma base para vender, operar y administrar experiencias.</h2>
+            <p data-copy="loginHeroBody">Core compartido con identidad configurable por operador turístico.</p>
           </div>
         </div>
       </section>
 
       <section class="login-form-panel" aria-labelledby="login-title">
         <div class="login-card">
-          <h2 id="login-title">Iniciar Sesion</h2>
-          <p class="login-subtitle">Bienvenido de vuelta al ecosistema.</p>
+          <h2 id="login-title" data-copy="loginTitle">Iniciar sesión</h2>
+          <p class="login-subtitle" data-copy="loginSubtitle">Accede al entorno operativo del sistema.</p>
 
           <div class="login-tabs" aria-label="Tipos de acceso">
-            <button class="login-tab is-active" type="button">Acceso cliente</button>
-            <button class="login-tab" type="button">Staff / operacion</button>
+            <button class="login-tab is-active" type="button" data-copy="loginTabOne">Acceso cliente</button>
+            <button class="login-tab" type="button" data-copy="loginTabTwo">Staff / operación</button>
           </div>
 
           <form class="login-form" data-form="login" novalidate>
             <div class="login-field">
-              <label for="login-id">Correo electronico</label>
+              <label for="login-id" data-copy="loginEmailLabel">Correo electrónico</label>
               <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">@</span>
                 <input
@@ -54,7 +54,7 @@
             </div>
 
             <div class="login-field">
-              <label for="login-password">Contrasena</label>
+              <label for="login-password" data-copy="loginPasswordLabel">Contraseña</label>
               <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">*</span>
                 <input
@@ -69,11 +69,11 @@
             </div>
 
             <div class="login-links">
-              <a class="login-forgot-link" href="#">&iquest;Olvidaste tu contrasena?</a>
+              <a class="login-forgot-link" href="#" data-copy="loginForgotLink">¿Olvidaste tu contraseña?</a>
             </div>
 
             <button class="login-submit" type="submit">
-              <span>Ingresar</span>
+              <span data-copy="loginSubmit">Ingresar</span>
               <span aria-hidden="true">&rarr;</span>
             </button>
 
