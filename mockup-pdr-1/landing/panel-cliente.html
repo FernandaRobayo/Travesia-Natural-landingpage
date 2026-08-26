@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel cliente | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
+  </head>
+  <body data-screen="client-dashboard" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-dashboard-shell">
+      <header class="travel-dashboard-header">
+        <a class="travel-dashboard-brand" href="index.html" data-route="home">[Tu Marca]</a>
+
+        <div class="travel-dashboard-header-actions">
+          <a class="travel-dashboard-header-link" href="tours.html" data-route="tours">Ver catalogo</a>
+          <a class="travel-dashboard-avatar" href="login.html" data-route="login" aria-label="Perfil del usuario">
+            FN
+          </a>
+        </div>
+      </header>
+
+      <section class="travel-dashboard-hero" aria-labelledby="dashboard-title">
+        <div class="travel-dashboard-copy">
+          <p class="travel-dashboard-eyebrow">Portal cliente</p>
+          <h1 id="dashboard-title">Hola, Fernanda</h1>
+          <p>
+            Consulta tu oferta activa, revisa reservas y continua la gestion de
+            tus proximos viajes desde un solo lugar.
+          </p>
+        </div>
+
+        <div class="travel-dashboard-search-block">
+          <label class="travel-dashboard-search-label" for="dashboard-search">Buscar destinos, tours o alojamientos</label>
+          <div class="travel-dashboard-search-row">
+            <input
+              id="dashboard-search"
+              type="search"
+              placeholder="Buscar destinos, tours, experiencias..."
+            />
+            <button type="button">Buscar</button>
+          </div>
+
+          <div class="travel-dashboard-filter-row" aria-label="Filtros rapidos">
+            <button type="button">Gastronomia</button>
+            <a href="tours.html" data-route="tours">Tours</a>
+            <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+            <button type="button">Fechas</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="travel-dashboard-section" aria-labelledby="acciones-rapidas">
+        <div class="travel-dashboard-section-head">
+          <h2 id="acciones-rapidas">Acciones rapidas</h2>
+        </div>
+
+        <div class="travel-dashboard-actions-grid">
+          <article class="travel-dashboard-action-card">
+            <span>Nueva reserva</span>
+            <strong>Inicia una nueva solicitud de viaje</strong>
+          </article>
+
+          <article class="travel-dashboard-action-card">
+            <span>Gastronomia</span>
+            <strong>Explora experiencias culinarias y paradas recomendadas</strong>
+          </article>
+
+          <article class="travel-dashboard-action-card">
+            <span>Pagos</span>
+            <strong>Continua pagos pendientes del cliente</strong>
+          </article>
+
+          <article class="travel-dashboard-action-card">
+            <span>Saldo</span>
+            <strong>Revisa estado de cuenta y soporte</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="travel-dashboard-section" aria-labelledby="descuentos-vigentes">
+        <div class="travel-dashboard-section-head">
+          <h2 id="descuentos-vigentes">Descuentos vigentes</h2>
+        </div>
+
+        <div class="travel-dashboard-promos">
+          <article class="travel-dashboard-promo promo-cyan">
+            <span class="travel-dashboard-promo-tag">20% OFF</span>
+            <strong>Tour destino ejemplo</strong>
+            <p>Valido hasta [Fecha]</p>
+            <a href="index.html" data-route="home">Ver descuentos</a>
+          </article>
+
+          <article class="travel-dashboard-promo promo-sand">
+            <span class="travel-dashboard-promo-tag">15% OFF</span>
+            <strong>Alojamiento ejemplo</strong>
+            <p>Reserva anticipada</p>
+            <a href="alojamiento.html" data-route="lodging">Ver detalle</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="travel-dashboard-section" aria-labelledby="mis-reservas">
+        <div class="travel-dashboard-section-head travel-dashboard-section-head-split">
+          <h2 id="mis-reservas">Mis reservas</h2>
+          <span>Estado de reservas</span>
+        </div>
+
+        <article class="travel-dashboard-reservation-card">
+          <div class="travel-dashboard-reservation-main">
+            <div class="travel-dashboard-reservation-copy">
+              <strong>Tour destino ejemplo</strong>
+              <p>15 Oct - 20 Oct</p>
+              <small>Reserva: #RES-12345</small>
+            </div>
+
+            <div class="travel-dashboard-reservation-status">
+              <span class="travel-dashboard-status-badge">Pendiente</span>
+              <small>Total: $1,200.00</small>
+              <small>Descuento: -$240.00</small>
+              <strong>Saldo pendiente: $960.00</strong>
+            </div>
+          </div>
+
+          <div class="travel-dashboard-reservation-actions">
+            <button type="button" class="travel-dashboard-primary-action">Pagar ahora</button>
+            <button type="button">Subir soporte</button>
+            <button type="button">Gestionar acompanantes</button>
+            <button type="button">Descargar soportes</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="travel-dashboard-section" aria-labelledby="saldo-favor">
+        <article class="travel-dashboard-credit-card">
+          <div class="travel-dashboard-credit-head">
+            <h2 id="saldo-favor">Saldo a favor</h2>
+            <strong>$150.00</strong>
+          </div>
+
+          <div class="travel-dashboard-credit-note">
+            <strong>Informacion especial requerida</strong>
+            <p>
+              Por favor, completa tus requisitos medicos y de emergencia para tu
+              proximo tour.
+            </p>
+            <a href="#">Completar ahora</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="travel-dashboard-section" aria-labelledby="recomendados">
+        <div class="travel-dashboard-section-head">
+          <h2 id="recomendados">Recomendados para ti</h2>
+        </div>
+
+        <div class="travel-dashboard-recommendations">
+          <article class="travel-dashboard-destination-card">
+            <div class="travel-dashboard-destination-media dashboard-media-one"></div>
+            <div class="travel-dashboard-destination-body">
+              <strong>Destino ejemplo - Trekking</strong>
+              <span>3 dias / 2 noches</span>
+              <div class="travel-dashboard-destination-meta">
+                <small>Desde</small>
+                <em>$299</em>
+              </div>
+              <a href="tours.html" data-route="tours">Ver detalle</a>
+            </div>
+          </article>
+
+          <article class="travel-dashboard-destination-card">
+            <div class="travel-dashboard-destination-media dashboard-media-two"></div>
+            <div class="travel-dashboard-destination-body">
+              <strong>Ruta arqueologica ejemplo</strong>
+              <span>Full day</span>
+              <div class="travel-dashboard-destination-meta">
+                <small>Desde</small>
+                <em>$85</em>
+              </div>
+              <a href="tours.html" data-route="tours">Ver detalle</a>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

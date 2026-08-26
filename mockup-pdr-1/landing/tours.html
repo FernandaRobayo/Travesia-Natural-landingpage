@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tours | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
+  </head>
+  <body data-screen="tours" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-tours-shell">
+      <header class="travel-tours-header">
+        <a class="travel-tours-brand" href="index.html" data-route="home">[Tu Marca]</a>
+
+        <nav class="travel-tours-nav" aria-label="Navegacion principal del cliente">
+          <a class="is-active" href="tours.html" data-route="tours">Explorar</a>
+          <a href="panel-cliente.html" data-route="dashboard">Mis reservas</a>
+          <a href="panel-cliente.html" data-route="dashboard">Acciones</a>
+          <a href="panel-cliente.html" data-route="dashboard">Perfil</a>
+        </nav>
+      </header>
+
+      <section class="travel-tours-topbar">
+        <a class="travel-tours-back" href="panel-cliente.html" data-route="dashboard">
+          <span aria-hidden="true">←</span>
+          <span>Volver al panel cliente</span>
+        </a>
+
+        <div class="travel-tours-search-row">
+          <input type="search" placeholder="Buscar tours o destinos..." />
+        </div>
+      </section>
+
+      <section class="travel-tours-grid" aria-label="Listado de tours disponibles">
+        <article class="travel-tour-card">
+          <div class="travel-tour-media tour-media-one">
+            <span class="travel-tour-rating">★ 4.8</span>
+          </div>
+          <div class="travel-tour-body">
+            <span class="travel-tour-duration">3 dias / 2 noches</span>
+            <strong>Tour destino ejemplo - montanas</strong>
+            <div class="travel-tour-meta">
+              <div>
+                <small>Desde</small>
+                <em>$299</em>
+              </div>
+              <button type="button">Ver detalle</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="travel-tour-card">
+          <div class="travel-tour-media tour-media-two">
+            <span class="travel-tour-rating">★ 4.9</span>
+          </div>
+          <div class="travel-tour-body">
+            <span class="travel-tour-duration">1 dia</span>
+            <strong>Aventura en cenotes ocultos</strong>
+            <div class="travel-tour-meta">
+              <div>
+                <small>Desde</small>
+                <em>$125</em>
+              </div>
+              <button type="button">Ver detalle</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="travel-tour-card">
+          <div class="travel-tour-media tour-media-three">
+            <span class="travel-tour-rating">★ 4.7</span>
+          </div>
+          <div class="travel-tour-body">
+            <span class="travel-tour-duration">Medio dia</span>
+            <strong>Recorrido cultural e historico</strong>
+            <div class="travel-tour-meta">
+              <div>
+                <small>Desde</small>
+                <em>$85</em>
+              </div>
+              <button type="button">Ver detalle</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="travel-tour-card">
+          <div class="travel-tour-media tour-media-four">
+            <span class="travel-tour-rating">★ 5.0</span>
+          </div>
+          <div class="travel-tour-body">
+            <span class="travel-tour-duration">2 dias / 1 noche</span>
+            <strong>Rafting y acampada extrema</strong>
+            <div class="travel-tour-meta">
+              <div>
+                <small>Desde</small>
+                <em>$180</em>
+              </div>
+              <button type="button">Ver detalle</button>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

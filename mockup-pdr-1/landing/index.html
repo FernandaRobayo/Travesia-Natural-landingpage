@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home | Multi tour</title>
+    <title>Home | Multitour</title>
     <script>
       if (window.location.pathname.endsWith("/landing")) {
         const nextUrl = `${window.location.pathname}/${window.location.search}${window.location.hash}`;
@@ -13,80 +13,102 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260826-1" />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
   </head>
   <body data-screen="inicio" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
-    <main id="contenido" class="client-home-shell">
-      <header class="client-home-topbar">
-        <a class="client-home-brand" href="index.html" data-route="home" data-copy="brandName">Multitour</a>
-        <div class="client-home-topbar-actions">
-          <a class="client-home-entry" href="login.html" data-route="login" data-copy="clientNavFive">Ingresar</a>
-        </div>
+    <main id="contenido" class="travel-home-shell">
+      <header class="travel-home-header">
+        <a class="travel-home-brand" href="index.html" data-route="home">[Nombre de tu Empresa]</a>
+        <a class="travel-home-login" href="login.html" data-route="login">Ingresar</a>
       </header>
 
-      <section class="client-home-hero" aria-labelledby="client-home-title">
-        <div class="client-home-copy">
-          <span class="client-home-eyebrow">Descubre experiencias para salir de la rutina</span>
-          <h1 id="client-home-title" data-copy="clientHeroTitle">
-            Descubre experiencias para tu proxima aventura
-          </h1>
-          <p data-copy="clientHeroBody">
-            Explora experiencias, hospedajes y opciones disponibles para tu proxima aventura.
-          </p>
-
-          <form class="client-home-search" action="#featured-title" method="get" role="search">
-            <label class="client-home-search-label" for="client-search" data-copy="clientSearchLabel">
-              Buscar / explorar
-            </label>
-            <div class="client-home-search-row">
-              <input
-                id="client-search"
-                name="q"
-                type="search"
-                placeholder="Busca experiencias o destinos"
-                data-copy-placeholder="clientSearchPlaceholder"
-              />
-              <button type="submit" data-copy="clientSearchButton">Explorar</button>
-            </div>
-          </form>
-        </div>
-
-        <div class="client-home-visual" aria-hidden="true">
-          <div class="client-home-visual-frame"></div>
+      <section class="travel-home-hero" aria-labelledby="travel-home-title">
+        <div class="travel-home-hero-image">
+          <div class="travel-home-hero-overlay"></div>
+          <div class="travel-home-hero-copy">
+            <h1 id="travel-home-title">[Nombre de tu Empresa]</h1>
+            <p>Explora experiencias unicas disenadas para distintos operadores y viajeros.</p>
+            <a class="travel-home-primary-cta" href="#destacados">Ver catalogo</a>
+          </div>
         </div>
       </section>
 
-      <section class="client-home-featured" aria-labelledby="featured-title">
-        <div class="client-home-section-head">
-          <h2 id="featured-title" data-copy="featuredTitle">Experiencias destacadas</h2>
-          <a class="client-home-link" href="indice.html" data-route="index" data-copy="featuredLink">Ver todas las experiencias</a>
+      <section id="destacados" class="travel-home-section">
+        <div class="travel-home-section-head">
+          <h2>Destinos destacados</h2>
         </div>
 
-        <div class="client-home-card-grid">
-          <article class="client-experience-card">
-            <div class="client-experience-image" aria-hidden="true"></div>
-            <div class="client-experience-copy">
-              <span class="client-experience-tag" data-copy="experienceCardTag">Experiencia</span>
-              <strong data-copy="experienceCardOneTitle">Nombre de experiencia</strong>
-              <span class="client-experience-operator" data-copy="experienceCardOneOperator">Operado por Travesia Natural</span>
-              <p data-copy="experienceCardOneBody">Consulta los detalles y opciones disponibles.</p>
-              <a href="indice.html" data-route="index" data-copy="experienceCardCta">Ver experiencia</a>
+        <div class="travel-home-card-grid">
+          <article class="travel-destination-card">
+            <div class="travel-destination-media media-one"></div>
+            <div class="travel-destination-body">
+              <strong>Destino de ejemplo</strong>
+              <span>3 dias</span>
+              <div class="travel-destination-meta">
+                <small>Desde</small>
+                <em>$XXX</em>
+              </div>
             </div>
           </article>
 
-          <article class="client-experience-card">
-            <div class="client-experience-image alt" aria-hidden="true"></div>
-            <div class="client-experience-copy">
-              <span class="client-experience-tag" data-copy="experienceCardTag">Experiencia</span>
-              <strong data-copy="experienceCardTwoTitle">Nombre de experiencia</strong>
-              <span class="client-experience-operator" data-copy="experienceCardTwoOperator">Operado por Huila Adventure</span>
-              <p data-copy="experienceCardTwoBody">Consulta los detalles y opciones disponibles.</p>
-              <a href="indice.html" data-route="index" data-copy="experienceCardCta">Ver experiencia</a>
+          <article class="travel-destination-card">
+            <div class="travel-destination-media media-two"></div>
+            <div class="travel-destination-body">
+              <strong>Destino de ejemplo</strong>
+              <span>5 dias</span>
+              <div class="travel-destination-meta">
+                <small>Desde</small>
+                <em>$XXX</em>
+              </div>
+            </div>
+          </article>
+
+          <article class="travel-destination-card">
+            <div class="travel-destination-media media-three"></div>
+            <div class="travel-destination-body">
+              <strong>Destino de ejemplo</strong>
+              <span>7 dias</span>
+              <div class="travel-destination-meta">
+                <small>Desde</small>
+                <em>$XXX</em>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="travel-home-section travel-home-benefits" aria-labelledby="benefits-title">
+        <div class="travel-home-section-head centered">
+          <h2 id="benefits-title">Por que elegirnos?</h2>
+        </div>
+
+        <div class="travel-home-benefit-list">
+          <article class="travel-benefit-card">
+            <div class="travel-benefit-icon" aria-hidden="true"></div>
+            <div>
+              <strong>Guias expertos</strong>
+              <p>Descripcion generica sobre la calidad y experiencia de los guias turisticos que lideran las aventuras.</p>
+            </div>
+          </article>
+
+          <article class="travel-benefit-card">
+            <div class="travel-benefit-icon" aria-hidden="true"></div>
+            <div>
+              <strong>Sostenibilidad</strong>
+              <p>Texto de marcador de posicion sobre el compromiso con el medio ambiente y las practicas de turismo responsable.</p>
+            </div>
+          </article>
+
+          <article class="travel-benefit-card">
+            <div class="travel-benefit-icon" aria-hidden="true"></div>
+            <div>
+              <strong>Seguridad</strong>
+              <p>Informacion de ejemplo detallando los protocolos de seguridad y la fiabilidad de las operaciones.</p>
             </div>
           </article>
         </div>

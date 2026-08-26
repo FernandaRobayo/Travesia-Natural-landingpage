@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nueva contrasena | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
+  </head>
+  <body data-screen="reset" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-login-shell">
+      <header class="travel-login-header travel-login-header-centered">
+        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
+      </header>
+
+      <section class="travel-login-stage">
+        <div class="travel-login-card travel-reset-card">
+          <div class="travel-login-copy travel-recover-copy">
+            <h1>Definir Nueva Contrasena</h1>
+            <p>Ingresa tu nueva contrasena para asegurar tu cuenta.</p>
+          </div>
+
+          <form class="travel-login-form" data-form="reset" novalidate>
+            <div class="travel-login-field">
+              <label for="reset-password">Nueva Contrasena</label>
+              <div class="travel-login-password-wrap">
+                <input
+                  id="reset-password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="..........."
+                />
+                <button class="travel-login-visibility" type="button" data-toggle="#reset-password">Ver</button>
+              </div>
+            </div>
+
+            <div class="travel-login-field">
+              <label for="reset-confirm">Confirmar Contrasena</label>
+              <div class="travel-login-password-wrap">
+                <input
+                  id="reset-confirm"
+                  name="confirm_password"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="..........."
+                />
+                <button class="travel-login-visibility" type="button" data-toggle="#reset-confirm">Ver</button>
+              </div>
+            </div>
+
+            <div class="travel-reset-rules" aria-label="Requisitos de la contrasena">
+              <p>La contrasena debe contener:</p>
+              <ul>
+                <li>Minimo 8 caracteres</li>
+                <li>Al menos una letra mayuscula</li>
+                <li>Al menos un numero</li>
+              </ul>
+            </div>
+
+            <p class="feedback" data-feedback="reset" aria-live="polite"></p>
+
+            <button class="travel-login-submit" type="submit">
+              <span>Guardar Contrasena</span>
+            </button>
+          </form>
+
+          <p class="travel-recover-back">
+            <a href="login.html" data-route="login">Volver al Inicio de Sesion</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

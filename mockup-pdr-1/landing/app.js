@@ -51,8 +51,14 @@ const THEMES = {
     },
     titles: {
       inicio: "Home | Multitour",
+      "client-dashboard": "Panel cliente | Multitour",
+      tours: "Tours | Multitour",
+      lodging: "Alojamiento | Multitour",
       index: "Indice del Mockup | Multitour",
       login: "Login | Multitour",
+      signup: "Crear cuenta | Multitour",
+      recover: "Recuperar contrasena | Multitour",
+      reset: "Nueva contrasena | Multitour",
     },
   },
   "travesia-natural": {
@@ -106,8 +112,14 @@ const THEMES = {
     },
     titles: {
       inicio: "Home | Travesia Natural",
+      "client-dashboard": "Panel cliente | Travesia Natural",
+      tours: "Tours | Travesia Natural",
+      lodging: "Alojamiento | Travesia Natural",
       index: "Indice del Mockup | Travesia Natural",
       login: "Login | Travesia Natural",
+      signup: "Crear cuenta | Travesia Natural",
+      recover: "Recuperar contrasena | Travesia Natural",
+      reset: "Nueva contrasena | Travesia Natural",
     },
   },
 };
@@ -139,7 +151,13 @@ function applyCopy(themeConfig) {
 function applyRoutes(theme) {
   const routeMap = {
     home: "index.html",
+    dashboard: "panel-cliente.html",
+    tours: "tours.html",
+    lodging: "alojamiento.html",
     login: "login.html",
+    signup: "crear-cuenta.html",
+    recover: "recuperar.html",
+    reset: "nueva-contrasena.html",
     index: "indice.html",
   };
 
@@ -202,11 +220,150 @@ function setupLoginForm(themeConfig, theme) {
       return;
     }
 
+    const activeRole =
+      document.querySelector("[data-role-option].is-active")?.dataset.roleOption || "client";
+
     setFeedback("login", themeConfig.feedback.success, "is-success");
 
     window.setTimeout(() => {
-      window.location.href = withTheme("indice.html", theme);
+      const nextPath = activeRole === "staff" ? "indice.html" : "panel-cliente.html";
+      window.location.href = withTheme(nextPath, theme);
     }, 700);
+  });
+}
+
+function setupRoleSwitch() {
+  const options = document.querySelectorAll("[data-role-option]");
+  if (!options.length) return;
+
+  options.forEach((option) => {
+    option.addEventListener("click", () => {
+      options.forEach((node) => {
+        node.classList.remove("is-active");
+        node.setAttribute("aria-pressed", "false");
+      });
+
+      option.classList.add("is-active");
+      option.setAttribute("aria-pressed", "true");
+    });
+  });
+}
+
+function setupRecoverForm(theme) {
+  const form = document.querySelector('[data-form="recover"]');
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const email = form.querySelector("#recover-email");
+    if (!email.value.trim()) {
+      setFeedback("recover", "Completa el correo electronico para continuar.", "is-error");
+      return;
+    }
+
+    setFeedback(
+      "recover",
+      "Se envio una validacion simulada para recuperar el acceso.",
+      "is-success",
+    );
+
+    window.setTimeout(() => {
+      window.location.href = withTheme("nueva-contrasena.html", theme);
+    }, 900);
+  });
+}
+
+function setupSignupForm(theme) {
+  const form = document.querySelector('[data-form="signup"]');
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const name = form.querySelector("#signup-name");
+    const email = form.querySelector("#signup-email");
+    const phone = form.querySelector("#signup-phone");
+    const password = form.querySelector("#signup-password");
+    const confirm = form.querySelector("#signup-confirm");
+    const value = password.value.trim();
+
+    if (
+      !name.value.trim() ||
+      !email.value.trim() ||
+      !phone.value.trim() ||
+      !value ||
+      !confirm.value.trim()
+    ) {
+      setFeedback("signup", "Completa todos los campos para continuar.", "is-error");
+      return;
+    }
+
+    const hasMinLength = value.length >= 8;
+    const hasUppercase = /[A-Z]/.test(value);
+    const hasNumber = /\d/.test(value);
+
+    if (!hasMinLength || !hasUppercase || !hasNumber) {
+      setFeedback(
+        "signup",
+        "La contrasena debe tener minimo 8 caracteres, una mayuscula y un numero.",
+        "is-error",
+      );
+      return;
+    }
+
+    if (value !== confirm.value.trim()) {
+      setFeedback("signup", "Las contrasenas no coinciden.", "is-error");
+      return;
+    }
+
+    setFeedback("signup", "Cuenta creada en esta simulacion. Ahora puedes iniciar sesion.", "is-success");
+
+    window.setTimeout(() => {
+      window.location.href = withTheme("login.html", theme);
+    }, 900);
+  });
+}
+
+function setupResetForm(theme) {
+  const form = document.querySelector('[data-form="reset"]');
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const password = form.querySelector("#reset-password");
+    const confirm = form.querySelector("#reset-confirm");
+    const value = password.value.trim();
+
+    if (!value || !confirm.value.trim()) {
+      setFeedback("reset", "Completa ambos campos para continuar.", "is-error");
+      return;
+    }
+
+    const hasMinLength = value.length >= 8;
+    const hasUppercase = /[A-Z]/.test(value);
+    const hasNumber = /\d/.test(value);
+
+    if (!hasMinLength || !hasUppercase || !hasNumber) {
+      setFeedback(
+        "reset",
+        "La contrasena debe tener minimo 8 caracteres, una mayuscula y un numero.",
+        "is-error",
+      );
+      return;
+    }
+
+    if (value !== confirm.value.trim()) {
+      setFeedback("reset", "Las contrasenas no coinciden.", "is-error");
+      return;
+    }
+
+    setFeedback("reset", "La nueva contrasena se guardo en esta simulacion.", "is-success");
+
+    window.setTimeout(() => {
+      window.location.href = withTheme("login.html", theme);
+    }, 900);
   });
 }
 
@@ -215,4 +372,8 @@ const activeThemeConfig = THEMES[activeTheme];
 
 applyTheme();
 setupPasswordToggle();
+setupRoleSwitch();
 setupLoginForm(activeThemeConfig, activeTheme);
+setupSignupForm(activeTheme);
+setupRecoverForm(activeTheme);
+setupResetForm(activeTheme);

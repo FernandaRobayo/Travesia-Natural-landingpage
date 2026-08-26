@@ -3,54 +3,102 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Indice del Mockup | Multi tour</title>
+    <title>Indice del Mockup | Multitour</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260826-1" />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
   </head>
   <body data-screen="index" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
-    <main id="contenido" class="index-shell">
-      <header class="index-header">
+    <main id="contenido" class="index-shell mockup-index-shell">
+      <header class="index-header mockup-index-header">
         <div>
-          <h1 data-copy="mockupIndexTitle">Indice del mockup</h1>
-          <p data-copy="mockupIndexBody">
-            Vista resumida de las pantallas disponibles para revisar la misma arquitectura
-            como plataforma base o experiencia personalizada.
+          <h1>Indice navegable del mockup</h1>
+          <p>
+            Estamos construyendo las primeras pantallas base de la plataforma.
+            Por ahora este indice solo incluye el bloque inicial de acceso y shell.
           </p>
         </div>
 
-        <a class="primary-button compact-button" href="index.html" data-route="home" data-copy="mockupIndexCta">
-          Abrir home
+        <a class="primary-button compact-button mockup-index-cta" href="login.html" data-route="login">
+          Abrir Login
         </a>
       </header>
 
-      <div class="notice-banner" data-copy="mockupNotice">
-        Prototipo visual para revisar navegacion, consistencia visual y adaptabilidad del producto.
+      <div class="notice-banner mockup-index-note">
+        Prototipo visual. Esta fase cubre unicamente las pantallas de acceso inicial y estructura base.
       </div>
 
-      <section class="index-section" aria-labelledby="auth-shell-title">
-        <h2 id="auth-shell-title" data-copy="mockupSectionTitle">01 - Pantallas principales</h2>
+      <section class="index-section mockup-index-section" aria-labelledby="auth-shell-title">
+        <h2 id="auth-shell-title">01 · Auth y shell</h2>
 
-        <div class="index-grid">
-          <a class="index-card" href="index.html" data-route="home">
+        <div class="index-grid mockup-index-grid">
+          <a class="index-card mockup-index-card" href="index.html" data-route="home">
             <span class="index-number">1</span>
             <div>
-              <strong data-copy="mockupCardOneTitle">Home</strong>
-              <span data-copy="mockupCardOneBody">Pantalla principal para explorar la oferta del operador</span>
+              <strong>Home</strong>
+              <span>Vista inicial del mockup comercial con estructura web base.</span>
             </div>
           </a>
 
-          <a class="index-card" href="login.html" data-route="login">
+          <a class="index-card mockup-index-card" href="login.html" data-route="login">
             <span class="index-number">2</span>
             <div>
-              <strong data-copy="mockupCardTwoTitle">Login</strong>
-              <span data-copy="mockupCardTwoBody">Acceso al sistema con la misma estructura funcional del producto</span>
+              <strong>Login</strong>
+              <span>Pantalla de acceso para cliente o staff / operacion.</span>
+            </div>
+          </a>
+
+          <a class="index-card mockup-index-card" href="crear-cuenta.html" data-route="signup">
+            <span class="index-number">3</span>
+            <div>
+              <strong>Crear cuenta</strong>
+              <span>Registro inicial para usuarios que aun no tienen acceso.</span>
+            </div>
+          </a>
+
+          <a class="index-card mockup-index-card" href="recuperar.html" data-route="recover">
+            <span class="index-number">4</span>
+            <div>
+              <strong>Recuperar contrasena</strong>
+              <span>Flujo para solicitar la recuperacion del acceso por correo.</span>
+            </div>
+          </a>
+
+          <a class="index-card mockup-index-card" href="nueva-contrasena.html" data-route="reset">
+            <span class="index-number">5</span>
+            <div>
+              <strong>Nueva contrasena</strong>
+              <span>Vista para definir y confirmar una nueva contrasena.</span>
+            </div>
+          </a>
+
+          <a class="index-card mockup-index-card" href="panel-cliente.html" data-route="dashboard">
+            <span class="index-number">6</span>
+            <div>
+              <strong>Panel cliente</strong>
+              <span>Vista posterior al login para reservas, pagos y recomendaciones.</span>
+            </div>
+          </a>
+
+          <a class="index-card mockup-index-card" href="tours.html" data-route="tours">
+            <span class="index-number">7</span>
+            <div>
+              <strong>Tours</strong>
+              <span>Catalogo visual de tours con regreso directo al panel del cliente.</span>
+            </div>
+          </a>
+
+          <a class="index-card mockup-index-card" href="alojamiento.html" data-route="lodging">
+            <span class="index-number">8</span>
+            <div>
+              <strong>Alojamiento</strong>
+              <span>Catalogo de hospedajes con acceso de retorno al panel cliente.</span>
             </div>
           </a>
         </div>

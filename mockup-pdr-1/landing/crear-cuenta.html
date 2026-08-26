@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear cuenta | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
+  </head>
+  <body data-screen="signup" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-login-shell">
+      <header class="travel-login-header travel-login-header-centered">
+        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
+      </header>
+
+      <section class="travel-login-stage">
+        <div class="travel-login-card travel-signup-card">
+          <div class="travel-login-copy travel-signup-copy">
+            <h1>Crear Cuenta</h1>
+            <p>Unete a la plataforma y crea tu acceso para comenzar.</p>
+          </div>
+
+          <form class="travel-login-form travel-signup-form" data-form="signup" novalidate>
+            <div class="travel-login-field">
+              <label for="signup-name">Nombre completo</label>
+              <input
+                id="signup-name"
+                name="name"
+                type="text"
+                autocomplete="name"
+                placeholder="Ej. Juan Perez"
+              />
+            </div>
+
+            <div class="travel-login-field">
+              <label for="signup-email">Correo Electronico</label>
+              <input
+                id="signup-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="correo@ejemplo.com"
+              />
+            </div>
+
+            <div class="travel-signup-phone-group">
+              <div class="travel-login-field">
+                <label for="signup-country">Codigo</label>
+                <select id="signup-country" name="country_code">
+                  <option value="+57">+57</option>
+                  <option value="+52">+52</option>
+                  <option value="+34">+34</option>
+                  <option value="+1">+1</option>
+                </select>
+              </div>
+
+              <div class="travel-login-field">
+                <label for="signup-phone">Numero de telefono</label>
+                <input
+                  id="signup-phone"
+                  name="phone"
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="300 000 0000"
+                />
+              </div>
+            </div>
+
+            <div class="travel-login-field">
+              <label for="signup-password">Contrasena</label>
+              <div class="travel-login-password-wrap">
+                <input
+                  id="signup-password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="..........."
+                />
+                <button class="travel-login-visibility" type="button" data-toggle="#signup-password">Ver</button>
+              </div>
+            </div>
+
+            <div class="travel-reset-rules travel-signup-rules" aria-label="Requisitos de la contrasena">
+              <p>La contrasena debe contener:</p>
+              <ul>
+                <li>Minimo 8 caracteres</li>
+                <li>Al menos una letra mayuscula</li>
+                <li>Al menos un numero</li>
+              </ul>
+            </div>
+
+            <div class="travel-login-field">
+              <label for="signup-confirm">Confirmar Contrasena</label>
+              <div class="travel-login-password-wrap">
+                <input
+                  id="signup-confirm"
+                  name="confirm_password"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="..........."
+                />
+                <button class="travel-login-visibility" type="button" data-toggle="#signup-confirm">Ver</button>
+              </div>
+            </div>
+
+            <p class="feedback" data-feedback="signup" aria-live="polite"></p>
+
+            <button class="travel-login-submit" type="submit">
+              <span>Registrarse</span>
+            </button>
+          </form>
+
+          <div class="travel-login-divider"></div>
+
+          <p class="travel-login-footer-note">
+            Ya tienes una cuenta? <a href="login.html" data-route="login">Inicia sesion</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

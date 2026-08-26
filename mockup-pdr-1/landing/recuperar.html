@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recuperar contrasena | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
+  </head>
+  <body data-screen="recover" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-login-shell">
+      <header class="travel-login-header travel-login-header-centered">
+        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
+      </header>
+
+      <section class="travel-login-stage">
+        <div class="travel-login-card travel-recover-card">
+          <div class="travel-login-copy travel-recover-copy">
+            <h1>Recuperar Contrasena</h1>
+            <p>
+              Introduce tu correo electronico y te enviaremos las instrucciones
+              para restablecer tu contrasena.
+            </p>
+          </div>
+
+          <form class="travel-login-form" data-form="recover" novalidate>
+            <div class="travel-login-field">
+              <label for="recover-email">Correo Electronico</label>
+              <input
+                id="recover-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="correo@ejemplo.com"
+              />
+            </div>
+
+            <p class="feedback" data-feedback="recover" aria-live="polite"></p>
+
+            <button class="travel-login-submit" type="submit">
+              <span>Enviar Instrucciones</span>
+            </button>
+          </form>
+
+          <p class="travel-recover-back">
+            <a href="login.html" data-route="login">Volver al Inicio de Sesion</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

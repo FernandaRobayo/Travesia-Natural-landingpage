@@ -3,103 +3,80 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | Multi tour</title>
+    <title>Login | Multitour</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260826-1" />
+    <link rel="stylesheet" href="main.css?v=20260826-3" />
   </head>
   <body data-screen="login" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
-    <main id="contenido" class="login-shell">
-      <section class="login-visual-panel" aria-labelledby="login-visual-title">
-        <div class="login-visual-overlay"></div>
-        <div class="login-visual-content">
-          <a class="secondary-link" href="index.html" data-route="home">Volver al inicio</a>
+    <main id="contenido" class="travel-login-shell">
+      <header class="travel-login-header">
+        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
+      </header>
 
-          <div class="login-visual-copy">
-            <h1 data-copy="brandName">Multitour</h1>
-            <h2 id="login-visual-title" data-copy="loginHeroTitle">
-              Una misma base para vender, operar y administrar experiencias.
-            </h2>
-            <p data-copy="loginHeroBody">
-              Plataforma compartida con identidad configurable por operador turistico.
-            </p>
+      <section class="travel-login-stage">
+        <div class="travel-login-card">
+          <div class="travel-login-copy">
+            <h1>Bienvenido de nuevo</h1>
+            <p>Ingresa a tu cuenta para gestionar tus viajes.</p>
           </div>
 
-          <div class="notice-banner">
-            Accede al entorno de demostracion para revisar el flujo de ingreso del producto.
-          </div>
-        </div>
-      </section>
-
-      <section class="login-form-panel">
-        <div class="login-card">
-          <div class="mini-brand">
-            <div class="mini-brand-copy">
-              <h1 data-copy="brandName">Multitour</h1>
-              <p>Acceso seguro y consistente para clientes y operacion.</p>
-            </div>
+          <div class="travel-login-role-switch" aria-label="Tipo de acceso">
+            <button class="travel-login-role is-active" type="button" data-role-option="client" aria-pressed="true">
+              Cliente
+            </button>
+            <button class="travel-login-role" type="button" data-role-option="staff" aria-pressed="false">
+              Staff / operacion
+            </button>
           </div>
 
-          <h2 data-copy="loginTitle">Iniciar sesion</h2>
-          <p class="login-subtitle" data-copy="loginSubtitle">Accede al entorno operativo del sistema.</p>
-
-          <div class="login-tabs" aria-label="Tipos de acceso">
-            <button class="login-tab is-active" type="button" data-copy="loginTabOne">Acceso cliente</button>
-            <button class="login-tab" type="button" data-copy="loginTabTwo">Staff / operacion</button>
-          </div>
-
-          <form class="login-form" data-form="login" novalidate>
-            <div class="login-field">
-              <label for="login-id" data-copy="loginEmailLabel">Correo electronico</label>
-              <div class="login-input-wrap">
-                <span class="login-input-icon" aria-hidden="true">@</span>
-                <input
-                  id="login-id"
-                  name="email"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="nombre@correo.com"
-                />
-              </div>
+          <form class="travel-login-form" data-form="login" novalidate>
+            <div class="travel-login-field">
+              <label for="login-id">Correo Electronico</label>
+              <input
+                id="login-id"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="correo@ejemplo.com"
+              />
             </div>
 
-            <div class="login-field">
-              <div class="field-head">
-                <label for="login-password" data-copy="loginPasswordLabel">Contrasena</label>
-                <button class="text-button" type="button" data-toggle="#login-password">Mostrar</button>
+            <div class="travel-login-field">
+              <div class="travel-login-field-head">
+                <label for="login-password">Contrasena</label>
+                <a class="travel-login-help" href="recuperar.html" data-route="recover">Olvidaste tu contrasena?</a>
               </div>
-              <div class="login-input-wrap">
-                <span class="login-input-icon" aria-hidden="true">*</span>
+
+              <div class="travel-login-password-wrap">
                 <input
                   id="login-password"
                   name="password"
                   type="password"
                   autocomplete="current-password"
-                  placeholder="Ingresa tu contrasena"
+                  placeholder="..........."
                 />
+                <button class="travel-login-visibility" type="button" data-toggle="#login-password">Ver</button>
               </div>
-            </div>
-
-            <div class="login-links">
-              <a class="login-forgot-link" href="#soporte" data-copy="loginForgotLink">Olvidaste tu contrasena?</a>
             </div>
 
             <p class="feedback" data-feedback="login" aria-live="polite"></p>
 
-            <button class="login-submit" type="submit">
-              <span data-copy="loginSubmit">Ingresar</span>
-              <span aria-hidden="true">&rarr;</span>
+            <button class="travel-login-submit" type="submit">
+              <span>Iniciar Sesion</span>
             </button>
           </form>
 
-          <p id="soporte" class="support-note">
-            Si olvidaste tus credenciales, este prototipo muestra el acceso principal y la validacion basica del formulario.
+          <div class="travel-login-divider"></div>
+
+          <p id="soporte" class="travel-login-footer-note">
+            No tienes una cuenta? <a href="crear-cuenta.html" data-route="signup">Crear cuenta</a>
           </p>
         </div>
       </section>
