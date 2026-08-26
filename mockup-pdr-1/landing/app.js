@@ -155,6 +155,11 @@ function applyTheme() {
   const themeConfig = THEMES[theme];
   const screen = document.body.dataset.screen;
 
+  if (theme === "travesia-natural" && screen === "inicio") {
+    window.location.replace("../index.html#escenarios");
+    return;
+  }
+
   document.body.dataset.theme = theme;
   document.title = themeConfig.titles[screen] || themeConfig.titlePrefix;
 
