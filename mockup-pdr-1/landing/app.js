@@ -1,132 +1,113 @@
 const THEMES = {
   platform: {
-    titlePrefix: "Universal Tour Operator Platform",
+    titlePrefix: "Multitour",
     copy: {
-      brandName: "Universal Tour Operator Platform",
-      topbarCta: "Entrar al sistema",
-      experienceEyebrow: "CANAL CLIENTE",
-      experienceTitle: "Experiencias configurables para cada operador.",
-      experienceBody:
-        "La misma base permite presentar destinos, experiencias y contenido comercial con identidad propia para cada marca turística.",
-      experienceCta: "Explorar experiencia",
-      operationsEyebrow: "CANAL INTERNO",
-      operationsTitle: "Operación clara, estable y reutilizable.",
-      operationsBody:
-        "La capa interna prioriza productividad, estados operativos y control del negocio sin depender del branding promocional de la marca.",
-      staffButton: "Acceso staff",
-      indexButton: "Índice",
-      statusTitle: "OPERACIÓN ACTIVA",
-      statusItemOne: "Reservas de temporada",
-      statusTagOne: "Estable",
-      statusItemTwo: "Inventario operativo",
-      statusTagTwo: "Revisión",
-      footerNote: "© 2026 Plataforma base para operadores turísticos",
-      footerLinkOne: "Capacidades",
-      footerLinkTwo: "Seguridad",
-      footerLinkThree: "Privacidad",
-      footerLinkFour: "Contacto",
-      mockupIndexTitle: "Índice del mockup",
+      brandName: "Multitour",
+      clientNavFive: "Ingresar",
+      clientHeroTitle: "Descubre experiencias para tu proxima aventura",
+      clientHeroBody:
+        "Explora experiencias, hospedajes y opciones disponibles para tu proxima aventura.",
+      clientSearchLabel: "Buscar / explorar",
+      clientSearchPlaceholder: "Busca experiencias o destinos",
+      clientSearchButton: "Explorar",
+      featuredTitle: "Experiencias destacadas",
+      featuredLink: "Ver todas las experiencias",
+      experienceCardTag: "Experiencia",
+      experienceCardOneTitle: "Nombre de experiencia",
+      experienceCardOneOperator: "Operado por Travesia Natural",
+      experienceCardOneBody: "Consulta los detalles y opciones disponibles.",
+      experienceCardTwoTitle: "Nombre de experiencia",
+      experienceCardTwoOperator: "Operado por Huila Adventure",
+      experienceCardTwoBody: "Consulta los detalles y opciones disponibles.",
+      experienceCardCta: "Ver experiencia",
+      mockupIndexTitle: "Indice del mockup",
       mockupIndexBody:
-        "Vista resumida de las pantallas disponibles para revisar la misma arquitectura en modo plataforma o marca configurada.",
-      mockupIndexCta: "Abrir inicio",
+        "Vista resumida de las pantallas disponibles para revisar la misma arquitectura como plataforma base o experiencia personalizada.",
+      mockupIndexCta: "Abrir home",
       mockupNotice:
-        "Prototipo visual para revisar navegación, theming y consistencia de componentes core.",
+        "Prototipo visual para revisar navegacion, consistencia visual y adaptabilidad del producto.",
       mockupSectionTitle: "01 - Pantallas principales",
-      mockupCardOneTitle: "Inicio",
-      mockupCardOneBody:
-        "Pantalla de entrada con canal cliente y canal interno",
+      mockupCardOneTitle: "Home",
+      mockupCardOneBody: "Pantalla principal para explorar la oferta del operador",
       mockupCardTwoTitle: "Login",
       mockupCardTwoBody:
-        "Acceso al sistema con la misma estructura y distinto theme",
+        "Acceso al sistema con la misma estructura funcional del producto",
       loginHeroTitle:
         "Una misma base para vender, operar y administrar experiencias.",
       loginHeroBody:
-        "Core compartido con identidad configurable por operador turístico.",
-      loginTitle: "Iniciar sesión",
+        "Plataforma compartida con identidad configurable por operador turistico.",
+      loginTitle: "Iniciar sesion",
       loginSubtitle: "Accede al entorno operativo del sistema.",
       loginTabOne: "Acceso cliente",
-      loginTabTwo: "Staff / operación",
-      loginEmailLabel: "Correo electrónico",
-      loginPasswordLabel: "Contraseña",
-      loginForgotLink: "¿Olvidaste tu contraseña?",
+      loginTabTwo: "Staff / operacion",
+      loginEmailLabel: "Correo electronico",
+      loginPasswordLabel: "Contrasena",
+      loginForgotLink: "Olvidaste tu contrasena?",
       loginSubmit: "Ingresar",
     },
     feedback: {
-      empty: "Completa el correo y la contraseña para continuar.",
-      success: "Inicio de sesión simulado para la operación de la plataforma.",
-      recoverEmpty: "Ingresa tu correo registrado para continuar.",
-      recoverSuccess:
-        "Recuperación simulada. El enlace se enviaría al correo asociado a la cuenta.",
+      empty: "Completa el correo y la contrasena para continuar.",
+      success: "Inicio de sesion simulado para la operacion de la plataforma.",
     },
     titles: {
-      inicio: "Inicio | Universal Tour Operator Platform",
-      index: "Índice del Mockup | Universal Tour Operator Platform",
-      login: "Login | Universal Tour Operator Platform",
+      inicio: "Home | Multitour",
+      index: "Indice del Mockup | Multitour",
+      login: "Login | Multitour",
     },
   },
   "travesia-natural": {
-    titlePrefix: "Travesía Natural",
+    titlePrefix: "Travesia Natural",
     copy: {
-      brandName: "Travesía Natural",
-      topbarCta: "Entrar al sistema",
-      experienceEyebrow: "EXPLORADOR",
-      experienceTitle: "Vive la experiencia.",
-      experienceBody:
-        "Sumérgete en el corazón del ecosistema. Diseña tu viaje, conecta con la comunidad y descubre refugios naturales intactos.",
-      experienceCta: "Comienza tu aventura",
-      operationsEyebrow: "OPERADOR BASE",
-      operationsTitle: "Gestiona la operación.",
-      operationsBody:
-        "Control total del ecosistema logístico. Monitorea recursos, gestiona inventarios y asegura el flujo continuo de las expediciones.",
-      staffButton: "Acceso staff",
-      indexButton: "Índice",
-      statusTitle: "LOGÍSTICA ACTIVA",
-      statusItemOne: "Expedición A",
-      statusTagOne: "En ruta",
-      statusItemTwo: "Inventario Base Sur",
-      statusTagTwo: "Revisión",
-      footerNote: "© 2026 Travesía Natural - Expedición natural premium",
-      footerLinkOne: "Sostenibilidad",
-      footerLinkTwo: "Términos",
-      footerLinkThree: "Privacidad",
-      footerLinkFour: "Contacto",
-      mockupIndexTitle: "Índice del mockup",
+      brandName: "Travesia Natural",
+      clientNavFive: "Ingresar",
+      clientHeroTitle: "Descubre experiencias para tu proxima aventura",
+      clientHeroBody:
+        "Explora experiencias, hospedajes y opciones disponibles para tu proxima aventura.",
+      clientSearchLabel: "Buscar / explorar",
+      clientSearchPlaceholder: "Busca experiencias o destinos",
+      clientSearchButton: "Explorar",
+      featuredTitle: "Experiencias destacadas",
+      featuredLink: "Ver todas las experiencias",
+      experienceCardTag: "Experiencia",
+      experienceCardOneTitle: "Nombre de experiencia",
+      experienceCardOneOperator: "Operado por Travesia Natural",
+      experienceCardOneBody: "Consulta los detalles y opciones disponibles.",
+      experienceCardTwoTitle: "Nombre de experiencia",
+      experienceCardTwoOperator: "Operado por Huila Adventure",
+      experienceCardTwoBody: "Consulta los detalles y opciones disponibles.",
+      experienceCardCta: "Ver experiencia",
+      mockupIndexTitle: "Indice del mockup",
       mockupIndexBody:
-        "Vista resumida de las pantallas principales del sistema configurado para Travesía Natural.",
-      mockupIndexCta: "Abrir inicio",
+        "Vista resumida de las pantallas principales del sistema configurado para Travesia Natural.",
+      mockupIndexCta: "Abrir home",
       mockupNotice:
-        "Prototipo visual del tenant Travesía Natural sobre la misma base funcional del producto.",
+        "Prototipo visual del tenant Travesia Natural sobre la misma base funcional del producto.",
       mockupSectionTitle: "01 - Pantallas principales",
-      mockupCardOneTitle: "Inicio",
-      mockupCardOneBody:
-        "Pantalla principal de exploración y operación del sistema",
+      mockupCardOneTitle: "Home",
+      mockupCardOneBody: "Pantalla principal para explorar la oferta configurada del operador",
       mockupCardTwoTitle: "Login",
-      mockupCardTwoBody:
-        "Acceso principal al ecosistema de Travesía Natural",
+      mockupCardTwoBody: "Acceso principal al ecosistema de Travesia Natural",
       loginHeroTitle:
-        "El puente entre la exploración salvaje y la gestión precisa.",
+        "El puente entre la exploracion salvaje y la gestion precisa.",
       loginHeroBody: "Plataforma integral para ecosistemas vivos.",
-      loginTitle: "Iniciar sesión",
+      loginTitle: "Iniciar sesion",
       loginSubtitle: "Bienvenido de vuelta al ecosistema.",
       loginTabOne: "Acceso cliente",
-      loginTabTwo: "Staff / operación",
-      loginEmailLabel: "Correo electrónico",
-      loginPasswordLabel: "Contraseña",
-      loginForgotLink: "¿Olvidaste tu contraseña?",
+      loginTabTwo: "Staff / operacion",
+      loginEmailLabel: "Correo electronico",
+      loginPasswordLabel: "Contrasena",
+      loginForgotLink: "Olvidaste tu contrasena?",
       loginSubmit: "Ingresar",
     },
     feedback: {
-      empty: "Completa el correo y la contraseña para continuar.",
+      empty: "Completa el correo y la contrasena para continuar.",
       success:
-        "Inicio de sesión simulado para administrador o encargado del local.",
-      recoverEmpty: "Ingresa tu correo registrado para continuar.",
-      recoverSuccess:
-        "Recuperación simulada. El enlace se enviaría al correo asociado a la cuenta.",
+        "Inicio de sesion simulado para administrador o encargado del local.",
     },
     titles: {
-      inicio: "Inicio | Travesía Natural",
-      index: "Índice del Mockup | Travesía Natural",
-      login: "Login | Travesía Natural",
+      inicio: "Home | Travesia Natural",
+      index: "Indice del Mockup | Travesia Natural",
+      login: "Login | Travesia Natural",
     },
   },
 };
@@ -145,9 +126,13 @@ function applyCopy(themeConfig) {
   document.querySelectorAll("[data-copy]").forEach((node) => {
     const key = node.dataset.copy;
     const value = themeConfig.copy[key];
-    if (value) {
-      node.textContent = value;
-    }
+    if (value) node.textContent = value;
+  });
+
+  document.querySelectorAll("[data-copy-placeholder]").forEach((node) => {
+    const key = node.dataset.copyPlaceholder;
+    const value = themeConfig.copy[key];
+    if (value) node.setAttribute("placeholder", value);
   });
 }
 
@@ -161,9 +146,7 @@ function applyRoutes(theme) {
   document.querySelectorAll("[data-route]").forEach((node) => {
     const routeKey = node.dataset.route;
     const path = routeMap[routeKey];
-    if (path) {
-      node.setAttribute("href", withTheme(path, theme));
-    }
+    if (path) node.setAttribute("href", withTheme(path, theme));
   });
 }
 
@@ -182,19 +165,16 @@ function applyTheme() {
 function setFeedback(key, message, type) {
   const node = document.querySelector(`[data-feedback="${key}"]`);
   if (!node) return;
-
   node.textContent = message;
   node.className = type ? `feedback ${type}` : "feedback";
 }
 
 function setupPasswordToggle() {
   const toggles = document.querySelectorAll("[data-toggle]");
-
   toggles.forEach((toggle) => {
     toggle.addEventListener("click", () => {
       const target = document.querySelector(toggle.dataset.toggle);
       if (!target) return;
-
       const nextType = target.type === "password" ? "text" : "password";
       target.type = nextType;
       toggle.textContent = nextType === "password" ? "Mostrar" : "Ocultar";
@@ -225,29 +205,9 @@ function setupLoginForm(themeConfig, theme) {
   });
 }
 
-function setupRecoverForm(themeConfig) {
-  const form = document.querySelector('[data-form="recover"]');
-  if (!form) return;
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    const email = form.querySelector("#recover-id");
-
-    if (!email.value.trim()) {
-      setFeedback("recover", themeConfig.feedback.recoverEmpty, "is-error");
-      email.focus();
-      return;
-    }
-
-    setFeedback("recover", themeConfig.feedback.recoverSuccess, "is-success");
-  });
-}
-
 const activeTheme = getTheme();
 const activeThemeConfig = THEMES[activeTheme];
 
 applyTheme();
 setupPasswordToggle();
 setupLoginForm(activeThemeConfig, activeTheme);
-setupRecoverForm(activeThemeConfig);
