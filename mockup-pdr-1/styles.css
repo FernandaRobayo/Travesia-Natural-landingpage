@@ -681,13 +681,94 @@ a {
   line-height: 1.4;
 }
 
+.value-block {
+  padding-top: 28px;
+}
+
+.value-copy {
+  max-width: 900px;
+}
+
+.value-copy h1,
+.value-copy h2,
+.capabilities-copy h1 {
+  margin: 12px 0 0;
+  color: var(--primary);
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+}
+
+.value-copy p,
+.capabilities-copy p {
+  margin: 16px 0 0;
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.value-grid,
+.capabilities-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.value-screen,
+.capabilities-screen {
+  padding-top: 22px;
+}
+
+.value-card,
+.capability-card {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.value-icon,
+.capability-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.value-card h2,
+.capability-card h2 {
+  margin: 18px 0 0;
+  color: var(--text);
+  font-size: 1.15rem;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+}
+
+.value-card p,
+.capability-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.96rem;
+  line-height: 1.62;
+}
+
 @media (max-width: 860px) {
   .scenario-grid,
   .platform-visual-grid,
   .platform-dashboard-summary,
   .platform-dashboard-panels,
   .platform-dashboard-strip,
-  .platform-checks {
+  .platform-checks,
+  .value-grid,
+  .capabilities-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -739,14 +820,19 @@ a {
   .access-card p,
   .platform-copy p,
   .platform-panel p,
-  .platform-mobile-card p {
+  .platform-mobile-card p,
+  .value-copy p,
+  .capability-card p,
+  .value-card p {
     font-size: 0.95rem;
   }
 
   .scenario-card,
   .access-card,
   .platform-panel,
-  .platform-mobile-card {
+  .platform-mobile-card,
+  .value-card,
+  .capability-card {
     padding: 20px;
   }
 
