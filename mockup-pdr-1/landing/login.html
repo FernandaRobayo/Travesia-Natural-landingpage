@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | Multi tour</title>
+    <title>Login | Universal Tour Operator Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,91 +16,69 @@
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
     <main id="contenido" class="login-shell">
-      <section class="login-visual-panel" aria-labelledby="login-visual-title">
+      <section class="login-visual-panel" aria-label="Presentación del producto">
         <div class="login-visual-overlay"></div>
         <div class="login-visual-content">
-          <a class="secondary-link" href="index.html" data-route="home">Volver al inicio</a>
-
+          <h1 data-copy="brandName">Universal Tour Operator Platform</h1>
           <div class="login-visual-copy">
-            <h1 data-copy="brandName">Multitour</h1>
-            <h2 id="login-visual-title" data-copy="loginHeroTitle">
-              Una misma base para vender, operar y administrar experiencias.
-            </h2>
-            <p data-copy="loginHeroBody">
-              Plataforma compartida con identidad configurable por operador turistico.
-            </p>
-          </div>
-
-          <div class="notice-banner">
-            Accede al entorno de demostracion para revisar el flujo de ingreso del producto.
+            <h2 data-copy="loginHeroTitle">Una misma base para vender, operar y administrar experiencias.</h2>
+            <p data-copy="loginHeroBody">Core compartido con identidad configurable por operador turístico.</p>
           </div>
         </div>
       </section>
 
-      <section class="login-form-panel">
+      <section class="login-form-panel" aria-labelledby="login-title">
         <div class="login-card">
-          <div class="mini-brand">
-            <div class="mini-brand-copy">
-              <h1 data-copy="brandName">Multitour</h1>
-              <p>Acceso seguro y consistente para clientes y operacion.</p>
-            </div>
-          </div>
-
-          <h2 data-copy="loginTitle">Iniciar sesion</h2>
+          <h2 id="login-title" data-copy="loginTitle">Iniciar sesión</h2>
           <p class="login-subtitle" data-copy="loginSubtitle">Accede al entorno operativo del sistema.</p>
 
           <div class="login-tabs" aria-label="Tipos de acceso">
             <button class="login-tab is-active" type="button" data-copy="loginTabOne">Acceso cliente</button>
-            <button class="login-tab" type="button" data-copy="loginTabTwo">Staff / operacion</button>
+            <button class="login-tab" type="button" data-copy="loginTabTwo">Staff / operación</button>
           </div>
 
           <form class="login-form" data-form="login" novalidate>
             <div class="login-field">
-              <label for="login-id" data-copy="loginEmailLabel">Correo electronico</label>
+              <label for="login-id" data-copy="loginEmailLabel">Correo electrónico</label>
               <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">@</span>
                 <input
                   id="login-id"
-                  name="email"
+                  name="login-id"
                   type="email"
                   autocomplete="email"
-                  placeholder="nombre@correo.com"
+                  placeholder="ejemplo@correo.com"
+                  required
                 />
               </div>
             </div>
 
             <div class="login-field">
-              <div class="field-head">
-                <label for="login-password" data-copy="loginPasswordLabel">Contrasena</label>
-                <button class="text-button" type="button" data-toggle="#login-password">Mostrar</button>
-              </div>
+              <label for="login-password" data-copy="loginPasswordLabel">Contraseña</label>
               <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">*</span>
                 <input
                   id="login-password"
-                  name="password"
+                  name="login-password"
                   type="password"
                   autocomplete="current-password"
-                  placeholder="Ingresa tu contrasena"
+                  placeholder="........"
+                  required
                 />
               </div>
             </div>
 
             <div class="login-links">
-              <a class="login-forgot-link" href="#soporte" data-copy="loginForgotLink">Olvidaste tu contrasena?</a>
+              <a class="login-forgot-link" href="#" data-copy="loginForgotLink">¿Olvidaste tu contraseña?</a>
             </div>
-
-            <p class="feedback" data-feedback="login" aria-live="polite"></p>
 
             <button class="login-submit" type="submit">
               <span data-copy="loginSubmit">Ingresar</span>
               <span aria-hidden="true">&rarr;</span>
             </button>
-          </form>
 
-          <p id="soporte" class="support-note">
-            Si olvidaste tus credenciales, este prototipo muestra el acceso principal y la validacion basica del formulario.
-          </p>
+            <p class="feedback" data-feedback="login" aria-live="polite"></p>
+          </form>
         </div>
       </section>
     </main>

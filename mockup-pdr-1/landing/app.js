@@ -1,70 +1,47 @@
 const THEMES = {
   platform: {
-    titlePrefix: "Multitour",
+    titlePrefix: "Universal Tour Operator Platform",
     copy: {
-      brandName: "Multitour",
-      navProduct: "Producto",
-      navCapabilities: "Capacidades",
-      navHowItWorks: "Cómo funciona",
-      navScenarios: "Escenarios",
-      navAccess: "Acceder",
-      topbarCta: "Ver plataforma",
-      heroEyebrow: "Plataforma configurable para operadores turísticos",
-      heroTitle:
-        "Opera, organiza y presenta tu negocio turístico desde una base común y adaptable.",
-      heroBody:
-        "Multitour permite a cada operador gestionar su operación, identidad visual y experiencia digital sobre una plataforma compartida, consistente y lista para configurarse.",
-      heroPrimaryCta: "Ver plataforma",
-      heroSecondaryCta: "Ver escenario personalizado",
-      heroSupportTitle: "Una base común para distintos operadores",
-      heroSupportBody:
-        "La plataforma mantiene una experiencia consistente y permite que cada empresa configure su identidad, contenido y operación sin tener que rediseñar el producto.",
-      previewSidebarLabel: "Plataforma base",
-      previewKicker: "Vista del producto",
-      previewTitle: "Software preparado para vender, operar y administrar.",
-      previewBadge: "Base común",
-      previewMobileTitle: "Experiencia consistente para cada operador",
-      previewMobileBody:
-        "La misma estructura se adapta a la identidad visual de cada empresa.",
+      brandName: "Universal Tour Operator Platform",
+      topbarCta: "Entrar al sistema",
+      experienceEyebrow: "CANAL CLIENTE",
+      experienceTitle: "Experiencias configurables para cada operador.",
+      experienceBody:
+        "La misma base permite presentar destinos, experiencias y contenido comercial con identidad propia para cada marca turística.",
+      experienceCta: "Explorar experiencia",
+      operationsEyebrow: "CANAL INTERNO",
+      operationsTitle: "Operación clara, estable y reutilizable.",
+      operationsBody:
+        "La capa interna prioriza productividad, estados operativos y control del negocio sin depender del branding promocional de la marca.",
+      staffButton: "Acceso staff",
+      indexButton: "Índice",
+      statusTitle: "OPERACIÓN ACTIVA",
+      statusItemOne: "Reservas de temporada",
+      statusTagOne: "Estable",
+      statusItemTwo: "Inventario operativo",
+      statusTagTwo: "Revisión",
+      footerNote: "© 2026 Plataforma base para operadores turísticos",
+      footerLinkOne: "Capacidades",
+      footerLinkTwo: "Seguridad",
+      footerLinkThree: "Privacidad",
+      footerLinkFour: "Contacto",
       mockupIndexTitle: "Índice del mockup",
       mockupIndexBody:
-        "Vista resumida de las pantallas disponibles para revisar la misma arquitectura como plataforma base o experiencia personalizada.",
-      mockupIndexCta: "Abrir home",
+        "Vista resumida de las pantallas disponibles para revisar la misma arquitectura en modo plataforma o marca configurada.",
+      mockupIndexCta: "Abrir inicio",
       mockupNotice:
-        "Prototipo visual para revisar navegación, consistencia visual y adaptabilidad del producto.",
+        "Prototipo visual para revisar navegación, theming y consistencia de componentes core.",
       mockupSectionTitle: "01 - Pantallas principales",
-      mockupCardOneTitle: "Home",
+      mockupCardOneTitle: "Inicio",
       mockupCardOneBody:
-        "Pantalla principal para explorar la oferta del operador",
+        "Pantalla de entrada con canal cliente y canal interno",
       mockupCardTwoTitle: "Login",
       mockupCardTwoBody:
-        "Acceso al sistema con la misma estructura funcional del producto",
-      clientNavOne: "Experiencias",
-      clientNavTwo: "Hospedaje",
-      clientNavThree: "Descuentos",
-      clientNavFour: "Mis reservas",
-      clientNavFive: "Ingresar",
-      clientBusinessLink: "¿Eres una empresa?",
-      clientHeroTitle: "Descubre experiencias para tu próxima aventura",
-      clientHeroBody:
-        "Explora experiencias ofrecidas por operadores turísticos en Multitour.",
-      clientSearchLabel: "Buscar / explorar",
-      clientSearchPlaceholder: "Busca experiencias o destinos",
-      clientSearchButton: "Explorar",
-      featuredTitle: "Experiencias destacadas",
-      featuredLink: "Ver todas las experiencias →",
-      experienceCardTag: "Experiencia",
-      experienceCardOneTitle: "Nombre de experiencia",
-      experienceCardOneOperator: "Operado por Travesía Natural",
-      experienceCardOneBody: "Consulta disponibilidad, detalles y opciones.",
-      experienceCardTwoTitle: "Nombre de experiencia",
-      experienceCardTwoOperator: "Operado por Huila Adventure",
-      experienceCardTwoBody: "Consulta disponibilidad, detalles y opciones.",
-      experienceCardCta: "Ver experiencia",
+        "Acceso al sistema con la misma estructura y distinto theme",
       loginHeroTitle:
         "Una misma base para vender, operar y administrar experiencias.",
       loginHeroBody:
-        "Plataforma compartida con identidad configurable por operador turístico.",
+        "Core compartido con identidad configurable por operador turístico.",
       loginTitle: "Iniciar sesión",
       loginSubtitle: "Accede al entorno operativo del sistema.",
       loginTabOne: "Acceso cliente",
@@ -82,73 +59,50 @@ const THEMES = {
         "Recuperación simulada. El enlace se enviaría al correo asociado a la cuenta.",
     },
     titles: {
-      inicio: "Home | Multitour",
-      index: "Índice del Mockup | Multitour",
-      login: "Login | Multitour",
+      inicio: "Inicio | Universal Tour Operator Platform",
+      index: "Índice del Mockup | Universal Tour Operator Platform",
+      login: "Login | Universal Tour Operator Platform",
     },
   },
   "travesia-natural": {
     titlePrefix: "Travesía Natural",
     copy: {
       brandName: "Travesía Natural",
-      navProduct: "Producto",
-      navCapabilities: "Capacidades",
-      navHowItWorks: "Cómo funciona",
-      navScenarios: "Escenarios",
-      navAccess: "Acceder",
-      topbarCta: "Ver plataforma base",
-      heroEyebrow: "Configuración personalizada para un operador turístico",
-      heroTitle:
-        "La misma plataforma, adaptada a la identidad de Travesía Natural.",
-      heroBody:
-        "Travesía Natural aplica su identidad visual y comercial sobre la misma estructura funcional de Multitour, sin cambiar la base operativa del producto.",
-      heroPrimaryCta: "Ver plataforma base",
-      heroSecondaryCta: "Volver al escenario base",
-      heroSupportTitle: "Una configuración sobre la misma estructura compartida",
-      heroSupportBody:
-        "La experiencia mantiene componentes, navegación y lógica funcional, mientras la identidad visual y el contenido se adaptan a la marca del operador.",
-      previewSidebarLabel: "Instancia personalizada",
-      previewKicker: "Vista configurada",
-      previewTitle: "La plataforma se ajusta a la identidad comercial del operador.",
-      previewBadge: "Travesía Natural",
-      previewMobileTitle: "Experiencia de marca sobre la misma base funcional",
-      previewMobileBody:
-        "La plataforma conserva su estructura y aplica una identidad visual propia.",
+      topbarCta: "Entrar al sistema",
+      experienceEyebrow: "EXPLORADOR",
+      experienceTitle: "Vive la experiencia.",
+      experienceBody:
+        "Sumérgete en el corazón del ecosistema. Diseña tu viaje, conecta con la comunidad y descubre refugios naturales intactos.",
+      experienceCta: "Comienza tu aventura",
+      operationsEyebrow: "OPERADOR BASE",
+      operationsTitle: "Gestiona la operación.",
+      operationsBody:
+        "Control total del ecosistema logístico. Monitorea recursos, gestiona inventarios y asegura el flujo continuo de las expediciones.",
+      staffButton: "Acceso staff",
+      indexButton: "Índice",
+      statusTitle: "LOGÍSTICA ACTIVA",
+      statusItemOne: "Expedición A",
+      statusTagOne: "En ruta",
+      statusItemTwo: "Inventario Base Sur",
+      statusTagTwo: "Revisión",
+      footerNote: "© 2026 Travesía Natural - Expedición natural premium",
+      footerLinkOne: "Sostenibilidad",
+      footerLinkTwo: "Términos",
+      footerLinkThree: "Privacidad",
+      footerLinkFour: "Contacto",
       mockupIndexTitle: "Índice del mockup",
       mockupIndexBody:
         "Vista resumida de las pantallas principales del sistema configurado para Travesía Natural.",
-      mockupIndexCta: "Abrir home",
+      mockupIndexCta: "Abrir inicio",
       mockupNotice:
         "Prototipo visual del tenant Travesía Natural sobre la misma base funcional del producto.",
       mockupSectionTitle: "01 - Pantallas principales",
-      mockupCardOneTitle: "Home",
+      mockupCardOneTitle: "Inicio",
       mockupCardOneBody:
-        "Pantalla principal para explorar la oferta configurada del operador",
+        "Pantalla principal de exploración y operación del sistema",
       mockupCardTwoTitle: "Login",
       mockupCardTwoBody:
         "Acceso principal al ecosistema de Travesía Natural",
-      clientNavOne: "Experiencias",
-      clientNavTwo: "Hospedaje",
-      clientNavThree: "Descuentos",
-      clientNavFour: "Mis reservas",
-      clientNavFive: "Ingresar",
-      clientBusinessLink: "¿Eres una empresa?",
-      clientHeroTitle: "Descubre experiencias para tu próxima aventura",
-      clientHeroBody:
-        "Explora experiencias ofrecidas por operadores turísticos en Multitour.",
-      clientSearchLabel: "Buscar / explorar",
-      clientSearchPlaceholder: "Busca experiencias o destinos",
-      clientSearchButton: "Explorar",
-      featuredTitle: "Experiencias destacadas",
-      featuredLink: "Ver todas las experiencias →",
-      experienceCardTag: "Experiencia",
-      experienceCardOneTitle: "Nombre de experiencia",
-      experienceCardOneOperator: "Operado por Travesía Natural",
-      experienceCardOneBody: "Consulta disponibilidad, detalles y opciones.",
-      experienceCardTwoTitle: "Nombre de experiencia",
-      experienceCardTwoOperator: "Operado por Huila Adventure",
-      experienceCardTwoBody: "Consulta disponibilidad, detalles y opciones.",
-      experienceCardCta: "Ver experiencia",
       loginHeroTitle:
         "El puente entre la exploración salvaje y la gestión precisa.",
       loginHeroBody: "Plataforma integral para ecosistemas vivos.",
@@ -170,7 +124,7 @@ const THEMES = {
         "Recuperación simulada. El enlace se enviaría al correo asociado a la cuenta.",
     },
     titles: {
-      inicio: "Home | Travesía Natural",
+      inicio: "Inicio | Travesía Natural",
       index: "Índice del Mockup | Travesía Natural",
       login: "Login | Travesía Natural",
     },
@@ -195,14 +149,6 @@ function applyCopy(themeConfig) {
       node.textContent = value;
     }
   });
-
-  document.querySelectorAll("[data-copy-placeholder]").forEach((node) => {
-    const key = node.dataset.copyPlaceholder;
-    const value = themeConfig.copy[key];
-    if (value) {
-      node.setAttribute("placeholder", value);
-    }
-  });
 }
 
 function applyRoutes(theme) {
@@ -221,15 +167,6 @@ function applyRoutes(theme) {
   });
 }
 
-function applyThemeRoutes(theme) {
-  document.querySelectorAll("[data-theme-route]").forEach((node) => {
-    if (node.dataset.themeRoute !== "alternate") return;
-
-    const alternateTheme = theme === "platform" ? "travesia-natural" : "platform";
-    node.setAttribute("href", withTheme("index.html", alternateTheme));
-  });
-}
-
 function applyTheme() {
   const theme = getTheme();
   const themeConfig = THEMES[theme];
@@ -240,7 +177,6 @@ function applyTheme() {
 
   applyCopy(themeConfig);
   applyRoutes(theme);
-  applyThemeRoutes(theme);
 }
 
 function setFeedback(key, message, type) {
