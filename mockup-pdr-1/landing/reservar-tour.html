@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservar tour | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-8" />
+  </head>
+  <body data-screen="tour-booking" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-booking-page">
+      <header class="travel-profile-topbar">
+        <a class="travel-tours-back" href="detalle-tour.html" data-tour-booking-back>
+          <span aria-hidden="true">&larr;</span>
+          <span>Volver al tour</span>
+        </a>
+        <h1>Seleccionar fecha y viajeros</h1>
+        <div class="travel-profile-topbar-spacer"></div>
+      </header>
+
+      <section class="travel-booking-content">
+        <article class="travel-booking-card">
+          <div class="travel-booking-card-head">
+            <div>
+              <h2 data-booking-tour-name>Tour destino ejemplo - montanas</h2>
+              <p data-booking-tour-category>Naturaleza y trekking</p>
+            </div>
+            <span class="travel-booking-price-tag" data-booking-tour-price>Desde $1.299.000</span>
+          </div>
+
+          <div class="travel-booking-calendar">
+            <div class="travel-booking-calendar-head">
+              <div class="travel-booking-calendar-title-wrap">
+                <strong data-booking-month-label>Septiembre 2026</strong>
+                <span>Fechas disponibles</span>
+              </div>
+
+              <div class="travel-booking-calendar-nav">
+                <button type="button" data-booking-month-nav="prev" aria-label="Mes anterior">&lsaquo;</button>
+                <button type="button" data-booking-month-nav="next" aria-label="Mes siguiente">&rsaquo;</button>
+              </div>
+            </div>
+
+            <div class="travel-booking-weekdays" aria-hidden="true">
+              <span>D</span>
+              <span>L</span>
+              <span>M</span>
+              <span>M</span>
+              <span>J</span>
+              <span>V</span>
+              <span>S</span>
+            </div>
+
+            <div class="travel-booking-days" data-booking-days></div>
+          </div>
+        </article>
+
+        <article class="travel-booking-note-card">
+          <strong>Politicas de reserva</strong>
+          <p>Cancelacion sin costo hasta 24 horas antes. Confirmacion inmediata en esta demo.</p>
+        </article>
+
+        <article class="travel-booking-card">
+          <div class="travel-booking-card-head travel-booking-card-head-simple">
+            <strong>Viajeros</strong>
+          </div>
+
+          <div class="travel-booking-guest-row">
+            <div>
+              <strong>Adultos</strong>
+              <span>Edad 13+</span>
+            </div>
+            <div class="travel-booking-counter" data-counter="adults">
+              <button type="button" data-counter-action="decrease">-</button>
+              <strong data-counter-value>2</strong>
+              <button type="button" data-counter-action="increase">+</button>
+            </div>
+          </div>
+
+          <div class="travel-booking-guest-row">
+            <div>
+              <strong>Ninos</strong>
+              <span>Edad 0-12</span>
+            </div>
+            <div class="travel-booking-counter" data-counter="children">
+              <button type="button" data-counter-action="decrease">-</button>
+              <strong data-counter-value>0</strong>
+              <button type="button" data-counter-action="increase">+</button>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <aside class="travel-booking-sticky-bar">
+      <div class="travel-booking-sticky-pricing">
+        <div>
+          <span>Precio por persona</span>
+          <strong data-booking-unit-price>$1.299.000</strong>
+        </div>
+        <div>
+          <span>Total estimado</span>
+          <strong data-booking-total-price>$2.598.000</strong>
+        </div>
+      </div>
+
+      <div class="travel-booking-sticky-selection">
+        <span>Seleccionado</span>
+        <strong data-booking-selection>09 Sep 2026 - 2 viajeros</strong>
+      </div>
+
+      <button type="button" class="travel-booking-continue" data-booking-continue>
+        Continuar reserva
+      </button>
+    </aside>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pago por transferencia | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-13" />
+  </head>
+  <body data-screen="tour-payment-transfer" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-booking-page travel-transfer-page">
+      <header class="travel-profile-topbar">
+        <a class="travel-tours-back" href="finalizar-reserva.html" data-transfer-back>
+          <span aria-hidden="true">&larr;</span>
+          <span>Volver a pago</span>
+        </a>
+        <h1>Instrucciones de pago</h1>
+        <div class="travel-profile-topbar-spacer"></div>
+      </header>
+
+      <section class="travel-checkout-content">
+        <div class="travel-transfer-heading">
+          <h2>Pago por transferencia</h2>
+        </div>
+
+        <article class="travel-transfer-alert">
+          <strong>Reserva pendiente</strong>
+          <p>
+            Tu reserva esta pendiente. Realiza la transferencia bancaria y sube
+            el comprobante para confirmar tu pago. Esta validacion requiere
+            revision manual en el mockup.
+          </p>
+        </article>
+
+        <article class="travel-booking-card travel-transfer-total-card">
+          <span>Total a pagar</span>
+          <strong data-transfer-total>$2.806.000</strong>
+        </article>
+
+        <article class="travel-booking-card">
+          <div class="travel-checkout-section-title">
+            <h2>Datos bancarios</h2>
+          </div>
+
+          <div class="travel-transfer-bank-grid">
+            <div>
+              <span>Banco</span>
+              <strong>Banco de Occidente</strong>
+            </div>
+            <div>
+              <span>Tipo de cuenta</span>
+              <strong>Corriente</strong>
+            </div>
+            <div class="travel-transfer-account-row">
+              <span>Numero de cuenta</span>
+              <strong>1234-5678-9012-3456</strong>
+            </div>
+            <div>
+              <span>Titular</span>
+              <strong>Multitour Operaciones S.A.S.</strong>
+            </div>
+            <div>
+              <span>NIT</span>
+              <strong>900.123.456-7</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="travel-booking-card travel-transfer-reference-card">
+          <div class="travel-checkout-section-title">
+            <h2>Referencia de pago</h2>
+          </div>
+
+          <p class="travel-transfer-reference-copy">
+            Incluye este codigo en la descripcion de la transferencia para
+            identificar tu pago.
+          </p>
+
+          <div class="travel-transfer-reference-pill">
+            <strong data-transfer-code>#RES-000000</strong>
+          </div>
+        </article>
+
+        <div class="travel-payment-success-actions">
+          <button type="button" class="travel-booking-continue" data-transfer-upload>
+            Subir comprobante
+          </button>
+          <a class="travel-payment-secondary" href="index.html" data-route="home">
+            Volver al inicio
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

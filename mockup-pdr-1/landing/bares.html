@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bares | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-17" />
+  </head>
+  <body data-screen="bars" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-tours-shell">
+      <header class="travel-tours-header">
+        <a class="travel-tours-brand" href="index.html" data-route="home">[Tu Marca]</a>
+
+        <nav class="travel-tours-nav" aria-label="Navegacion principal del cliente">
+          <a href="tours.html" data-route="tours">Explorar</a>
+          <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+          <a class="is-active" href="gastronomia.html" data-route="gastronomy">Gastronomia</a>
+          <a href="panel-cliente.html" data-route="dashboard">Reservas</a>
+          <a href="profile.html" data-route="profile">Perfil</a>
+        </nav>
+      </header>
+
+      <section class="travel-tours-topbar">
+        <a class="travel-tours-back" href="gastronomia.html" data-route="gastronomy">
+          <span aria-hidden="true">&larr;</span>
+          <span>Volver a gastronomia</span>
+        </a>
+
+        <p class="travel-detail-screen-title">Bar Catalog</p>
+
+        <div class="travel-tours-search-row">
+          <input type="search" placeholder="Buscar bares..." data-catalog-search />
+          <button type="button" data-catalog-search-button>Buscar</button>
+        </div>
+
+        <div class="travel-catalog-filter-row" aria-label="Filtros de bares">
+          <a href="gastronomia.html" data-route="gastronomy">Todos</a>
+          <a href="restaurantes.html" data-route="restaurants">Restaurantes</a>
+          <a href="bares.html" data-route="bars" class="is-active">Bares</a>
+          <a href="cafeterias.html" data-route="cafes">Cafeterias</a>
+        </div>
+      </section>
+
+      <section class="travel-restaurant-grid" aria-label="Catalogo de bares">
+        <article class="travel-tour-card" data-search-card data-search-terms="the speakeasy roma norte cdmx mixologia cocktail bar bar">
+          <div class="travel-tour-media bar-media-one">
+            <span class="travel-tour-rating">&#9733; 4.8</span>
+          </div>
+          <div class="travel-tour-body">
+            <strong>The Speakeasy</strong>
+            <span class="travel-tour-location">Roma Norte, CDMX</span>
+            <div class="travel-catalog-tags">
+              <span>Mixologia</span>
+              <span>$68.000</span>
+            </div>
+            <div class="travel-tour-meta">
+              <div></div>
+              <a class="travel-tour-detail-link" href="detalle-gastronomia.html" data-venue-link="speakeasy">
+                Ver detalles
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="travel-tour-card" data-search-card data-search-terms="rooftop lounge polanco cdmx terraza rooftop bar">
+          <div class="travel-tour-media bar-media-two">
+            <span class="travel-tour-rating">&#9733; 4.6</span>
+          </div>
+          <div class="travel-tour-body">
+            <strong>Rooftop Lounge</strong>
+            <span class="travel-tour-location">Polanco, CDMX</span>
+            <div class="travel-catalog-tags">
+              <span>Terraza</span>
+              <span>$95.000</span>
+            </div>
+            <div class="travel-tour-meta">
+              <div></div>
+              <a class="travel-tour-detail-link" href="detalle-gastronomia.html" data-venue-link="rooftop">
+                Ver detalles
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="travel-tour-card" data-search-card data-search-terms="lupulo club juarez cdmx craft beer cerveza bar">
+          <div class="travel-tour-media bar-media-three">
+            <span class="travel-tour-rating">&#9733; 4.7</span>
+          </div>
+          <div class="travel-tour-body">
+            <strong>Lupulo Club</strong>
+            <span class="travel-tour-location">Juarez, CDMX</span>
+            <div class="travel-catalog-tags">
+              <span>Craft beer</span>
+              <span>$49.000</span>
+            </div>
+            <div class="travel-tour-meta">
+              <div></div>
+              <a class="travel-tour-detail-link" href="detalle-gastronomia.html" data-venue-link="lupulo">
+                Ver detalles
+              </a>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js?v=20260828-18"></script>
+  </body>
+</html>

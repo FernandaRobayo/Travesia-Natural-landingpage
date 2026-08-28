@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finalizar reserva | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-13" />
+  </head>
+  <body data-screen="tour-checkout" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-booking-page travel-checkout-page">
+      <header class="travel-profile-topbar">
+        <a class="travel-tours-back" href="reservar-tour.html" data-tour-checkout-back>
+          <span aria-hidden="true">&larr;</span>
+          <span>Volver a fecha y viajeros</span>
+        </a>
+        <h1>Finalizar reserva</h1>
+        <div class="travel-profile-topbar-spacer"></div>
+      </header>
+
+      <section class="travel-checkout-content">
+        <div class="travel-checkout-secure-pill">Pago 100% seguro</div>
+
+        <article class="travel-booking-card">
+          <div class="travel-checkout-section-title">
+            <h2>Resumen de reserva</h2>
+          </div>
+
+          <div class="travel-checkout-summary">
+            <div class="travel-checkout-summary-media" data-checkout-image></div>
+
+            <div class="travel-checkout-summary-copy">
+              <strong data-checkout-tour-name>Tour destino ejemplo</strong>
+              <span data-checkout-date>09 Sep 2026</span>
+              <span data-checkout-guests>2 viajeros</span>
+            </div>
+          </div>
+
+          <div class="travel-checkout-pricing">
+            <div>
+              <span data-checkout-subtotal-label>Precio base x2</span>
+              <strong data-checkout-subtotal>$2.598.000</strong>
+            </div>
+            <div>
+              <span>Impuestos y seguro</span>
+              <strong data-checkout-taxes>$208.000</strong>
+            </div>
+            <div class="travel-checkout-pricing-total">
+              <span>Total a pagar</span>
+              <strong data-checkout-total>$2.806.000</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="travel-booking-card">
+          <div class="travel-checkout-section-title">
+            <h2>Metodo de pago</h2>
+          </div>
+
+          <div class="travel-checkout-payment-list">
+            <label class="travel-checkout-payment-option is-active" data-payment-option>
+              <input type="radio" name="payment-method" value="card" checked />
+              <div>
+                <strong>Tarjeta credito o debito</strong>
+                <span>Paga en linea de forma inmediata.</span>
+              </div>
+            </label>
+
+            <div class="travel-checkout-card-fields">
+              <input type="text" placeholder="0000 0000 0000 0000" data-card-number />
+              <div class="travel-checkout-card-grid">
+                <input type="text" placeholder="MM/AA" />
+                <input type="text" placeholder="CVV" />
+              </div>
+            </div>
+
+            <label class="travel-checkout-payment-option" data-payment-option>
+              <input type="radio" name="payment-method" value="bank" />
+              <div>
+                <strong>Transferencia bancaria</strong>
+                <span>Te compartimos instrucciones despues de confirmar.</span>
+              </div>
+            </label>
+
+            <label class="travel-checkout-payment-option" data-payment-option>
+              <input type="radio" name="payment-method" value="support" />
+              <div>
+                <strong>Asistencia comercial</strong>
+                <span>Un asesor continua el cierre contigo.</span>
+              </div>
+            </label>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <aside class="travel-booking-sticky-bar">
+      <div class="travel-booking-sticky-pricing">
+        <div>
+          <span>Reserva</span>
+          <strong data-checkout-code>Borrador</strong>
+        </div>
+        <div>
+          <span>Total</span>
+          <strong data-checkout-total-sticky>$2.806.000</strong>
+        </div>
+      </div>
+
+      <div class="travel-booking-sticky-selection">
+        <span>Seleccionado</span>
+        <strong data-checkout-selection>09 Sep 2026 - 2 viajeros</strong>
+      </div>
+
+      <button type="button" class="travel-booking-continue" data-checkout-pay>
+        Pagar ahora
+      </button>
+    </aside>
+
+    <script src="app.js"></script>
+  </body>
+</html>

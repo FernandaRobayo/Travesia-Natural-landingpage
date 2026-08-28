@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pago fallido | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-11" />
+  </head>
+  <body data-screen="tour-payment-failed" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-booking-page travel-payment-page">
+      <section class="travel-payment-success-shell">
+        <article class="travel-payment-success-card travel-payment-failed-card">
+          <div class="travel-payment-success-icon travel-payment-failed-icon" aria-hidden="true">!</div>
+
+          <div class="travel-payment-success-copy">
+            <h1>Pago fallido</h1>
+            <p>
+              Lo sentimos, no pudimos procesar tu pago. Tu tarjeta no cuenta con
+              fondos suficientes para completar la transaccion en esta demo.
+            </p>
+          </div>
+
+          <div class="travel-payment-success-summary">
+            <div class="travel-payment-success-media" data-failed-image></div>
+
+            <div class="travel-payment-success-details">
+              <strong data-failed-tour-name>Tour destino ejemplo</strong>
+              <span data-failed-date>09 Sep 2026</span>
+              <span data-failed-travelers>2 viajeros</span>
+            </div>
+          </div>
+
+          <div class="travel-payment-success-ref">
+            <span>Estado:</span>
+            <strong>Fallido</strong>
+          </div>
+
+          <div class="travel-payment-success-ref">
+            <span>Total:</span>
+            <strong data-failed-total>$2.806.000</strong>
+          </div>
+
+          <div class="travel-payment-success-actions">
+            <a class="travel-booking-continue" href="finalizar-reserva.html" data-failed-retry>
+              Reintentar pago
+            </a>
+            <a class="travel-payment-secondary" href="finalizar-reserva.html" data-failed-change-method>
+              Cambiar metodo de pago
+            </a>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

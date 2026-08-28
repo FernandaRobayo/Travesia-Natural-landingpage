@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260826-3" />
+    <link rel="stylesheet" href="main.css?v=20260828-12" />
   </head>
   <body data-screen="client-dashboard" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -21,7 +21,7 @@
 
         <div class="travel-dashboard-header-actions">
           <a class="travel-dashboard-header-link" href="tours.html" data-route="tours">Ver catalogo</a>
-          <a class="travel-dashboard-avatar" href="login.html" data-route="login" aria-label="Perfil del usuario">
+          <a class="travel-dashboard-avatar" href="profile.html" data-route="profile" aria-label="Perfil del usuario" data-user-avatar>
             FN
           </a>
         </div>
@@ -30,7 +30,7 @@
       <section class="travel-dashboard-hero" aria-labelledby="dashboard-title">
         <div class="travel-dashboard-copy">
           <p class="travel-dashboard-eyebrow">Portal cliente</p>
-          <h1 id="dashboard-title">Hola, Fernanda</h1>
+          <h1 id="dashboard-title" data-user-greeting>Hola, Fernanda</h1>
           <p>
             Consulta tu oferta activa, revisa reservas y continua la gestion de
             tus proximos viajes desde un solo lugar.
@@ -49,10 +49,9 @@
           </div>
 
           <div class="travel-dashboard-filter-row" aria-label="Filtros rapidos">
-            <button type="button">Gastronomia</button>
+            <a href="gastronomia.html" data-route="gastronomy">Gastronomia</a>
             <a href="tours.html" data-route="tours">Tours</a>
             <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
-            <button type="button">Fechas</button>
           </div>
         </div>
       </section>
@@ -110,50 +109,37 @@
       <section class="travel-dashboard-section" aria-labelledby="mis-reservas">
         <div class="travel-dashboard-section-head travel-dashboard-section-head-split">
           <h2 id="mis-reservas">Mis reservas</h2>
-          <span>Estado de reservas</span>
+          <span>Crear y revisar reserva</span>
         </div>
 
-        <article class="travel-dashboard-reservation-card">
-          <div class="travel-dashboard-reservation-main">
-            <div class="travel-dashboard-reservation-copy">
-              <strong>Tour destino ejemplo</strong>
-              <p>15 Oct - 20 Oct</p>
-              <small>Reserva: #RES-12345</small>
+        <div class="travel-dashboard-reservation-grid">
+          <article class="travel-dashboard-reservation-card" data-booking-result>
+            <div class="travel-dashboard-reservation-main">
+              <div class="travel-dashboard-reservation-copy">
+                <strong data-booking-experience>Sin reserva guardada</strong>
+                <p data-booking-dates>Completa el formulario para ver la reserva aqui.</p>
+                <small data-booking-code>Reserva: pendiente</small>
+              </div>
+
+              <div class="travel-dashboard-reservation-status">
+                <span class="travel-dashboard-status-badge" data-booking-status>Borrador</span>
+                <small data-booking-travelers>Viajeros: 0</small>
+                <small data-booking-saved>Sin guardar</small>
+                <strong data-booking-budget>Presupuesto: $0</strong>
+              </div>
             </div>
 
-            <div class="travel-dashboard-reservation-status">
-              <span class="travel-dashboard-status-badge">Pendiente</span>
-              <small>Total: $1,200.00</small>
-              <small>Descuento: -$240.00</small>
-              <strong>Saldo pendiente: $960.00</strong>
+            <div class="travel-dashboard-reservation-note" data-booking-note>
+              La informacion se guardara localmente en el navegador para esta demo.
             </div>
-          </div>
 
-          <div class="travel-dashboard-reservation-actions">
-            <button type="button" class="travel-dashboard-primary-action">Pagar ahora</button>
-            <button type="button">Subir soporte</button>
-            <button type="button">Gestionar acompanantes</button>
-            <button type="button">Descargar soportes</button>
-          </div>
-        </article>
-      </section>
-
-      <section class="travel-dashboard-section" aria-labelledby="saldo-favor">
-        <article class="travel-dashboard-credit-card">
-          <div class="travel-dashboard-credit-head">
-            <h2 id="saldo-favor">Saldo a favor</h2>
-            <strong>$150.00</strong>
-          </div>
-
-          <div class="travel-dashboard-credit-note">
-            <strong>Informacion especial requerida</strong>
-            <p>
-              Por favor, completa tus requisitos medicos y de emergencia para tu
-              proximo tour.
-            </p>
-            <a href="#">Completar ahora</a>
-          </div>
-        </article>
+            <div class="travel-dashboard-reservation-actions">
+              <a class="travel-dashboard-primary-action" href="acompanantes.html" data-route="companions">
+                Llenar acompanantes
+              </a>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section class="travel-dashboard-section" aria-labelledby="recomendados">
@@ -169,7 +155,7 @@
               <span>3 dias / 2 noches</span>
               <div class="travel-dashboard-destination-meta">
                 <small>Desde</small>
-                <em>$299</em>
+                <em>$1.299.000</em>
               </div>
               <a href="tours.html" data-route="tours">Ver detalle</a>
             </div>
@@ -182,7 +168,7 @@
               <span>Full day</span>
               <div class="travel-dashboard-destination-meta">
                 <small>Desde</small>
-                <em>$85</em>
+                <em>$349.000</em>
               </div>
               <a href="tours.html" data-route="tours">Ver detalle</a>
             </div>

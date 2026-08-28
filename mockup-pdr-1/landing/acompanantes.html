@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acompanantes | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-12" />
+  </head>
+  <body data-screen="companions" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-booking-page travel-companions-page">
+      <header class="travel-profile-topbar">
+        <a class="travel-tours-back" href="panel-cliente.html" data-route="dashboard">
+          <span aria-hidden="true">&larr;</span>
+          <span>Volver a mis reservas</span>
+        </a>
+        <h1>Datos de acompanantes</h1>
+        <div class="travel-profile-topbar-spacer"></div>
+      </header>
+
+      <section class="travel-checkout-content">
+        <article class="travel-booking-card">
+          <div class="travel-checkout-section-title">
+            <h2>Reserva activa</h2>
+          </div>
+
+          <div class="travel-companions-summary">
+            <strong data-companions-booking-name>Sin reserva activa</strong>
+            <p data-companions-booking-meta>Guarda una reserva para habilitar este formulario.</p>
+          </div>
+        </article>
+
+        <form class="travel-companions-form" data-companions-form>
+          <div class="travel-companions-list" data-companions-list></div>
+
+          <div class="travel-payment-success-actions">
+            <button type="submit" class="travel-booking-continue">Guardar acompanantes</button>
+            <a class="travel-payment-secondary" href="panel-cliente.html" data-route="dashboard">
+              Volver a reservas
+            </a>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

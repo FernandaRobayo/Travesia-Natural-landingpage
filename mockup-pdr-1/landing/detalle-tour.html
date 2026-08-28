@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalle tour | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-7" />
+  </head>
+  <body data-screen="tour-detail" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-detail-shell">
+      <header class="travel-tours-header">
+        <a class="travel-tours-brand" href="index.html" data-route="home">[Tu Marca]</a>
+
+        <nav class="travel-tours-nav" aria-label="Navegacion principal del cliente">
+          <a class="is-active" href="tours.html" data-route="tours">Explorar</a>
+          <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+          <a href="gastronomia.html" data-route="gastronomy">Gastronomia</a>
+          <a href="panel-cliente.html" data-route="dashboard">Reservas</a>
+          <a href="profile.html" data-route="profile">Perfil</a>
+        </nav>
+      </header>
+
+      <section class="travel-detail-topbar">
+        <a class="travel-tours-back" href="tours.html" data-route="tours">
+          <span aria-hidden="true">&larr;</span>
+          <span data-tour-back-label>Volver a tours</span>
+        </a>
+
+        <p class="travel-detail-screen-title" data-tour-field="detailTitle">Tour Details</p>
+      </section>
+
+      <section class="travel-detail-gallery" aria-label="Galeria del tour">
+        <div class="travel-detail-gallery-main" data-tour-image="hero"></div>
+        <div class="travel-detail-gallery-side" data-tour-image="side"></div>
+      </section>
+
+      <section class="travel-detail-intro">
+        <div class="travel-detail-copy">
+          <div class="travel-detail-copy-head">
+            <div>
+              <h1 data-tour-field="name">Tour destino ejemplo - montanas</h1>
+              <p data-tour-field="category">Naturaleza y trekking</p>
+            </div>
+            <span class="travel-detail-rating" data-tour-field="rating">4.8</span>
+          </div>
+
+          <div class="travel-detail-location-row">
+            <span class="travel-detail-location" data-tour-field="location">Sierra alta, ruta panoramica</span>
+          </div>
+
+          <div class="travel-detail-description" data-tour-field="description">
+            Una salida inmersiva para descubrir paisajes abiertos, caminar con guia local y combinar aventura, descanso y momentos de contemplacion en una ruta pensada para viajeros activos.
+          </div>
+        </div>
+      </section>
+
+      <section class="travel-detail-section">
+        <h2>Lo que incluye</h2>
+        <div class="travel-detail-pill-row" data-tour-features></div>
+      </section>
+
+      <section class="travel-detail-section">
+        <div class="travel-detail-menu-head">
+          <h2>Itinerario sugerido</h2>
+          <span data-tour-field="price">Desde $1.299.000</span>
+        </div>
+        <div class="travel-detail-menu-list" data-tour-itinerary></div>
+      </section>
+
+      <section class="travel-detail-section">
+        <article class="travel-detail-review-card">
+          <div class="travel-detail-review-copy">
+            <strong data-tour-field="reviewScore">4.8 *****</strong>
+            <p data-tour-field="reviewCount">Basado en 214 opiniones</p>
+          </div>
+          <a href="#" class="travel-detail-review-link">Ver salidas</a>
+        </article>
+      </section>
+    </main>
+
+    <aside class="travel-detail-sticky-bar">
+      <p data-tour-field="availability">Salidas disponibles este mes</p>
+      <a
+        class="travel-detail-book-button"
+        href="reservar-tour.html?theme=platform&tour=mountains&source=tour-detail"
+        data-tour-booking-link
+      >
+        Reservar tour
+      </a>
+    </aside>
+
+    <script src="app.js"></script>
+  </body>
+</html>

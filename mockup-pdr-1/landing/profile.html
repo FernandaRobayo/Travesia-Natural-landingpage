@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Perfil | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260828-3" />
+  </head>
+  <body data-screen="profile" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-profile-page">
+      <header class="travel-profile-topbar">
+        <a class="travel-tours-back" href="panel-cliente.html" data-route="dashboard">
+          <span aria-hidden="true">&larr;</span>
+          <span>Volver al panel</span>
+        </a>
+        <h1>Cuenta</h1>
+        <div class="travel-profile-topbar-spacer"></div>
+      </header>
+
+      <section class="travel-profile-content">
+        <article class="travel-profile-info-card">
+          <div class="travel-profile-info-head">
+            <h2>Informacion personal</h2>
+          </div>
+
+          <div class="travel-profile-info-grid">
+            <aside class="travel-profile-identity">
+              <div class="travel-profile-photo-wrap">
+                <div class="travel-profile-avatar-large" data-user-avatar-large>FN</div>
+                <span class="travel-profile-badge-dot" aria-hidden="true"></span>
+              </div>
+
+              <strong data-profile-name-card>Fernanda Robayo</strong>
+              <p data-profile-email>correo@ejemplo.com</p>
+            </aside>
+
+            <div class="travel-profile-form-grid">
+              <label class="travel-profile-field-block">
+                <span>Nombre completo</span>
+                <input type="text" readonly data-profile-name-input value="Fernanda Robayo" />
+              </label>
+
+              <label class="travel-profile-field-block">
+                <span>Correo electronico</span>
+                <input type="email" readonly data-profile-email-input value="correo@ejemplo.com" />
+              </label>
+
+              <label class="travel-profile-field-block">
+                <span>Numero de telefono</span>
+                <input type="text" readonly data-profile-phone-input value="+57 300 000 0000" />
+              </label>
+
+              <label class="travel-profile-field-block">
+                <span>Codigo de pais</span>
+                <input type="text" readonly data-profile-country-input value="+57" />
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <section class="travel-profile-stack">
+          <div class="travel-profile-section-headline">
+            <h2>Actividad</h2>
+          </div>
+
+          <div class="travel-profile-list-panel">
+            <article class="travel-profile-list-row">
+              <div class="travel-profile-row-icon">MR</div>
+              <div class="travel-profile-row-copy">
+                <strong>Mis reservas</strong>
+                <span>Historial y proximos viajes</span>
+              </div>
+              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
+            </article>
+
+            <article class="travel-profile-list-row">
+              <div class="travel-profile-row-icon">GU</div>
+              <div class="travel-profile-row-copy">
+                <strong>Guardados</strong>
+                <span>Tours e itinerarios favoritos</span>
+              </div>
+              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
+            </article>
+
+            <article class="travel-profile-list-row">
+              <div class="travel-profile-row-icon">RE</div>
+              <div class="travel-profile-row-copy">
+                <strong>Resenas</strong>
+                <span>Tus opiniones de experiencias</span>
+              </div>
+              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="travel-profile-stack">
+          <div class="travel-profile-section-headline">
+            <h2>Soporte</h2>
+          </div>
+
+          <div class="travel-profile-list-panel">
+            <article class="travel-profile-list-row">
+              <div class="travel-profile-row-icon">CA</div>
+              <div class="travel-profile-row-copy">
+                <strong>Centro de ayuda</strong>
+                <span>Preguntas frecuentes y contacto</span>
+              </div>
+              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
+            </article>
+
+            <article class="travel-profile-list-row">
+              <div class="travel-profile-row-icon">PP</div>
+              <div class="travel-profile-row-copy">
+                <strong>Politica de privacidad</strong>
+              </div>
+              <span class="travel-profile-row-arrow is-external" aria-hidden="true">&#8599;</span>
+            </article>
+
+            <article class="travel-profile-list-row">
+              <div class="travel-profile-row-icon">TC</div>
+              <div class="travel-profile-row-copy">
+                <strong>Terminos y condiciones</strong>
+              </div>
+              <span class="travel-profile-row-arrow is-external" aria-hidden="true">&#8599;</span>
+            </article>
+          </div>
+        </section>
+
+        <div class="travel-profile-footer">
+          <a class="travel-profile-logout" href="login.html" data-route="login">Cerrar sesion</a>
+          <p class="travel-profile-version">Version 2.4.1 (Core System)</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

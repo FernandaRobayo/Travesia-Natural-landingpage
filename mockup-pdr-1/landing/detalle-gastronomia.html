@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalle gastronomico | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260827-1" />
+  </head>
+  <body data-screen="gastronomy-detail" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-detail-shell">
+      <header class="travel-tours-header">
+        <a class="travel-tours-brand" href="index.html" data-route="home">[Tu Marca]</a>
+
+        <nav class="travel-tours-nav" aria-label="Navegacion principal del cliente">
+          <a href="tours.html" data-route="tours">Explorar</a>
+          <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+          <a class="is-active" href="gastronomia.html" data-route="gastronomy">Gastronomia</a>
+          <a href="panel-cliente.html" data-route="dashboard">Reservas</a>
+          <a href="profile.html" data-route="profile">Perfil</a>
+        </nav>
+      </header>
+
+      <section class="travel-detail-topbar">
+        <a class="travel-tours-back" href="gastronomia.html" data-route="gastronomy">
+          <span aria-hidden="true">&larr;</span>
+          <span data-detail-back-label>Volver a gastronomia</span>
+        </a>
+
+        <p class="travel-detail-screen-title" data-venue-field="detailTitle">Restaurant Details</p>
+      </section>
+
+      <section class="travel-detail-gallery" aria-label="Galeria del lugar">
+        <div class="travel-detail-gallery-main" data-venue-image="hero"></div>
+        <div class="travel-detail-gallery-side" data-venue-image="side"></div>
+      </section>
+
+      <section class="travel-detail-intro">
+        <div class="travel-detail-copy">
+          <div class="travel-detail-copy-head">
+            <div>
+              <h1 data-venue-field="name">La Maison Botanica</h1>
+              <p data-venue-field="category">Alta cocina</p>
+            </div>
+            <span class="travel-detail-rating" data-venue-field="rating">4.8</span>
+          </div>
+
+          <div class="travel-detail-location-row">
+            <span class="travel-detail-location" data-venue-field="location">Roma Norte, CDMX</span>
+          </div>
+
+          <div class="travel-detail-description" data-venue-field="description">
+            Una experiencia gastronomica sin precedentes donde la tradicion se encuentra con la
+            vanguardia. Nuestro chef disena menus de temporada con ingredientes locales y una
+            presentacion cuidada para una velada memorable.
+          </div>
+        </div>
+      </section>
+
+      <section class="travel-detail-section">
+        <h2>Caracteristicas</h2>
+        <div class="travel-detail-pill-row" data-venue-features></div>
+      </section>
+
+      <section class="travel-detail-section">
+        <div class="travel-detail-menu-head">
+          <h2>Nuestra carta</h2>
+          <span data-venue-field="price">Precio promedio</span>
+        </div>
+        <div class="travel-detail-menu-list" data-venue-menu></div>
+      </section>
+
+      <section class="travel-detail-section">
+        <article class="travel-detail-review-card">
+          <div class="travel-detail-review-copy">
+            <strong data-venue-field="reviewScore">4.8 ★★★★★</strong>
+            <p data-venue-field="reviewCount">Basado en 342 opiniones</p>
+          </div>
+          <a href="#" class="travel-detail-review-link">Ver todas</a>
+        </article>
+      </section>
+    </main>
+
+    <aside class="travel-detail-sticky-bar">
+      <p>Reserva disponible hoy</p>
+      <button type="button">Reservar mesa</button>
+    </aside>
+
+    <script src="app.js"></script>
+  </body>
+</html>
