@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260828-13" />
+    <link rel="stylesheet" href="main.css?v=20260830-1" />
   </head>
   <body data-screen="tour-checkout" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -66,36 +66,39 @@
 
           <div class="travel-checkout-payment-list">
             <label class="travel-checkout-payment-option is-active" data-payment-option>
-              <input type="radio" name="payment-method" value="card" checked />
+              <input type="radio" name="payment-method" value="bank" checked />
               <div>
-                <strong>Tarjeta credito o debito</strong>
-                <span>Paga en linea de forma inmediata.</span>
-              </div>
-            </label>
-
-            <div class="travel-checkout-card-fields">
-              <input type="text" placeholder="0000 0000 0000 0000" data-card-number />
-              <div class="travel-checkout-card-grid">
-                <input type="text" placeholder="MM/AA" />
-                <input type="text" placeholder="CVV" />
-              </div>
-            </div>
-
-            <label class="travel-checkout-payment-option" data-payment-option>
-              <input type="radio" name="payment-method" value="bank" />
-              <div>
-                <strong>Transferencia bancaria</strong>
-                <span>Te compartimos instrucciones despues de confirmar.</span>
+                <strong>Transferencia</strong>
+                <span>Recibe los datos bancarios y confirma con comprobante.</span>
               </div>
             </label>
 
             <label class="travel-checkout-payment-option" data-payment-option>
-              <input type="radio" name="payment-method" value="support" />
+              <input type="radio" name="payment-method" value="cash" />
               <div>
-                <strong>Asistencia comercial</strong>
-                <span>Un asesor continua el cierre contigo.</span>
+                <strong>Efectivo</strong>
+                <span>Paga directamente con el operador al momento acordado.</span>
               </div>
             </label>
+
+            <label class="travel-checkout-payment-option" data-payment-option>
+              <input type="radio" name="payment-method" value="deposit" />
+              <div>
+                <strong>Abono</strong>
+                <span>Registra un pago parcial y completa el saldo despues.</span>
+              </div>
+            </label>
+          </div>
+        </article>
+
+        <article class="travel-booking-card travel-checkout-help-card">
+          <div class="travel-checkout-section-title">
+            <h2>¿Necesitas ayuda?</h2>
+          </div>
+
+          <div class="travel-checkout-help-copy">
+            <strong>Asistencia comercial</strong>
+            <span>Un asesor puede ayudarte a continuar tu reserva.</span>
           </div>
         </article>
       </section>
@@ -123,6 +126,6 @@
       </button>
     </aside>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=20260829-1"></script>
   </body>
 </html>

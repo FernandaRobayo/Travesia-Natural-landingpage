@@ -1511,8 +1511,7 @@ function setupTourCheckout(theme) {
   if (!payButton) return;
 
   payButton.addEventListener("click", () => {
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "card";
-    const cardNumber = String(document.querySelector("[data-card-number]")?.value || "").replace(/\s+/g, "");
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "bank";
     const finalBooking = {
       experience: booking?.experience || tour.name,
       startDate: booking?.startDate || "09 Sep 2026",
@@ -1525,22 +1524,32 @@ function setupTourCheckout(theme) {
       tourKey,
     };
 
-    if (selectedMethod === "card") {
-      window.localStorage.setItem(successStorageKey, JSON.stringify(finalBooking));
-      window.localStorage.removeItem(checkoutStorageKey);
-      if (!cardNumber || cardNumber.endsWith("0000")) {
-        window.location.href = `${withTheme("pago-fallido.html", theme)}&tour=${encodeURIComponent(tourKey)}`;
-        return;
-      }
-      window.localStorage.setItem(storageKey, JSON.stringify(finalBooking));
-      window.location.href = `${withTheme("pago-exitoso.html", theme)}&tour=${encodeURIComponent(tourKey)}`;
-      return;
-    }
-
     if (selectedMethod === "bank") {
       window.localStorage.setItem(successStorageKey, JSON.stringify(finalBooking));
       window.localStorage.removeItem(checkoutStorageKey);
       window.location.href = `${withTheme("pago-transferencia.html", theme)}&tour=${encodeURIComponent(tourKey)}`;
+      return;
+    }
+
+    if (selectedMethod === "cash") {
+      const cashBooking = {
+        ...finalBooking,
+        status: "Pendiente pago en efectivo",
+      };
+      window.localStorage.setItem(storageKey, JSON.stringify(cashBooking));
+      window.localStorage.removeItem(checkoutStorageKey);
+      window.location.href = withTheme("panel-cliente.html", theme);
+      return;
+    }
+
+    if (selectedMethod === "deposit") {
+      const depositBooking = {
+        ...finalBooking,
+        status: "Pendiente pago de abono",
+      };
+      window.localStorage.setItem(storageKey, JSON.stringify(depositBooking));
+      window.localStorage.removeItem(checkoutStorageKey);
+      window.location.href = withTheme("panel-cliente.html", theme);
       return;
     }
 

@@ -3660,25 +3660,25 @@ body[data-screen="tour-payment-transfer"] {
   box-shadow: 0 0 0 3px rgba(25, 125, 117, 0.08);
 }
 
-.travel-checkout-card-fields {
-  display: grid;
-  gap: 10px;
-  margin-top: -2px;
+.travel-checkout-help-card {
+  background: #f8fbfa;
 }
 
-.travel-checkout-card-fields input {
-  min-height: 48px;
-  padding: 0 14px;
-  border: 1px solid #dce3e0;
-  border-radius: 12px;
-  background: #fffefb;
+.travel-checkout-help-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.travel-checkout-help-copy strong {
   color: #1c2326;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
-.travel-checkout-card-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+.travel-checkout-help-copy span {
+  color: #5f6b70;
+  font-size: 0.96rem;
+  line-height: 1.6;
 }
 
 .travel-payment-page {
@@ -4442,5 +4442,277 @@ body[data-screen="tour-payment-transfer"] {
 
   .mockup-index-header {
     gap: 16px;
+  }
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 1120px) {
+  .travel-dashboard-shell,
+  .travel-tours-shell,
+  .travel-detail-shell,
+  .travel-booking-page,
+  .travel-login-shell,
+  .mockup-index-shell {
+    width: min(calc(100% - 24px), 1680px);
+  }
+
+  .travel-tours-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .travel-restaurant-grid,
+  .travel-dashboard-actions-grid,
+  .travel-profile-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .travel-dashboard-promos,
+  .travel-dashboard-recommendations,
+  .travel-dashboard-reservation-main,
+  .travel-profile-info-grid,
+  .travel-checkout-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-profile-topbar {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .travel-profile-topbar h1 {
+    text-align: left;
+  }
+
+  .travel-profile-topbar-spacer {
+    display: none;
+  }
+
+  .travel-detail-gallery {
+    grid-template-columns: minmax(0, 1fr) 180px;
+  }
+
+  .travel-detail-copy-head,
+  .travel-booking-card-head,
+  .travel-booking-calendar-head,
+  .travel-checkout-pricing > div,
+  .travel-dashboard-section-head-split {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 820px) {
+  .skip-link {
+    left: 12px;
+    top: 12px;
+  }
+
+  .travel-dashboard-shell,
+  .travel-tours-shell,
+  .travel-detail-shell,
+  .travel-booking-page,
+  .travel-login-shell,
+  .mockup-index-shell {
+    width: min(calc(100% - 18px), 1680px);
+    margin: 10px auto;
+  }
+
+  .travel-dashboard-header,
+  .travel-tours-header,
+  .travel-profile-topbar,
+  .travel-detail-topbar,
+  .travel-booking-content,
+  .travel-checkout-content,
+  .travel-profile-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .travel-dashboard-header,
+  .travel-tours-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .travel-dashboard-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .travel-tours-nav {
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .travel-tours-nav a,
+  .travel-dashboard-filter-row a,
+  .travel-catalog-filter-row a,
+  .travel-catalog-filter-row button {
+    white-space: nowrap;
+  }
+
+  .travel-dashboard-search-row,
+  .travel-tours-search-row,
+  .travel-dashboard-booking-fields,
+  .travel-profile-form-grid,
+  .travel-transfer-bank-grid,
+  .travel-companion-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-dashboard-actions-grid,
+  .travel-profile-summary-grid,
+  .travel-tours-grid,
+  .travel-restaurant-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-detail-gallery,
+  .travel-detail-info-grid,
+  .travel-payment-success-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-detail-gallery-main,
+  .travel-detail-gallery-side,
+  .travel-dashboard-destination-media,
+  .travel-tour-media,
+  .travel-checkout-summary-media {
+    min-height: 220px;
+  }
+
+  .travel-tour-meta,
+  .travel-dashboard-destination-meta,
+  .travel-payment-success-ref {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .travel-booking-weekdays,
+  .travel-booking-days {
+    gap: 8px;
+  }
+
+  .travel-booking-sticky-bar,
+  .travel-detail-sticky-bar {
+    grid-template-columns: 1fr;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .travel-booking-sticky-pricing {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .travel-booking-sticky-selection,
+  .travel-booking-sticky-pricing > div {
+    width: 100%;
+  }
+
+  .travel-booking-continue,
+  .travel-detail-book-button,
+  .travel-dashboard-primary-action,
+  .travel-payment-success-actions a,
+  .travel-profile-logout {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .travel-dashboard-shell,
+  .travel-tours-shell,
+  .travel-detail-shell,
+  .travel-booking-page,
+  .travel-login-shell,
+  .mockup-index-shell {
+    width: min(calc(100% - 12px), 1680px);
+    margin: 6px auto;
+  }
+
+  .travel-dashboard-hero,
+  .travel-dashboard-section,
+  .travel-tours-topbar,
+  .travel-tours-grid,
+  .travel-restaurant-grid,
+  .travel-detail-topbar,
+  .travel-detail-gallery,
+  .travel-detail-intro,
+  .travel-detail-section {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .travel-login-shell,
+  .travel-booking-page {
+    padding-bottom: 96px;
+  }
+
+  .travel-login-card,
+  .travel-profile-info-card,
+  .travel-booking-card,
+  .travel-booking-note-card,
+  .travel-dashboard-reservation-card,
+  .travel-dashboard-credit-card,
+  .travel-dashboard-search-block,
+  .travel-companion-card,
+  .travel-payment-success-card {
+    padding: 18px 16px;
+  }
+
+  .travel-dashboard-copy h1,
+  .travel-detail-copy-head h1,
+  .travel-payment-success-copy h1,
+  .travel-transfer-heading h2 {
+    font-size: clamp(1.85rem, 8vw, 2.5rem);
+  }
+
+  .travel-checkout-summary-copy strong,
+  .travel-checkout-pricing-total strong,
+  .travel-transfer-total-card strong {
+    font-size: clamp(1.8rem, 8vw, 2.35rem);
+  }
+
+  .travel-detail-description,
+  .travel-detail-menu-item,
+  .travel-detail-review-card {
+    padding: 18px 16px;
+  }
+
+  .travel-booking-calendar-nav {
+    align-self: flex-end;
+  }
+
+  .travel-booking-weekdays span {
+    font-size: 0.72rem;
+  }
+
+  .travel-booking-day,
+  .travel-booking-day-spacer {
+    min-height: 38px;
+  }
+
+  .travel-booking-guest-row,
+  .travel-profile-list-row {
+    gap: 12px;
+  }
+
+  .travel-profile-list-row {
+    grid-template-columns: 38px minmax(0, 1fr) 16px;
+    padding: 14px 14px;
+  }
+
+  .travel-profile-row-copy span,
+  .travel-dashboard-copy p,
+  .travel-detail-description,
+  .travel-checkout-help-copy span {
+    line-height: 1.6;
   }
 }
