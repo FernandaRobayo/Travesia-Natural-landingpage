@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260830-1" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
   </head>
   <body data-screen="tour-booking" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -29,7 +29,7 @@
         <article class="travel-booking-card">
           <div class="travel-booking-card-head">
             <div>
-              <h2 data-booking-tour-name>Tour destino ejemplo - montanas</h2>
+              <h2 data-booking-tour-name>Tour destino ejemplo - montañas</h2>
               <p data-booking-tour-category>Naturaleza y trekking</p>
             </div>
             <span class="travel-booking-price-tag" data-booking-tour-price>Desde $1.299.000</span>
@@ -63,38 +63,32 @@
         </article>
 
         <article class="travel-booking-note-card">
-          <strong>Politicas de reserva</strong>
-          <p>Cancelacion sin costo hasta 24 horas antes. Confirmacion inmediata en esta demo.</p>
+          <strong>Condiciones de reserva</strong>
+          <p>Consulta las condiciones aplicables a este tour antes de continuar.</p>
+          <details class="travel-booking-conditions">
+            <summary>Ver condiciones</summary>
+            <ul data-booking-conditions-list></ul>
+            <p data-booking-conditions-empty>No hay condiciones adicionales configuradas para este tour.</p>
+          </details>
         </article>
 
         <article class="travel-booking-card">
           <div class="travel-booking-card-head travel-booking-card-head-simple">
-            <strong>Viajeros</strong>
+            <strong>Cantidad de viajeros</strong>
           </div>
 
           <div class="travel-booking-guest-row">
             <div>
-              <strong>Adultos</strong>
-              <span>Edad 13+</span>
+              <strong>Viajeros</strong>
+              <span>Incluye al titular y sus acompañantes.</span>
             </div>
-            <div class="travel-booking-counter" data-counter="adults">
+            <div class="travel-booking-counter" data-counter="travelers">
               <button type="button" data-counter-action="decrease">-</button>
               <strong data-counter-value>2</strong>
               <button type="button" data-counter-action="increase">+</button>
             </div>
           </div>
-
-          <div class="travel-booking-guest-row">
-            <div>
-              <strong>Ninos</strong>
-              <span>Edad 0-12</span>
-            </div>
-            <div class="travel-booking-counter" data-counter="children">
-              <button type="button" data-counter-action="decrease">-</button>
-              <strong data-counter-value>0</strong>
-              <button type="button" data-counter-action="increase">+</button>
-            </div>
-          </div>
+          <p class="travel-booking-capacity-message" data-booking-capacity-message aria-live="polite"></p>
         </article>
       </section>
     </main>
@@ -102,18 +96,22 @@
     <aside class="travel-booking-sticky-bar">
       <div class="travel-booking-sticky-pricing">
         <div>
-          <span>Precio por persona</span>
-          <strong data-booking-unit-price>$1.299.000</strong>
+          <span>Valor proyectado</span>
+          <strong data-booking-projected-value>$2.598.000</strong>
+        </div>
+        <div data-booking-discount-block hidden>
+          <span>Descuento vigente</span>
+          <strong data-booking-discount-value>-$519.600</strong>
         </div>
         <div>
-          <span>Total estimado</span>
-          <strong data-booking-total-price>$2.598.000</strong>
+          <span>Valor final</span>
+          <strong data-booking-final-value>$2.078.400</strong>
         </div>
       </div>
 
       <div class="travel-booking-sticky-selection">
         <span>Seleccionado</span>
-        <strong data-booking-selection>09 Sep 2026 - 2 viajeros</strong>
+        <strong data-booking-selection>15 sep 2026 - 2 viajeros</strong>
       </div>
 
       <button type="button" class="travel-booking-continue" data-booking-continue>

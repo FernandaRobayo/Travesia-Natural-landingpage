@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260830-1" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
   </head>
   <body data-screen="client-dashboard" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -20,7 +20,7 @@
         <a class="travel-dashboard-brand" href="index.html" data-route="home">[Tu Marca]</a>
 
         <div class="travel-dashboard-header-actions">
-          <a class="travel-dashboard-header-link" href="tours.html" data-route="tours">Ver catalogo</a>
+          <a class="travel-dashboard-header-link" href="tours.html" data-route="tours">Ver catálogo</a>
           <a class="travel-dashboard-avatar" href="profile.html" data-route="profile" aria-label="Perfil del usuario" data-user-avatar>
             FN
           </a>
@@ -32,18 +32,18 @@
           <p class="travel-dashboard-eyebrow">Portal cliente</p>
           <h1 id="dashboard-title" data-user-greeting>Hola, Fernanda</h1>
           <p>
-            Consulta tu oferta activa, revisa reservas y continua la gestion de
-            tus proximos viajes desde un solo lugar.
+            Consulta la oferta disponible, revisa tus reservas y continúa la gestión de
+            tus próximos viajes desde un solo lugar.
           </p>
         </div>
 
         <div class="travel-dashboard-search-block">
-          <label class="travel-dashboard-search-label" for="dashboard-search">Buscar destinos, tours o alojamientos</label>
+          <label class="travel-dashboard-search-label" for="dashboard-search">Buscar tours, alojamiento o experiencias</label>
           <div class="travel-dashboard-search-row">
             <input
               id="dashboard-search"
               type="search"
-              placeholder="Buscar destinos, tours, experiencias..."
+              placeholder="Buscar tours, alojamiento o experiencias..."
             />
             <button type="button">Buscar</button>
           </div>
@@ -64,22 +64,22 @@
         <div class="travel-dashboard-actions-grid">
           <article class="travel-dashboard-action-card">
             <span>Nueva reserva</span>
-            <strong>Inicia una nueva solicitud de viaje</strong>
+            <strong>Inicia una nueva reserva</strong>
           </article>
 
           <article class="travel-dashboard-action-card">
-            <span>Gastronomia</span>
-            <strong>Explora experiencias culinarias y paradas recomendadas</strong>
+            <span>Gastronomía</span>
+            <strong>Explora opciones gastronómicas disponibles.</strong>
           </article>
 
           <article class="travel-dashboard-action-card">
-            <span>Pagos</span>
-            <strong>Continua pagos pendientes del cliente</strong>
+            <span>Continuar pago</span>
+            <strong>Continúa el pago pendiente de una de tus reservas.</strong>
           </article>
 
           <article class="travel-dashboard-action-card">
-            <span>Saldo</span>
-            <strong>Revisa estado de cuenta y soporte</strong>
+            <span>Mis pagos</span>
+            <strong>Consulta pagos, abonos, saldos y soportes de tus reservas.</strong>
           </article>
         </div>
       </section>
@@ -91,14 +91,14 @@
 
         <div class="travel-dashboard-promos">
           <article class="travel-dashboard-promo promo-cyan">
-            <span class="travel-dashboard-promo-tag">20% OFF</span>
+            <span class="travel-dashboard-promo-tag">20% de descuento</span>
             <strong>Tour destino ejemplo</strong>
-            <p>Valido hasta [Fecha]</p>
-            <a href="index.html" data-route="home">Ver descuentos</a>
+            <p>Válido hasta 30 sep 2026</p>
+            <a href="detalle-tour.html" data-route="tourDetail">Ver detalle</a>
           </article>
 
           <article class="travel-dashboard-promo promo-sand">
-            <span class="travel-dashboard-promo-tag">15% OFF</span>
+            <span class="travel-dashboard-promo-tag">15% de descuento</span>
             <strong>Alojamiento ejemplo</strong>
             <p>Reserva anticipada</p>
             <a href="alojamiento.html" data-route="lodging">Ver detalle</a>
@@ -109,33 +109,32 @@
       <section class="travel-dashboard-section" aria-labelledby="mis-reservas">
         <div class="travel-dashboard-section-head travel-dashboard-section-head-split">
           <h2 id="mis-reservas">Mis reservas</h2>
-          <span>Crear y revisar reserva</span>
+          <a class="travel-dashboard-section-action" href="tours.html" data-route="tours" data-booking-section-action hidden>Nueva reserva</a>
         </div>
 
         <div class="travel-dashboard-reservation-grid">
-          <article class="travel-dashboard-reservation-card" data-booking-result>
+          <article id="reserva-activa" class="travel-dashboard-reservation-card" data-booking-result>
             <div class="travel-dashboard-reservation-main">
               <div class="travel-dashboard-reservation-copy">
-                <strong data-booking-experience>Sin reserva guardada</strong>
-                <p data-booking-dates>Completa el formulario para ver la reserva aqui.</p>
-                <small data-booking-code>Reserva: pendiente</small>
+                <strong data-booking-experience>Aún no tienes una reserva en curso</strong>
+                <p data-booking-dates>Explora el catálogo y selecciona los servicios para comenzar una nueva reserva.</p>
+                <small data-booking-code hidden></small>
               </div>
 
-              <div class="travel-dashboard-reservation-status">
-                <span class="travel-dashboard-status-badge" data-booking-status>Borrador</span>
-                <small data-booking-travelers>Viajeros: 0</small>
-                <small data-booking-saved>Sin guardar</small>
-                <strong data-booking-budget>Presupuesto: $0</strong>
+              <div class="travel-dashboard-reservation-status" data-booking-status-block hidden>
+                <span class="travel-dashboard-status-badge" data-booking-status></span>
+                <small data-booking-travelers></small>
+                <div class="travel-dashboard-reservation-values">
+                  <strong data-booking-projected-value></strong>
+                  <small data-booking-discount-value hidden></small>
+                  <strong data-booking-final-value></strong>
+                </div>
               </div>
-            </div>
-
-            <div class="travel-dashboard-reservation-note" data-booking-note>
-              La informacion se guardara localmente en el navegador para esta demo.
             </div>
 
             <div class="travel-dashboard-reservation-actions">
-              <a class="travel-dashboard-primary-action" href="acompanantes.html" data-route="companions">
-                Llenar acompanantes
+              <a class="travel-dashboard-primary-action" href="tours.html" data-route="tours" data-booking-primary-action>
+                Crear reserva
               </a>
             </div>
           </article>
@@ -144,7 +143,7 @@
 
       <section class="travel-dashboard-section" aria-labelledby="recomendados">
         <div class="travel-dashboard-section-head">
-          <h2 id="recomendados">Recomendados para ti</h2>
+          <h2 id="recomendados">Experiencias destacadas</h2>
         </div>
 
         <div class="travel-dashboard-recommendations">

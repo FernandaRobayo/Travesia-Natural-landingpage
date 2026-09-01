@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260830-1" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
   </head>
   <body data-screen="tours" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -22,7 +22,7 @@
         <nav class="travel-tours-nav" aria-label="Navegacion principal del cliente">
           <a class="is-active" href="tours.html" data-route="tours">Explorar</a>
           <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
-          <a href="gastronomia.html" data-route="gastronomy">Gastronomia</a>
+          <a href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
           <a href="panel-cliente.html" data-route="dashboard">Reservas</a>
           <a href="profile.html" data-route="profile">Perfil</a>
         </nav>
@@ -34,35 +34,40 @@
           <span>Volver al panel cliente</span>
         </a>
 
+        <div class="travel-tours-intro">
+          <h1>Tours</h1>
+          <p>Explora los tours disponibles y consulta sus detalles.</p>
+        </div>
+
         <div class="travel-tours-search-row">
-          <input type="search" placeholder="Buscar tours o destinos..." />
+          <input type="search" aria-label="Buscar tours por nombre o destino" placeholder="Buscar tours por nombre o destino..." data-catalog-search />
+          <button type="button" data-catalog-search-button>Buscar</button>
         </div>
       </section>
 
       <section class="travel-tours-grid" aria-label="Listado de tours disponibles">
-        <article class="travel-tour-card">
+        <article class="travel-tour-card" data-search-name="Tour destino ejemplo Montañas">
           <div class="travel-tour-media tour-media-one">
-            <span class="travel-tour-rating">&#9733; 4.8</span>
+            <span class="travel-tour-discount-tag">20% de descuento</span>
           </div>
           <div class="travel-tour-body">
-            <span class="travel-tour-duration">3 dias / 2 noches</span>
-            <strong>Tour destino ejemplo - montanas</strong>
+            <span class="travel-tour-duration">3 días / 2 noches</span>
+            <strong>Tour destino ejemplo - Montañas</strong>
             <div class="travel-tour-meta">
-              <div>
+              <div class="travel-tour-price">
+                <small class="travel-tour-price-before">Antes: <del>$1.299.000</del></small>
                 <small>Desde</small>
-                <em>$1.299.000</em>
+                <em>$1.039.200</em>
               </div>
               <a class="travel-tour-detail-link" href="detalle-tour.html?theme=platform&tour=mountains&source=tours" data-tour-link="mountains" data-source-screen="tours">Ver detalle</a>
             </div>
           </div>
         </article>
 
-        <article class="travel-tour-card">
-          <div class="travel-tour-media tour-media-two">
-            <span class="travel-tour-rating">&#9733; 4.9</span>
-          </div>
+        <article class="travel-tour-card" data-search-name="Aventura en cenotes ocultos Cenotes">
+          <div class="travel-tour-media tour-media-two"></div>
           <div class="travel-tour-body">
-            <span class="travel-tour-duration">1 dia</span>
+            <span class="travel-tour-duration">1 día</span>
             <strong>Aventura en cenotes ocultos</strong>
             <div class="travel-tour-meta">
               <div>
@@ -74,13 +79,11 @@
           </div>
         </article>
 
-        <article class="travel-tour-card">
-          <div class="travel-tour-media tour-media-three">
-            <span class="travel-tour-rating">&#9733; 4.7</span>
-          </div>
+        <article class="travel-tour-card" data-search-name="Recorrido cultural e histórico Centro histórico">
+          <div class="travel-tour-media tour-media-three"></div>
           <div class="travel-tour-body">
-            <span class="travel-tour-duration">Medio dia</span>
-            <strong>Recorrido cultural e historico</strong>
+            <span class="travel-tour-duration">Medio día</span>
+            <strong>Recorrido cultural e histórico</strong>
             <div class="travel-tour-meta">
               <div>
                 <small>Desde</small>
@@ -91,12 +94,10 @@
           </div>
         </article>
 
-        <article class="travel-tour-card">
-          <div class="travel-tour-media tour-media-four">
-            <span class="travel-tour-rating">&#9733; 5.0</span>
-          </div>
+        <article class="travel-tour-card" data-search-name="Rafting y acampada extrema Río">
+          <div class="travel-tour-media tour-media-four"></div>
           <div class="travel-tour-body">
-            <span class="travel-tour-duration">2 dias / 1 noche</span>
+            <span class="travel-tour-duration">2 días / 1 noche</span>
             <strong>Rafting y acampada extrema</strong>
             <div class="travel-tour-meta">
               <div>

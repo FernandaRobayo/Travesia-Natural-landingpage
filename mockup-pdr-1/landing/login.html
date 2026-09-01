@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260830-1" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
   </head>
   <body data-screen="login" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -24,7 +24,7 @@
         <div class="travel-login-card">
           <div class="travel-login-copy">
             <h1>Bienvenido de nuevo</h1>
-            <p>Ingresa a tu cuenta para gestionar tus viajes.</p>
+            <p data-login-subtitle>Ingresa a tu cuenta para gestionar tus viajes.</p>
           </div>
 
           <div class="travel-login-role-switch" aria-label="Tipo de acceso">
@@ -32,7 +32,7 @@
               Cliente
             </button>
             <button class="travel-login-role" type="button" data-role-option="staff" aria-pressed="false">
-              Staff / operacion
+              Equipo del operador
             </button>
           </div>
 
@@ -73,10 +73,17 @@
             </button>
           </form>
 
+          <p class="travel-platform-entry">
+            <a href="admin-login.html" data-route="platformLogin">Acceso a administracion de plataforma</a>
+          </p>
+
           <div class="travel-login-divider"></div>
 
-          <p id="soporte" class="travel-login-footer-note">
+          <p id="soporte" class="travel-login-footer-note" data-client-signup>
             No tienes una cuenta? <a href="crear-cuenta.html" data-route="signup">Crear cuenta</a>
+          </p>
+          <p class="travel-login-footer-note" data-staff-access hidden>
+            Necesitas acceso al equipo? Solicitalo a un administrador del operador.
           </p>
         </div>
       </section>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalle del operador | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="platform-tenant-detail" data-theme="platform">
+    <main class="platform-shell">
+      <aside class="platform-sidebar">
+        <a class="platform-brand" href="admin-plataforma.html" data-route="platformAdmin">MULTI<span>TOUR</span></a>
+        <p class="platform-role">Administrador de plataforma</p>
+        <nav class="platform-nav" aria-label="Navegacion de plataforma">
+          <a href="admin-plataforma.html" data-route="platformAdmin">Resumen</a>
+          <a class="is-active" href="admin-operadores.html" data-route="platformOperators">Operadores</a>
+          <a href="admin-auditoria.html" data-route="platformAudit">Auditoria</a>
+        </nav>
+        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesion</a>
+      </aside>
+      <section class="platform-content" data-platform-tenant-detail>
+        <header class="platform-topbar"><div><p class="platform-eyebrow">Detalle del operador</p><h1 data-tenant-name>Operador</h1></div><a class="platform-link" href="admin-operadores.html" data-route="platformOperators">Volver a operadores</a></header>
+        <section class="platform-tenant-hero">
+          <div><span class="platform-status" data-tenant-status>Activo</span><p data-tenant-id>Identificador: pendiente</p></div>
+          <div class="platform-tenant-hero-admin"><span>Primer Administrador</span><strong data-tenant-admin>Sin asignar</strong><small data-tenant-email></small></div>
+        </section>
+        <section class="platform-detail-grid">
+          <article class="platform-panel"><p class="platform-eyebrow">Estado operativo</p><h2 data-tenant-state-heading>Operador activo</h2><p class="platform-section-copy" data-tenant-state-copy>Puede recibir nuevas autenticaciones y reservas dentro de su propio tenant.</p>
+            <form class="platform-state-form" data-platform-state-form novalidate>
+              <label><span data-platform-state-reason-label>Motivo de la inactivación</span><textarea data-platform-state-reason name="reason" rows="3" placeholder="Ingresa el motivo obligatorio para inactivar el operador."></textarea></label>
+              <p class="feedback" data-feedback="platform-state" aria-live="polite"></p>
+              <button class="platform-danger" type="submit" data-platform-state-submit>Inactivar operador</button>
+            </form>
+          </article>
+          <article class="platform-panel"><p class="platform-eyebrow">Alcance del Administrador de plataforma</p><h2>Soporte administrativo, no operativo</h2><ul class="platform-scope-list"><li>Gestiona alta, activación, inactivación y reactivación.</li><li>Conserva trazabilidad de las decisiones sobre el operador.</li><li>No registra reservas, pagos, gastos ni movimientos de caja.</li></ul></article>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

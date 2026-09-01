@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Operadores | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="platform-operators" data-theme="platform">
+    <main class="platform-shell">
+      <aside class="platform-sidebar">
+        <a class="platform-brand" href="admin-plataforma.html" data-route="platformAdmin">MULTI<span>TOUR</span></a>
+        <p class="platform-role">Administrador de plataforma</p>
+        <nav class="platform-nav" aria-label="Navegacion de plataforma">
+          <a href="admin-plataforma.html" data-route="platformAdmin">Resumen</a>
+          <a class="is-active" href="admin-operadores.html" data-route="platformOperators">Operadores</a>
+          <a href="admin-auditoria.html" data-route="platformAudit">Auditoria</a>
+        </nav>
+        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesion</a>
+      </aside>
+      <section class="platform-content">
+        <header class="platform-topbar">
+          <div><p class="platform-eyebrow">Gestion de operadores</p><h1>Operadores</h1></div>
+          <a class="platform-primary" href="admin-crear-operador.html" data-route="platformCreate">Crear operador</a>
+        </header>
+        <section class="platform-panel">
+          <div class="platform-panel-head"><div><p class="platform-eyebrow">Directorio</p><h2>Empresas operadoras</h2></div><span class="platform-table-note">Cada operador mantiene su informacion y operacion aisladas dentro de Multitour.</span></div>
+          <div class="platform-table-wrap">
+            <table class="platform-table">
+              <thead><tr><th>Operador</th><th>Identificador</th><th>Primer administrador</th><th>Estado</th><th></th></tr></thead>
+              <tbody data-platform-tenant-table></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

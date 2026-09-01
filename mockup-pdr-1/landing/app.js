@@ -72,6 +72,12 @@ const THEMES = {
       signup: "Crear cuenta | Multitour",
       recover: "Recuperar contrasena | Multitour",
       reset: "Nueva contrasena | Multitour",
+      "platform-admin": "Plataforma | Multitour",
+      "platform-operators": "Operadores | Multitour",
+      "platform-create": "Crear operador | Multitour",
+      "platform-tenant-detail": "Detalle del operador | Multitour",
+      "platform-audit": "Auditoria | Multitour",
+      "platform-login": "Acceso de plataforma | Multitour",
     },
   },
   "travesia-natural": {
@@ -146,6 +152,12 @@ const THEMES = {
       signup: "Crear cuenta | Travesia Natural",
       recover: "Recuperar contrasena | Travesia Natural",
       reset: "Nueva contrasena | Travesia Natural",
+      "platform-admin": "Plataforma | Multitour",
+      "platform-operators": "Operadores | Multitour",
+      "platform-create": "Crear operador | Multitour",
+      "platform-tenant-detail": "Detalle del operador | Multitour",
+      "platform-audit": "Auditoria | Multitour",
+      "platform-login": "Acceso de plataforma | Multitour",
     },
   },
 };
@@ -208,6 +220,20 @@ function applyRoutes(theme) {
     signup: "crear-cuenta.html",
     recover: "recuperar.html",
     reset: "nueva-contrasena.html",
+    platformAdmin: "admin-plataforma.html",
+    platformOperators: "admin-operadores.html",
+    platformCreate: "admin-crear-operador.html",
+    platformTenantDetail: "admin-detalle-operador.html",
+    platformAudit: "admin-auditoria.html",
+    platformLogin: "admin-login.html",
+    operatorAdmin: "admin-operador.html",
+    operatorReservations: "admin-reservas.html",
+    operatorCatalogs: "admin-catalogos.html",
+    operatorDiscounts: "admin-descuentos.html",
+    operatorPayments: "admin-pagos.html",
+    operatorCash: "admin-caja.html",
+    operatorOperations: "admin-operacion.html",
+    operatorReports: "admin-reportes.html",
     index: "indice.html",
   };
 
@@ -291,10 +317,11 @@ function hydrateStoredUser() {
   if (profileEmailInput) profileEmailInput.value = profile.email;
 
   const profilePhone = document.querySelector("[data-profile-phone]");
-  if (profilePhone) profilePhone.textContent = `${profile.countryCode} ${profile.phone}`;
+  const formattedPhone = [profile.countryCode, profile.phone].filter(Boolean).join(" ");
+  if (profilePhone) profilePhone.textContent = formattedPhone;
 
   const profilePhoneInput = document.querySelector("[data-profile-phone-input]");
-  if (profilePhoneInput) profilePhoneInput.value = `${profile.countryCode} ${profile.phone}`;
+  if (profilePhoneInput) profilePhoneInput.value = formattedPhone;
 
   const profileCountry = document.querySelector("[data-profile-country]");
   if (profileCountry) profileCountry.textContent = profile.countryCode;
@@ -319,9 +346,20 @@ function setupPasswordToggle() {
       if (!target) return;
       const nextType = target.type === "password" ? "text" : "password";
       target.type = nextType;
-      toggle.textContent = nextType === "password" ? "Mostrar" : "Ocultar";
+      toggle.textContent = nextType === "password" ? "Ver" : "Ocultar";
     });
   });
+}
+
+function getMvpPasswordPolicyError(password) {
+  const hasMinLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecialCharacter = /[^A-Za-z0-9\s]/.test(password);
+
+  if (hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSpecialCharacter) return "";
+  return "La contrasena debe tener minimo 8 caracteres, una mayuscula, una minuscula, un numero y un caracter especial.";
 }
 
 function setupLoginForm(themeConfig, theme) {
@@ -339,13 +377,14 @@ function setupLoginForm(themeConfig, theme) {
       return;
     }
 
-    const activeRole =
-      document.querySelector("[data-role-option].is-active")?.dataset.roleOption || "client";
+    const activeRole = document.body.dataset.screen === "platform-login"
+      ? "platform-admin"
+      : document.querySelector("[data-role-option].is-active")?.dataset.roleOption || "client";
 
     setFeedback("login", themeConfig.feedback.success, "is-success");
 
     window.setTimeout(() => {
-      const nextPath = activeRole === "staff" ? "indice.html" : "panel-cliente.html";
+      const nextPath = activeRole === "platform-admin" ? "admin-plataforma.html" : activeRole === "staff" ? "indice.html" : "panel-cliente.html";
       window.location.href = withTheme(nextPath, theme);
     }, 700);
   });
@@ -354,6 +393,19 @@ function setupLoginForm(themeConfig, theme) {
 function setupRoleSwitch() {
   const options = document.querySelectorAll("[data-role-option]");
   if (!options.length) return;
+
+  const clientSignup = document.querySelector("[data-client-signup]");
+  const staffAccess = document.querySelector("[data-staff-access]");
+  const loginSubtitle = document.querySelector("[data-login-subtitle]");
+
+  const syncSignupAccess = (role) => {
+    const isStaff = role === "staff";
+    if (clientSignup) clientSignup.hidden = isStaff;
+    if (staffAccess) staffAccess.hidden = !isStaff;
+    if (loginSubtitle) loginSubtitle.textContent = isStaff
+      ? "Ingresa a tu cuenta para gestionar la operacion."
+      : "Ingresa a tu cuenta para gestionar tus viajes.";
+  };
 
   options.forEach((option) => {
     option.addEventListener("click", () => {
@@ -364,31 +416,67 @@ function setupRoleSwitch() {
 
       option.classList.add("is-active");
       option.setAttribute("aria-pressed", "true");
+      syncSignupAccess(option.dataset.roleOption);
     });
   });
+
+  syncSignupAccess(document.querySelector("[data-role-option].is-active")?.dataset.roleOption);
 }
 
 function setupRecoverForm(theme) {
   const form = document.querySelector('[data-form="recover"]');
   if (!form) return;
 
+  const identifyStep = form.querySelector('[data-recover-step="identify"]');
+  const resetStep = form.querySelector('[data-recover-step="reset"]');
+  const submitLabel = form.querySelector("[data-recover-submit] span");
+  const emailStatus = form.querySelector("[data-recover-email-status]");
+  let isVerificationStep = false;
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const email = form.querySelector("#recover-email");
-    if (!email.value.trim()) {
-      setFeedback("recover", "Completa el correo electronico para continuar.", "is-error");
+    if (!isVerificationStep) {
+      const email = form.querySelector("#recover-email");
+      if (!email.value.trim()) {
+        setFeedback("recover", "Completa el correo electronico para continuar.", "is-error");
+        return;
+      }
+
+      isVerificationStep = true;
+      identifyStep.hidden = true;
+      resetStep.hidden = false;
+      emailStatus.textContent = `Ingresa el codigo de verificacion asociado a ${email.value.trim()}.`;
+      submitLabel.textContent = "Guardar nueva contrasena";
+      setFeedback("recover", "", "");
+      form.querySelector("#recover-code")?.focus();
       return;
     }
 
-    setFeedback(
-      "recover",
-      "Se envio una validacion simulada para recuperar el acceso.",
-      "is-success",
-    );
+    const code = form.querySelector("#recover-code");
+    const password = form.querySelector("#recover-password");
+    const confirm = form.querySelector("#recover-confirm");
+
+    if (!code.value.trim() || !password.value.trim() || !confirm.value.trim()) {
+      setFeedback("recover", "Completa el codigo y la nueva contrasena para continuar.", "is-error");
+      return;
+    }
+
+    const passwordPolicyError = getMvpPasswordPolicyError(password.value);
+    if (passwordPolicyError) {
+      setFeedback("recover", passwordPolicyError, "is-error");
+      return;
+    }
+
+    if (password.value !== confirm.value) {
+      setFeedback("recover", "Las contrasenas no coinciden.", "is-error");
+      return;
+    }
+
+    setFeedback("recover", "La nueva contrasena se guardo en esta simulacion.", "is-success");
 
     window.setTimeout(() => {
-      window.location.href = withTheme("nueva-contrasena.html", theme);
+      window.location.href = withTheme("login.html", theme);
     }, 900);
   });
 }
@@ -400,35 +488,22 @@ function setupSignupForm(theme) {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const name = form.querySelector("#signup-name");
+    const firstName = form.querySelector("#signup-first-name");
+    const lastName = form.querySelector("#signup-last-name");
     const email = form.querySelector("#signup-email");
     const phone = form.querySelector("#signup-phone");
-    const country = form.querySelector("#signup-country");
     const password = form.querySelector("#signup-password");
     const confirm = form.querySelector("#signup-confirm");
     const value = password.value.trim();
 
     if (
-      !name.value.trim() ||
+      !firstName.value.trim() ||
+      !lastName.value.trim() ||
       !email.value.trim() ||
-      !phone.value.trim() ||
       !value ||
       !confirm.value.trim()
     ) {
       setFeedback("signup", "Completa todos los campos para continuar.", "is-error");
-      return;
-    }
-
-    const hasMinLength = value.length >= 8;
-    const hasUppercase = /[A-Z]/.test(value);
-    const hasNumber = /\d/.test(value);
-
-    if (!hasMinLength || !hasUppercase || !hasNumber) {
-      setFeedback(
-        "signup",
-        "La contrasena debe tener minimo 8 caracteres, una mayuscula y un numero.",
-        "is-error",
-      );
       return;
     }
 
@@ -437,10 +512,15 @@ function setupSignupForm(theme) {
       return;
     }
 
+    const passwordPolicyError = getMvpPasswordPolicyError(value);
+    if (passwordPolicyError) {
+      setFeedback("signup", passwordPolicyError, "is-error");
+      return;
+    }
+
     const profile = {
-      name: name.value.trim(),
+      name: `${firstName.value.trim()} ${lastName.value.trim()}`,
       email: email.value.trim(),
-      countryCode: country.value.trim(),
       phone: phone.value.trim(),
       savedAt: new Date().toLocaleDateString("es-CO"),
     };
@@ -471,16 +551,9 @@ function setupResetForm(theme) {
       return;
     }
 
-    const hasMinLength = value.length >= 8;
-    const hasUppercase = /[A-Z]/.test(value);
-    const hasNumber = /\d/.test(value);
-
-    if (!hasMinLength || !hasUppercase || !hasNumber) {
-      setFeedback(
-        "reset",
-        "La contrasena debe tener minimo 8 caracteres, una mayuscula y un numero.",
-        "is-error",
-      );
+    const passwordPolicyError = getMvpPasswordPolicyError(value);
+    if (passwordPolicyError) {
+      setFeedback("reset", passwordPolicyError, "is-error");
       return;
     }
 
@@ -495,6 +568,225 @@ function setupResetForm(theme) {
       window.location.href = withTheme("login.html", theme);
     }, 900);
   });
+}
+
+const PLATFORM_TENANTS_STORAGE_KEY = "multitour-platform-tenants";
+const PLATFORM_AUDIT_STORAGE_KEY = "multitour-platform-audit";
+const PLATFORM_OPERATORS_MODULE = "Administración de plataforma / Operadores";
+
+const DEFAULT_PLATFORM_TENANTS = [
+  { id: "travesia-natural", name: "Travesia Natural", status: "Activo", adminName: "Laura Gomez", adminEmail: "laura@travesianatural.co", createdAt: "29 ago 2026" },
+  { id: "huila-adventure", name: "Huila Adventure", status: "Activo", adminName: "Mateo Rojas", adminEmail: "mateo@huilaadventure.co", createdAt: "27 ago 2026" },
+  { id: "selva-viva", name: "Selva Viva", status: "Inactivo", adminName: "Diana Torres", adminEmail: "diana@selvaviva.co", createdAt: "20 ago 2026" },
+];
+
+const DEFAULT_PLATFORM_AUDIT = [
+  { date: "29 ago 2026, 10:32", action: "Operador creado", tenant: "Travesia Natural", tenantId: "travesia-natural", detail: "Estado inicial: Activo", actorName: "Fernanda Robayo", actorRole: "Administrador de plataforma", reason: "Alta administrativa inicial", recordAffected: "Operador: travesia-natural", previousValue: "No aplica", newValue: "Estado inicial: Activo", module: PLATFORM_OPERATORS_MODULE, functionalReference: "Alta administrativa de operador" },
+  { date: "27 ago 2026, 15:10", action: "Operador creado", tenant: "Huila Adventure", tenantId: "huila-adventure", detail: "Estado inicial: Activo", actorName: "Fernanda Robayo", actorRole: "Administrador de plataforma", reason: "Alta administrativa inicial", recordAffected: "Operador: huila-adventure", previousValue: "No aplica", newValue: "Estado inicial: Activo", module: PLATFORM_OPERATORS_MODULE, functionalReference: "Alta administrativa de operador" },
+  { date: "25 ago 2026, 09:48", action: "Operador inactivado", tenant: "Selva Viva", tenantId: "selva-viva", detail: "Activo -> Inactivo", actorName: "Fernanda Robayo", actorRole: "Administrador de plataforma", reason: "Solicitud administrativa registrada", recordAffected: "Estado del operador: selva-viva", previousValue: "Activo", newValue: "Inactivo", module: PLATFORM_OPERATORS_MODULE, functionalReference: "Cambio de estado de operador" },
+];
+
+function readPlatformStorage(key, fallback) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getPlatformTenants() {
+  return readPlatformStorage(PLATFORM_TENANTS_STORAGE_KEY, DEFAULT_PLATFORM_TENANTS).map(normalizePlatformDemoTenant);
+}
+
+function getPlatformAudit() {
+  return readPlatformStorage(PLATFORM_AUDIT_STORAGE_KEY, DEFAULT_PLATFORM_AUDIT)
+    .map(normalizePlatformDemoAuditEvent)
+    .map((event) => ({ ...event, date: formatStoredPlatformDateTime(event.date) }));
+}
+
+function savePlatformTenants(tenants) {
+  window.localStorage.setItem(PLATFORM_TENANTS_STORAGE_KEY, JSON.stringify(tenants));
+}
+
+function addPlatformAudit(event) {
+  const audit = getPlatformAudit();
+  window.localStorage.setItem(PLATFORM_AUDIT_STORAGE_KEY, JSON.stringify([event, ...audit]));
+}
+
+function normalizePlatformDemoTenant(tenant) {
+  const isHuilaPassionDemo = tenant.id === "pasion-hula" || String(tenant.name || "").toLowerCase() === "huila pasion";
+  return isHuilaPassionDemo ? { ...tenant, id: "huila-pasion", name: "Huila Pasion" } : tenant;
+}
+
+function normalizePlatformDemoAuditEvent(event) {
+  const isHuilaPassionDemo = event.tenantId === "pasion-hula" || String(event.tenant || "").toLowerCase() === "huila pasion";
+  const isOperatorManagementEvent = String(event.action || "").startsWith("Operador ");
+  if (!isHuilaPassionDemo) return isOperatorManagementEvent ? { ...event, module: PLATFORM_OPERATORS_MODULE } : event;
+  return {
+    ...event,
+    tenantId: "huila-pasion",
+    tenant: "Huila Pasion",
+    recordAffected: String(event.recordAffected || "").replaceAll("pasion-hula", "huila-pasion"),
+    module: PLATFORM_OPERATORS_MODULE,
+  };
+}
+
+function formatPlatformDate(date) {
+  const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function formatPlatformDateTime(date) {
+  return `${formatPlatformDate(date)}, ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function formatStoredPlatformDateTime(value) {
+  const raw = String(value || "").trim();
+  if (/^\d{1,2} (ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic) \d{4}, \d{2}:\d{2}$/.test(raw)) return raw;
+  const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,\s*(\d{1,2}):(\d{2})(?::\d{2})?(?:\s*([ap])\.?\s*m\.?)?)?$/i);
+  if (!match) return raw;
+  let hours = Number(match[4] || 0);
+  if (match[6]?.toLowerCase() === "p" && hours < 12) hours += 12;
+  if (match[6]?.toLowerCase() === "a" && hours === 12) hours = 0;
+  const date = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]), hours, Number(match[5] || 0));
+  return formatPlatformDateTime(date);
+}
+
+function formatStoredPlatformDate(value) {
+  const match = String(value || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) return value;
+  return formatPlatformDate(new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1])));
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function platformTenantHref(tenantId, theme) {
+  return `${withTheme("admin-detalle-operador.html", theme)}&tenant=${encodeURIComponent(tenantId)}`;
+}
+
+function platformStatusMarkup(status) {
+  const modifier = status === "Activo" ? "is-active" : "is-inactive";
+  return `<span class="platform-status ${modifier}">${escapeHtml(status)}</span>`;
+}
+
+function setupPlatformScreens(theme) {
+  const screen = document.body.dataset.screen;
+  const platformScreens = new Set(["platform-admin", "platform-operators", "platform-create", "platform-tenant-detail", "platform-audit"]);
+  if (!platformScreens.has(screen)) return;
+
+  if (screen === "platform-admin") {
+    const tenants = getPlatformTenants();
+    const activeCount = tenants.filter((tenant) => tenant.status === "Activo").length;
+    const inactiveCount = tenants.length - activeCount;
+    const activeNode = document.querySelector("[data-platform-active-count]");
+    const inactiveNode = document.querySelector("[data-platform-inactive-count]");
+    const createdNode = document.querySelector("[data-platform-created-count]");
+    const preview = document.querySelector("[data-platform-tenant-preview]");
+    if (activeNode) activeNode.textContent = activeCount;
+    if (inactiveNode) inactiveNode.textContent = inactiveCount;
+    if (createdNode) createdNode.textContent = tenants.length;
+    if (preview) preview.innerHTML = tenants.slice(0, 3).map((tenant) => `<a class="platform-tenant-row" href="${platformTenantHref(tenant.id, theme)}"><span class="platform-tenant-mark">${escapeHtml(tenant.name.slice(0, 1))}</span><span><strong>${escapeHtml(tenant.name)}</strong><small>${escapeHtml(tenant.id)}</small></span>${platformStatusMarkup(tenant.status)}<span class="platform-row-arrow" aria-hidden="true">&#8594;</span></a>`).join("");
+  }
+
+  if (screen === "platform-operators") {
+    const table = document.querySelector("[data-platform-tenant-table]");
+    if (table) table.innerHTML = getPlatformTenants().map((tenant) => `<tr><td><strong>${escapeHtml(tenant.name)}</strong><small>Creado: ${escapeHtml(formatStoredPlatformDate(tenant.createdAt))}</small></td><td><code>${escapeHtml(tenant.id)}</code></td><td>${escapeHtml(tenant.adminName)}<small>${escapeHtml(tenant.adminEmail)}</small></td><td>${platformStatusMarkup(tenant.status)}</td><td><a class="platform-table-link" href="${platformTenantHref(tenant.id, theme)}">Ver detalle</a></td></tr>`).join("");
+  }
+
+  if (screen === "platform-create") {
+    const form = document.querySelector("[data-platform-create-form]");
+    form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const name = String(data.get("commercialName") || "").trim();
+      const tenantId = String(data.get("tenantId") || "").trim().toLowerCase();
+      const status = String(data.get("status") || "Activo");
+      const adminName = String(data.get("adminName") || "").trim();
+      const adminEmail = String(data.get("adminEmail") || "").trim();
+      const initialPassword = String(data.get("initialPassword") || "");
+      const confirmPassword = String(data.get("confirmPassword") || "");
+      const tenants = getPlatformTenants();
+      if (!name || !tenantId || !adminName || !adminEmail || !initialPassword || !confirmPassword) { setFeedback("platform-create", "Completa todos los datos del operador y de su primer Administrador.", "is-error"); return; }
+      const passwordPolicyError = getMvpPasswordPolicyError(initialPassword);
+      if (passwordPolicyError) { setFeedback("platform-create", passwordPolicyError, "is-error"); return; }
+      if (initialPassword !== confirmPassword) { setFeedback("platform-create", "La contrasena inicial y su confirmacion deben coincidir.", "is-error"); return; }
+      if (tenants.some((tenant) => tenant.id === tenantId)) { setFeedback("platform-create", "El identificador ya pertenece a otro operador.", "is-error"); return; }
+      const tenant = { id: tenantId, name, status, adminName, adminEmail, createdAt: formatPlatformDate(new Date()) };
+      savePlatformTenants([tenant, ...tenants]);
+      addPlatformAudit({ date: formatPlatformDateTime(new Date()), action: "Operador creado", tenant: name, tenantId, detail: `Estado inicial: ${status}`, actorName: "Fernanda Robayo", actorRole: "Administrador de plataforma", reason: "Alta administrativa inicial", recordAffected: `Operador: ${tenantId}`, previousValue: "No aplica", newValue: `Estado inicial: ${status}`, module: PLATFORM_OPERATORS_MODULE, functionalReference: "Alta administrativa de operador" });
+      setFeedback("platform-create", "Operador creado en esta simulacion.", "is-success");
+      window.setTimeout(() => { window.location.href = platformTenantHref(tenantId, theme); }, 700);
+    });
+  }
+
+  if (screen === "platform-tenant-detail") {
+    const tenantId = new URLSearchParams(window.location.search).get("tenant");
+    const tenant = getPlatformTenants().find((item) => item.id === tenantId) || getPlatformTenants()[0];
+    if (!tenant) return;
+    const nameNode = document.querySelector("[data-tenant-name]");
+    const idNode = document.querySelector("[data-tenant-id]");
+    const statusNode = document.querySelector("[data-tenant-status]");
+    const adminNode = document.querySelector("[data-tenant-admin]");
+    const emailNode = document.querySelector("[data-tenant-email]");
+    const headingNode = document.querySelector("[data-tenant-state-heading]");
+    const copyNode = document.querySelector("[data-tenant-state-copy]");
+    const reasonLabel = document.querySelector("[data-platform-state-reason-label]");
+    const reasonInput = document.querySelector("[data-platform-state-reason]");
+    const submit = document.querySelector("[data-platform-state-submit]");
+    const renderDetail = () => {
+      const isActive = tenant.status === "Activo";
+      if (nameNode) nameNode.textContent = tenant.name;
+      if (idNode) idNode.textContent = `Identificador: ${tenant.id}`;
+      if (statusNode) { statusNode.textContent = tenant.status; statusNode.className = `platform-status ${isActive ? "is-active" : "is-inactive"}`; }
+      if (adminNode) adminNode.textContent = tenant.adminName;
+      if (emailNode) emailNode.textContent = tenant.adminEmail;
+      if (headingNode) headingNode.textContent = isActive ? "Operador activo" : "Operador inactivo";
+      if (copyNode) copyNode.textContent = isActive ? "Puede recibir nuevas autenticaciones y reservas dentro de su propio tenant." : "No recibe nuevas autenticaciones ni reservas; su historial y auditoria se conservan.";
+      if (reasonLabel) reasonLabel.textContent = isActive ? "Motivo de la inactivación" : "Motivo de la reactivación";
+      if (reasonInput) reasonInput.placeholder = isActive ? "Ingresa el motivo obligatorio para inactivar el operador." : "Ingresa el motivo obligatorio para reactivar el operador.";
+      if (submit) { submit.textContent = isActive ? "Inactivar operador" : "Reactivar operador"; submit.className = isActive ? "platform-danger" : "platform-primary"; }
+    };
+    renderDetail();
+    document.querySelector("[data-platform-state-form]")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const reason = String(new FormData(event.currentTarget).get("reason") || "").trim();
+      if (!reason) { setFeedback("platform-state", "Registra el motivo para conservar la trazabilidad del cambio.", "is-error"); return; }
+      const nextStatus = tenant.status === "Activo" ? "Inactivo" : "Activo";
+      tenant.status = nextStatus;
+      savePlatformTenants(getPlatformTenants().map((item) => item.id === tenant.id ? tenant : item));
+      const previousStatus = nextStatus === "Activo" ? "Inactivo" : "Activo";
+      addPlatformAudit({ date: formatPlatformDateTime(new Date()), action: `Operador ${nextStatus === "Activo" ? "reactivado" : "inactivado"}`, tenant: tenant.name, tenantId: tenant.id, detail: `${previousStatus} -> ${nextStatus}`, actorName: "Fernanda Robayo", actorRole: "Administrador de plataforma", reason, recordAffected: `Estado del operador: ${tenant.id}`, previousValue: previousStatus, newValue: nextStatus, module: PLATFORM_OPERATORS_MODULE, functionalReference: "Cambio de estado de operador" });
+      event.currentTarget.reset();
+      setFeedback("platform-state", `Operador ${nextStatus.toLowerCase()} en esta simulacion.`, "is-success");
+      renderDetail();
+    });
+  }
+
+  if (screen === "platform-audit") {
+    const table = document.querySelector("[data-platform-audit-table]");
+    const audit = getPlatformAudit();
+    const dialog = document.querySelector("[data-platform-audit-dialog]");
+    const detail = document.querySelector("[data-platform-audit-detail]");
+    if (table) table.innerHTML = audit.map((event, index) => `<tr><td>${escapeHtml(event.date)}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.tenant)}<small>${escapeHtml(event.tenantId || "Sin identificador")}</small></td><td>${escapeHtml(event.detail || "No aplica")}</td><td><strong>${escapeHtml(event.actorName || "Fernanda Robayo")}</strong><small>${escapeHtml(event.actorRole || event.actor || "Administrador de plataforma")}</small></td><td>${escapeHtml(event.reason || "No aplica")}</td><td><button class="platform-table-link" type="button" data-platform-audit-detail-button="${index}">Ver detalle</button></td></tr>`).join("");
+    table?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-platform-audit-detail-button]");
+      if (!button || !detail || !dialog) return;
+      const auditEvent = audit[Number(button.dataset.platformAuditDetailButton)];
+      if (!auditEvent) return;
+      const fields = [["Fecha y hora", auditEvent.date], ["Usuario", auditEvent.actorName || "Fernanda Robayo"], ["Rol", auditEvent.actorRole || auditEvent.actor || "Administrador de plataforma"], ["Operador", auditEvent.tenant], ["Acción", auditEvent.action], ["Registro afectado", auditEvent.recordAffected || auditEvent.tenantId || "No aplica"], ["Valor anterior", auditEvent.previousValue || "No aplica"], ["Valor nuevo", auditEvent.newValue || auditEvent.detail || "No aplica"], ["Motivo", auditEvent.reason || "No aplica"], ["Módulo o canal", auditEvent.module || "No aplica"], ["Referencia funcional", auditEvent.functionalReference || "No aplica"]];
+      detail.innerHTML = fields.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("");
+      dialog.showModal();
+    });
+    document.querySelector("[data-platform-audit-close]")?.addEventListener("click", () => dialog?.close());
+  }
 }
 
 function setupVenueLinks(theme) {
@@ -1021,33 +1313,37 @@ function setupTourDetail(theme) {
 
   const tours = {
     mountains: {
-      detailTitle: "Tour Details",
-      name: "Tour destino ejemplo - montanas",
+      detailTitle: "Detalle del tour",
+      name: "Tour destino ejemplo - Montañas",
       category: "Naturaleza y trekking",
-      rating: "4.8",
-      location: "Sierra alta, ruta panoramica",
+      location: "Sierra alta, ruta panorámica",
       description:
-        "Una salida inmersiva para descubrir paisajes abiertos, caminar con guia local y combinar aventura, descanso y momentos de contemplacion en una ruta pensada para viajeros activos.",
-      price: `Desde ${formatCOP(1299000)}`,
-      availability: "Salidas disponibles este mes",
-      reviewScore: "4.8 *****",
-      reviewCount: "Basado en 214 opiniones",
-      features: ["Guia local", "Traslados", "Snacks", "Paradas panoramicas"],
+        "Una salida inmersiva para descubrir paisajes abiertos, caminar con guía local y combinar aventura, descanso y momentos de contemplación en una ruta pensada para viajeros activos.",
+      price: 1039200,
+      originalPrice: 1299000,
+      discountLabel: "20% de descuento",
+      availability: "Selecciona una salida disponible para reservar.",
+      departures: [
+        { date: "15 sep 2026", status: "Disponible", tone: "available" },
+        { date: "22 sep 2026", status: "Pocos cupos", tone: "limited" },
+        { date: "29 sep 2026", status: "Disponible", tone: "available" },
+      ],
+      features: ["Guía local", "Traslados", "Snacks", "Paradas panorámicas"],
       itinerary: [
         {
           title: "Dia 1 · Llegada y activacion",
-          body: "Recepcion, briefing inicial y recorrido de reconocimiento con vista al valle.",
+          body: "Recepción, briefing inicial y recorrido de reconocimiento con vista al valle.",
           price: "Tarde",
         },
         {
           title: "Dia 2 · Ruta principal",
-          body: "Caminata guiada por senderos de montana con descansos y puntos fotograficos.",
-          price: "Full day",
+          body: "Caminata guiada por senderos de montaña con descansos y puntos fotográficos.",
+          price: "Día completo",
         },
         {
           title: "Dia 3 · Cierre flexible",
-          body: "Manana libre, recomendaciones del guia y retorno programado.",
-          price: "Manana",
+          body: "Mañana libre, recomendaciones del guía y retorno programado.",
+          price: "Mañana",
         },
       ],
       hero:
@@ -1056,18 +1352,20 @@ function setupTourDetail(theme) {
         "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80\")",
     },
     cenotes: {
-      detailTitle: "Tour Details",
+      detailTitle: "Detalle del tour",
       name: "Aventura en cenotes ocultos",
       category: "Naturaleza y agua",
-      rating: "4.9",
-      location: "Ruta selvática, peninsula",
+      location: "Ruta selvática, península",
       description:
-        "Experiencia de un dia para explorar cenotes poco concurridos, nadar en aguas cristalinas y vivir un recorrido fresco, guiado y seguro.",
-      price: `Desde ${formatCOP(520000)}`,
-      availability: "Salidas confirmadas esta semana",
-      reviewScore: "4.9 *****",
-      reviewCount: "Basado en 287 opiniones",
-      features: ["Guia experto", "Equipo basico", "Entrada incluida", "Snack ligero"],
+        "Experiencia de un día para explorar cenotes poco concurridos, nadar en aguas cristalinas y vivir un recorrido fresco, guiado y seguro.",
+      price: 520000,
+      availability: "Selecciona una salida disponible para reservar.",
+      departures: [
+        { date: "12 sep 2026", status: "Disponible", tone: "available" },
+        { date: "19 sep 2026", status: "Disponible", tone: "available" },
+        { date: "26 sep 2026", status: "Sin cupo", tone: "unavailable" },
+      ],
+      features: ["Guía experto", "Equipo básico", "Entrada incluida", "Snack ligero"],
       itinerary: [
         {
           title: "Salida temprana",
@@ -1077,11 +1375,11 @@ function setupTourDetail(theme) {
         {
           title: "Circuito de cenotes",
           body: "Recorrido por dos o tres puntos naturales con tiempo para nadar y descansar.",
-          price: "Mediodia",
+          price: "Mediodía",
         },
         {
           title: "Regreso",
-          body: "Cierre de experiencia con hidratacion y retorno al punto de salida.",
+          body: "Cierre de experiencia con hidratación y retorno al punto de salida.",
           price: "4:00 pm",
         },
       ],
@@ -1091,28 +1389,30 @@ function setupTourDetail(theme) {
         "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80\")",
     },
     cultural: {
-      detailTitle: "Tour Details",
-      name: "Recorrido cultural e historico",
+      detailTitle: "Detalle del tour",
+      name: "Recorrido cultural e histórico",
       category: "Ciudad y patrimonio",
-      rating: "4.7",
-      location: "Centro historico",
+      location: "Centro histórico",
       description:
         "Una experiencia breve para conocer hitos patrimoniales, relatos locales y rincones emblematicos con una narrativa clara y cercana.",
-      price: `Desde ${formatCOP(349000)}`,
-      availability: "Salidas diarias disponibles",
-      reviewScore: "4.7 *****",
-      reviewCount: "Basado en 176 opiniones",
-      features: ["Guia cultural", "Paradas clave", "Acceso peatonal", "Tiempo libre"],
+      price: 349000,
+      availability: "Selecciona una salida disponible para reservar.",
+      departures: [
+        { date: "16 sep 2026", status: "Disponible", tone: "available" },
+        { date: "23 sep 2026", status: "Disponible", tone: "available" },
+        { date: "30 sep 2026", status: "Disponible", tone: "available" },
+      ],
+      features: ["Guía cultural", "Paradas clave", "Acceso peatonal", "Tiempo libre"],
       itinerary: [
         {
           title: "Inicio en plaza central",
-          body: "Presentacion del recorrido y contexto historico general de la zona.",
+          body: "Presentación del recorrido y contexto histórico general de la zona.",
           price: "10:00 am",
         },
         {
           title: "Recorrido guiado",
-          body: "Visita a calles iconicas, fachadas relevantes y puntos de interpretacion.",
-          price: "Medio dia",
+          body: "Visita a calles icónicas, fachadas relevantes y puntos de interpretación.",
+          price: "Medio día",
         },
         {
           title: "Cierre recomendado",
@@ -1126,18 +1426,21 @@ function setupTourDetail(theme) {
         "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80\")",
     },
     rafting: {
-      detailTitle: "Tour Details",
+      detailTitle: "Detalle del tour",
       name: "Rafting y acampada extrema",
-      category: "Aventura y rio",
-      rating: "5.0",
-      location: "Cañon del rio bravo",
+      category: "Aventura y río",
+      location: "Cañón del Río Bravo",
       description:
-        "Plan de dos dias para viajeros que buscan adrenalina, rio, campamento y una operacion guiada con enfoque en seguridad y experiencia outdoor.",
-      price: `Desde ${formatCOP(799000)}`,
-      availability: "Cupos limitados para el fin de semana",
-      reviewScore: "5.0 *****",
-      reviewCount: "Basado en 143 opiniones",
-      features: ["Rafting guiado", "Campamento", "Equipo tecnico", "Cena al aire libre"],
+        "Plan de dos días para viajeros que buscan adrenalina, río, campamento y una operación guiada con enfoque en seguridad y experiencia outdoor.",
+      price: 799000,
+      availability: "Selecciona una salida disponible para reservar.",
+      isRisk: true,
+      departures: [
+        { date: "13 sep 2026", status: "Pocos cupos", tone: "limited" },
+        { date: "20 sep 2026", status: "Sin cupo", tone: "unavailable" },
+        { date: "27 sep 2026", status: "Disponible", tone: "available" },
+      ],
+      features: ["Rafting guiado", "Campamento", "Equipo técnico", "Cena al aire libre"],
       itinerary: [
         {
           title: "Dia 1 · Ingreso y descenso",
@@ -1146,12 +1449,12 @@ function setupTourDetail(theme) {
         },
         {
           title: "Noche de campamento",
-          body: "Montaje de campamento, cena compartida y descanso junto al rio.",
+          body: "Montaje de campamento, cena compartida y descanso junto al río.",
           price: "Noche",
         },
         {
           title: "Dia 2 · Segundo tramo y salida",
-          body: "Continuacion del recorrido, cierre del circuito y retorno al punto base.",
+          body: "Continuación del recorrido, cierre del circuito y retorno al punto base.",
           price: "Dia 2",
         },
       ],
@@ -1196,16 +1499,33 @@ function setupTourDetail(theme) {
     if (tour[key]) node.textContent = tour[key];
   });
 
+  const priceFinalNode = document.querySelector("[data-tour-price-final]");
+  const priceBeforeNode = document.querySelector("[data-tour-price-before]");
+  const discountNode = document.querySelector("[data-tour-discount]");
+  if (priceFinalNode) priceFinalNode.textContent = `Desde: ${formatCOP(tour.price)}`;
+  if (priceBeforeNode) {
+    priceBeforeNode.textContent = `Antes: ${formatCOP(tour.originalPrice)}`;
+    priceBeforeNode.hidden = !tour.originalPrice;
+  }
+  if (discountNode) {
+    discountNode.textContent = tour.discountLabel || "";
+    discountNode.hidden = !tour.discountLabel;
+  }
+
   const featureNode = document.querySelector("[data-tour-features]");
   if (featureNode) {
-    featureNode.innerHTML = tour.features
+    const features = tour.features || [];
+    featureNode.closest(".travel-detail-section").hidden = !features.length;
+    featureNode.innerHTML = features
       .map((feature) => `<span>${feature}</span>`)
       .join("");
   }
 
   const itineraryNode = document.querySelector("[data-tour-itinerary]");
   if (itineraryNode) {
-    itineraryNode.innerHTML = tour.itinerary
+    const itinerary = tour.itinerary || [];
+    itineraryNode.closest(".travel-detail-section").hidden = !itinerary.length;
+    itineraryNode.innerHTML = itinerary
       .map(
         (item) => `
           <article class="travel-detail-menu-item">
@@ -1220,6 +1540,65 @@ function setupTourDetail(theme) {
       .join("");
   }
 
+  const departuresNode = document.querySelector("[data-tour-departures]");
+  const bookingButton = document.querySelector("[data-tour-booking-button]");
+  const availabilityNode = document.querySelector('[data-tour-field="availability"]');
+  let selectedDeparture = null;
+
+  const syncBookingButton = () => {
+    if (!bookingButton) return;
+    bookingButton.disabled = !selectedDeparture;
+    bookingButton.textContent = selectedDeparture ? "Reservar tour" : "Selecciona una salida";
+    if (availabilityNode) {
+      availabilityNode.textContent = selectedDeparture
+        ? `Salida seleccionada: ${selectedDeparture}. Puedes continuar con la reserva.`
+        : tour.availability;
+    }
+  };
+
+  if (departuresNode) {
+    departuresNode.innerHTML = (tour.departures || [])
+      .map(
+        (departure) => {
+          const isUnavailable = departure.tone === "unavailable";
+          return `
+          <button
+            type="button"
+            class="travel-detail-departure is-${departure.tone}"
+            data-tour-departure="${departure.date}"
+            aria-pressed="false"
+            ${isUnavailable ? "disabled" : ""}
+          >
+            <strong>${departure.date}</strong>
+            <span>${departure.status}</span>
+          </button>
+        `;
+        },
+      )
+      .join("");
+
+    departuresNode.querySelectorAll("[data-tour-departure]").forEach((departureButton) => {
+      departureButton.addEventListener("click", () => {
+        const departureDate = departureButton.dataset.tourDeparture;
+        selectedDeparture = selectedDeparture === departureDate ? null : departureDate;
+        departuresNode.querySelectorAll("[data-tour-departure]").forEach((node) => {
+          node.classList.toggle("is-selected", selectedDeparture === node.dataset.tourDeparture);
+          node.setAttribute("aria-pressed", String(selectedDeparture === node.dataset.tourDeparture));
+        });
+        syncBookingButton();
+      });
+    });
+  }
+
+  syncBookingButton();
+  bookingButton?.addEventListener("click", () => {
+    if (!selectedDeparture) return;
+    window.location.href = `${withTheme("reservar-tour.html", theme)}&tour=${encodeURIComponent(tourKey || "mountains")}&source=tour-detail&departure=${encodeURIComponent(selectedDeparture)}`;
+  });
+
+  const riskNote = document.querySelector("[data-tour-risk-note]");
+  if (riskNote) riskNote.hidden = !tour.isRisk;
+
   document.querySelectorAll("[data-tour-image]").forEach((node) => {
     const key = node.dataset.tourImage;
     if (tour[key]) node.style.backgroundImage = tour[key];
@@ -1230,37 +1609,95 @@ function setupTourBooking(theme) {
   if (document.body.dataset.screen !== "tour-booking") return;
 
   const tours = {
-    mountains: { name: "Tour destino ejemplo - montanas", category: "Naturaleza y trekking", price: 1299000 },
-    cenotes: { name: "Aventura en cenotes ocultos", category: "Naturaleza y agua", price: 520000 },
-    cultural: { name: "Recorrido cultural e historico", category: "Ciudad y patrimonio", price: 349000 },
-    rafting: { name: "Rafting y acampada extrema", category: "Aventura y rio", price: 799000 },
+    mountains: {
+      name: "Tour destino ejemplo - montañas",
+      category: "Naturaleza y trekking",
+      unitProjectedValue: 1299000,
+      discountRate: 0.2,
+      conditions: [],
+      departures: [
+        { date: "2026-09-15", label: "15 sep 2026", capacity: 10 },
+        { date: "2026-09-22", label: "22 sep 2026", capacity: 2 },
+        { date: "2026-09-29", label: "29 sep 2026", capacity: 8 },
+      ],
+    },
+    cenotes: {
+      name: "Aventura en cenotes ocultos",
+      category: "Naturaleza y agua",
+      unitProjectedValue: 520000,
+      discountRate: 0,
+      conditions: [],
+      departures: [
+        { date: "2026-09-12", label: "12 sep 2026", capacity: 8 },
+        { date: "2026-09-19", label: "19 sep 2026", capacity: 8 },
+        { date: "2026-09-26", label: "26 sep 2026", capacity: 0 },
+      ],
+    },
+    cultural: {
+      name: "Recorrido cultural e histórico",
+      category: "Ciudad y patrimonio",
+      unitProjectedValue: 349000,
+      discountRate: 0,
+      conditions: [],
+      departures: [
+        { date: "2026-09-16", label: "16 sep 2026", capacity: 14 },
+        { date: "2026-09-23", label: "23 sep 2026", capacity: 14 },
+        { date: "2026-09-30", label: "30 sep 2026", capacity: 14 },
+      ],
+    },
+    rafting: {
+      name: "Rafting y acampada extrema",
+      category: "Aventura y río",
+      unitProjectedValue: 799000,
+      discountRate: 0,
+      conditions: [],
+      departures: [
+        { date: "2026-09-13", label: "13 sep 2026", capacity: 2 },
+        { date: "2026-09-20", label: "20 sep 2026", capacity: 0 },
+        { date: "2026-09-27", label: "27 sep 2026", capacity: 6 },
+      ],
+    },
   };
 
   const params = new URLSearchParams(window.location.search);
   const tourKey = params.get("tour") || "mountains";
+  const selectedDeparture = params.get("departure");
   const tour = tours[tourKey] || tours.mountains;
   const backLink = document.querySelector("[data-tour-booking-back]");
   const bookingName = document.querySelector("[data-booking-tour-name]");
   const bookingCategory = document.querySelector("[data-booking-tour-category]");
   const bookingPrice = document.querySelector("[data-booking-tour-price]");
-  const bookingUnitPrice = document.querySelector("[data-booking-unit-price]");
-  const bookingTotalPrice = document.querySelector("[data-booking-total-price]");
+  const projectedValueNode = document.querySelector("[data-booking-projected-value]");
+  const discountBlock = document.querySelector("[data-booking-discount-block]");
+  const discountValueNode = document.querySelector("[data-booking-discount-value]");
+  const finalValueNode = document.querySelector("[data-booking-final-value]");
   const bookingSelection = document.querySelector("[data-booking-selection]");
+  const capacityMessage = document.querySelector("[data-booking-capacity-message]");
+  const conditionsList = document.querySelector("[data-booking-conditions-list]");
+  const conditionsEmpty = document.querySelector("[data-booking-conditions-empty]");
   const continueButton = document.querySelector("[data-booking-continue]");
   const monthLabel = document.querySelector("[data-booking-month-label]");
   const daysContainer = document.querySelector("[data-booking-days]");
   const monthNavButtons = document.querySelectorAll("[data-booking-month-nav]");
-  const storageKey = "multitour-dashboard-booking";
   const checkoutStorageKey = "multitour-tour-checkout";
   const monthFormatter = new Intl.DateTimeFormat("es-CO", {
     month: "long",
     year: "numeric",
   });
-  const shortFormatter = new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const monthFromDateKey = (dateKey) => new Date(`${dateKey}T12:00:00`);
+  const dateKeyFromDate = (date) => date.toISOString().slice(0, 10);
+  const availableMonths = Array.from(
+    new Set(tour.departures.map((departure) => departure.date.slice(0, 7))),
+  ).map((monthKey) => monthFromDateKey(`${monthKey}-01`));
+  const selectedFromDetail = tour.departures.find(
+    (departure) => departure.label === selectedDeparture && departure.capacity > 0,
+  );
+  let selectedDate = (selectedFromDetail || tour.departures.find((departure) => departure.capacity > 0))?.date;
+  let monthIndex = Math.max(
+    0,
+    availableMonths.findIndex((month) => dateKeyFromDate(month) === selectedDate?.slice(0, 7) + "-01"),
+  );
+  let travelers = 2;
 
   if (backLink) {
     backLink.setAttribute("href", `${withTheme("detalle-tour.html", theme)}&tour=${encodeURIComponent(tourKey)}&source=tours`);
@@ -1268,25 +1705,33 @@ function setupTourBooking(theme) {
 
   if (bookingName) bookingName.textContent = tour.name;
   if (bookingCategory) bookingCategory.textContent = tour.category;
-  if (bookingPrice) bookingPrice.textContent = `Desde ${formatCOP(tour.price)}`;
-
-  const availableMonths = Array.from({ length: 12 }, (_, index) => new Date(2026, 8 + index, 1));
-  let monthIndex = 0;
-  let selectedDate = "09 Sep 2026";
-  let adults = 2;
-  let children = 0;
-
-  const buildDateLabel = (date) => {
-    const [day, month, year] = shortFormatter.format(date).split(" ");
-    return `${day} ${month} ${year}`;
-  };
+  if (bookingPrice) bookingPrice.textContent = `Desde ${formatCOP(tour.unitProjectedValue * (1 - tour.discountRate))}`;
+  if (conditionsList) {
+    const conditions = tour.conditions || [];
+    conditionsList.innerHTML = conditions.map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
+    conditionsList.hidden = conditions.length === 0;
+    if (conditionsEmpty) conditionsEmpty.hidden = conditions.length > 0;
+  }
 
   const renderSummary = () => {
-    const totalGuests = adults + children;
-    const total = tour.price * totalGuests;
-    if (bookingUnitPrice) bookingUnitPrice.textContent = formatCOP(tour.price);
-    if (bookingTotalPrice) bookingTotalPrice.textContent = formatCOP(total);
-    if (bookingSelection) bookingSelection.textContent = `${selectedDate} - ${totalGuests} viajeros`;
+    const departure = tour.departures.find((item) => item.date === selectedDate);
+    const projectedValue = tour.unitProjectedValue * travelers;
+    const discountValue = Math.round(projectedValue * tour.discountRate);
+    const finalValue = projectedValue - discountValue;
+    const hasCapacity = Boolean(departure && travelers <= departure.capacity);
+
+    if (projectedValueNode) projectedValueNode.textContent = formatCOP(projectedValue);
+    if (discountBlock) discountBlock.hidden = discountValue === 0;
+    if (discountValueNode) discountValueNode.textContent = `- ${formatCOP(discountValue)}`;
+    if (finalValueNode) finalValueNode.textContent = formatCOP(finalValue);
+    if (bookingSelection) bookingSelection.textContent = `${departure?.label || "Sin salida seleccionada"} - ${travelers} viajeros`;
+    if (capacityMessage) {
+      capacityMessage.textContent = hasCapacity
+        ? "Disponibilidad validada para la cantidad de viajeros seleccionada."
+        : "La cantidad seleccionada supera la disponibilidad de esta salida.";
+      capacityMessage.classList.toggle("is-error", !hasCapacity);
+    }
+    if (continueButton) continueButton.disabled = !hasCapacity;
   };
 
   const renderCalendar = () => {
@@ -1312,28 +1757,35 @@ function setupTourBooking(theme) {
 
     for (let day = 1; day <= totalDays; day += 1) {
       const button = document.createElement("button");
-      const date = new Date(year, month, day);
-      const dateLabel = buildDateLabel(date);
+      const date = new Date(year, month, day, 12);
+      const dateKey = dateKeyFromDate(date);
+      const departure = tour.departures.find((item) => item.date === dateKey);
       button.type = "button";
       button.className = "travel-booking-day";
-      button.dataset.dateLabel = dateLabel;
+      button.dataset.dateKey = dateKey;
       button.textContent = String(day);
-      if (dateLabel === selectedDate) {
+      button.disabled = !departure || departure.capacity === 0;
+      button.setAttribute(
+        "aria-label",
+        departure ? `${departure.label}: ${departure.capacity ? "disponible" : "sin cupo"}` : `${day}: sin salida disponible`,
+      );
+      if (departure?.capacity === 0) button.classList.add("is-unavailable");
+      if (dateKey === selectedDate) {
         button.classList.add("is-active");
       }
-      button.addEventListener("click", () => {
-        selectedDate = dateLabel;
-        renderCalendar();
-        renderSummary();
-      });
+      if (departure && departure.capacity > 0) {
+        button.addEventListener("click", () => {
+          selectedDate = dateKey;
+          renderCalendar();
+          renderSummary();
+        });
+      }
       daysContainer.appendChild(button);
     }
 
     monthNavButtons.forEach((button) => {
       const direction = button.dataset.bookingMonthNav;
-      const disabled =
-        (direction === "prev" && monthIndex === 0) ||
-        (direction === "next" && monthIndex === availableMonths.length - 1);
+      const disabled = (direction === "prev" && monthIndex === 0) || (direction === "next" && monthIndex === availableMonths.length - 1);
       button.disabled = disabled;
     });
   };
@@ -1343,15 +1795,7 @@ function setupTourBooking(theme) {
       const direction = button.dataset.bookingMonthNav;
       if (direction === "prev" && monthIndex > 0) monthIndex -= 1;
       if (direction === "next" && monthIndex < availableMonths.length - 1) monthIndex += 1;
-      selectedDate = buildDateLabel(
-        new Date(
-          availableMonths[monthIndex].getFullYear(),
-          availableMonths[monthIndex].getMonth(),
-          1,
-        ),
-      );
       renderCalendar();
-      renderSummary();
     });
   });
 
@@ -1362,13 +1806,9 @@ function setupTourBooking(theme) {
     counter.querySelectorAll("[data-counter-action]").forEach((button) => {
       button.addEventListener("click", () => {
         const isIncrease = button.dataset.counterAction === "increase";
-        if (type === "adults") {
-          adults = isIncrease ? adults + 1 : Math.max(1, adults - 1);
-          valueNode.textContent = String(adults);
-        }
-        if (type === "children") {
-          children = isIncrease ? children + 1 : Math.max(0, children - 1);
-          valueNode.textContent = String(children);
+        if (type === "travelers") {
+          travelers = isIncrease ? travelers + 1 : Math.max(1, travelers - 1);
+          valueNode.textContent = String(travelers);
         }
         renderSummary();
       });
@@ -1377,16 +1817,23 @@ function setupTourBooking(theme) {
 
   if (continueButton) {
     continueButton.addEventListener("click", () => {
-      const totalGuests = adults + children;
+      const departure = tour.departures.find((item) => item.date === selectedDate);
+      if (!departure || travelers > departure.capacity) return;
+      const projectedValue = tour.unitProjectedValue * travelers;
+      const discountValue = Math.round(projectedValue * tour.discountRate);
+      const finalValue = projectedValue - discountValue;
       const booking = {
         experience: tour.name,
-        startDate: selectedDate,
-        endDate: selectedDate,
-        travelers: String(totalGuests),
-        budget: formatCOP(tour.price * totalGuests),
+        startDate: departure.label,
+        endDate: departure.label,
+        travelers: String(travelers),
+        budget: formatCOP(finalValue),
+        projectedValue,
+        discountValue,
+        finalValue,
         code: `#RES-${Date.now().toString().slice(-6)}`,
         savedAt: new Date().toLocaleDateString("es-CO"),
-        unitPrice: tour.price,
+        unitPrice: finalValue / travelers,
         tourKey,
         category: tour.category,
       };
@@ -1404,7 +1851,7 @@ function setupTourCheckout(theme) {
 
   const tours = {
     mountains: {
-      name: "Tour destino ejemplo - montanas",
+      name: "Tour destino ejemplo - montañas",
       image:
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80\")",
     },
@@ -1414,7 +1861,7 @@ function setupTourCheckout(theme) {
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80\")",
     },
     cultural: {
-      name: "Recorrido cultural e historico",
+      name: "Recorrido cultural e histórico",
       image:
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80\")",
     },
@@ -1460,7 +1907,7 @@ function setupTourCheckout(theme) {
   if (nameNode) nameNode.textContent = booking?.experience || tour.name;
 
   const dateNode = document.querySelector("[data-checkout-date]");
-  if (dateNode) dateNode.textContent = booking?.startDate || "09 Sep 2026";
+  if (dateNode) dateNode.textContent = booking?.startDate || "15 sep 2026";
 
   const guestsNode = document.querySelector("[data-checkout-guests]");
   if (guestsNode) {
@@ -1484,7 +1931,7 @@ function setupTourCheckout(theme) {
   if (totalStickyNode) totalStickyNode.textContent = formatCOP(total);
 
   const selectionNode = document.querySelector("[data-checkout-selection]");
-  if (selectionNode) selectionNode.textContent = `${booking?.startDate || "09 Sep 2026"} - ${booking?.travelers || 2} viajeros`;
+  if (selectionNode) selectionNode.textContent = `${booking?.startDate || "15 sep 2026"} - ${booking?.travelers || 2} viajeros`;
 
   const codeNode = document.querySelector("[data-checkout-code]");
   if (codeNode) codeNode.textContent = booking?.code || "Borrador";
@@ -1514,8 +1961,8 @@ function setupTourCheckout(theme) {
     const selectedMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "bank";
     const finalBooking = {
       experience: booking?.experience || tour.name,
-      startDate: booking?.startDate || "09 Sep 2026",
-      endDate: booking?.endDate || booking?.startDate || "09 Sep 2026",
+      startDate: booking?.startDate || "15 sep 2026",
+      endDate: booking?.endDate || booking?.startDate || "15 sep 2026",
       travelers: booking?.travelers || "2",
       budget: formatCOP(total),
       code: booking?.code || `#RES-${Date.now().toString().slice(-6)}`,
@@ -1564,7 +2011,7 @@ function setupTourPaymentSuccess(theme) {
 
   const tours = {
     mountains: {
-      name: "Tour destino ejemplo - montanas",
+      name: "Tour destino ejemplo - montañas",
       image:
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80\")",
     },
@@ -1574,7 +2021,7 @@ function setupTourPaymentSuccess(theme) {
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80\")",
     },
     cultural: {
-      name: "Recorrido cultural e historico",
+      name: "Recorrido cultural e histórico",
       image:
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80\")",
     },
@@ -1607,7 +2054,7 @@ function setupTourPaymentSuccess(theme) {
   if (nameNode) nameNode.textContent = booking?.experience || tour.name;
 
   const dateNode = document.querySelector("[data-success-date]");
-  if (dateNode) dateNode.textContent = booking?.startDate || "09 Sep 2026";
+  if (dateNode) dateNode.textContent = booking?.startDate || "15 sep 2026";
 
   const travelersNode = document.querySelector("[data-success-travelers]");
   if (travelersNode) {
@@ -1624,7 +2071,7 @@ function setupTourPaymentFailed(theme) {
 
   const tours = {
     mountains: {
-      name: "Tour destino ejemplo - montanas",
+      name: "Tour destino ejemplo - montañas",
       image:
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80\")",
     },
@@ -1634,7 +2081,7 @@ function setupTourPaymentFailed(theme) {
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80\")",
     },
     cultural: {
-      name: "Recorrido cultural e historico",
+      name: "Recorrido cultural e histórico",
       image:
         "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80\")",
     },
@@ -1667,7 +2114,7 @@ function setupTourPaymentFailed(theme) {
   if (nameNode) nameNode.textContent = booking?.experience || tour.name;
 
   const dateNode = document.querySelector("[data-failed-date]");
-  if (dateNode) dateNode.textContent = booking?.startDate || "09 Sep 2026";
+  if (dateNode) dateNode.textContent = booking?.startDate || "15 sep 2026";
 
   const travelersNode = document.querySelector("[data-failed-travelers]");
   if (travelersNode) {
@@ -1723,8 +2170,8 @@ function setupTourPaymentTransfer(theme) {
   uploadButton.addEventListener("click", () => {
     const pendingBooking = {
       experience: booking?.experience || "Reserva pendiente",
-      startDate: booking?.startDate || "09 Sep 2026",
-      endDate: booking?.endDate || booking?.startDate || "09 Sep 2026",
+      startDate: booking?.startDate || "15 sep 2026",
+      endDate: booking?.endDate || booking?.startDate || "15 sep 2026",
       travelers: booking?.travelers || "2",
       budget: booking?.budget || formatCOP(2806000),
       code: booking?.code || `#RES-${Date.now().toString().slice(-6)}`,
@@ -1748,10 +2195,14 @@ function setupDashboardBooking() {
   const datesNode = document.querySelector("[data-booking-dates]");
   const codeNode = document.querySelector("[data-booking-code]");
   const statusNode = document.querySelector("[data-booking-status]");
+  const statusBlock = document.querySelector("[data-booking-status-block]");
   const travelersNode = document.querySelector("[data-booking-travelers]");
-  const savedNode = document.querySelector("[data-booking-saved]");
-  const budgetNode = document.querySelector("[data-booking-budget]");
-  const noteNode = document.querySelector("[data-booking-note]");
+  const projectedValueNode = document.querySelector("[data-booking-projected-value]");
+  const discountValueNode = document.querySelector("[data-booking-discount-value]");
+  const finalValueNode = document.querySelector("[data-booking-final-value]");
+  const primaryAction = document.querySelector("[data-booking-primary-action]");
+  const sectionAction = document.querySelector("[data-booking-section-action]");
+  const bookingCard = document.querySelector("[data-booking-result]");
 
   const formatDate = (value) => {
     if (!value) return "";
@@ -1760,27 +2211,55 @@ function setupDashboardBooking() {
     return `${day}/${month}/${year}`;
   };
 
+  const formatValue = (value) => {
+    if (typeof value === "number") return formatCOP(value);
+    return value || formatCOP(0);
+  };
+
+  const setAction = (action, label, href, route) => {
+    if (!action) return;
+    action.textContent = label;
+    action.setAttribute("href", href);
+    if (route) {
+      action.dataset.route = route;
+    } else {
+      delete action.dataset.route;
+    }
+  };
+
   const renderBooking = (booking) => {
     if (!booking) {
-      experienceNode.textContent = "Sin reserva guardada";
-      datesNode.textContent = "Completa el formulario para ver la reserva aqui.";
-      codeNode.textContent = "Reserva: pendiente";
-      statusNode.textContent = "Borrador";
-      travelersNode.textContent = "Viajeros: 0";
-      savedNode.textContent = "Sin guardar";
-      budgetNode.textContent = `Presupuesto: ${formatCOP(0)}`;
-      noteNode.textContent = "La informacion se guardara localmente en el navegador para esta demo.";
+      experienceNode.textContent = "Aún no tienes una reserva en curso";
+      datesNode.textContent = "Explora el catálogo y selecciona los servicios para comenzar una nueva reserva.";
+      codeNode.hidden = true;
+      statusBlock.hidden = true;
+      sectionAction.hidden = true;
+      bookingCard.classList.add("is-empty");
+      setAction(primaryAction, "Crear reserva", "tours.html", "tours");
       return;
     }
 
     experienceNode.textContent = booking.experience;
     datesNode.textContent = `${formatDate(booking.startDate)} - ${formatDate(booking.endDate)}`;
     codeNode.textContent = `Reserva: ${booking.code}`;
-    statusNode.textContent = booking.status || "Guardada";
+    codeNode.hidden = false;
+    statusBlock.hidden = false;
+    sectionAction.hidden = false;
+    bookingCard.classList.remove("is-empty");
+    statusNode.textContent = booking.status || "Pendiente de pago";
     travelersNode.textContent = `Viajeros: ${booking.travelers}`;
-    savedNode.textContent = `Guardado: ${booking.savedAt}`;
-    budgetNode.textContent = `Presupuesto: ${booking.budget}`;
-    noteNode.textContent = "Esta reserva es una simulacion local del mockup y permanece visible al recargar.";
+    projectedValueNode.textContent = `Valor proyectado: ${formatValue(booking.projectedValue || booking.budget)}`;
+    finalValueNode.textContent = `Valor final: ${formatValue(booking.finalValue || booking.budget)}`;
+
+    if (booking.discountValue) {
+      discountValueNode.textContent = `Descuentos: -${formatValue(booking.discountValue)}`;
+      discountValueNode.hidden = false;
+    } else {
+      discountValueNode.hidden = true;
+    }
+
+    setAction(primaryAction, "Agregar acompañantes", "acompanantes.html", "companions");
+    setAction(sectionAction, "Nueva reserva", "tours.html", "tours");
   };
 
   const readBooking = () => {
@@ -1941,8 +2420,8 @@ function setupCompanionsForm() {
   });
 }
 
-function setupGastronomyCatalogSearch() {
-  const supportedScreens = new Set(["gastronomy", "restaurants", "bars", "cafes"]);
+function setupCatalogSearch() {
+  const supportedScreens = new Set(["tours", "gastronomy", "restaurants", "bars", "cafes"]);
   const screen = document.body.dataset.screen;
   if (!supportedScreens.has(screen)) return;
 
@@ -1957,10 +2436,22 @@ function setupGastronomyCatalogSearch() {
   const cards = Array.from(grid.querySelectorAll("[data-search-card], .travel-tour-card"));
   if (!cards.length) return;
 
-  const emptyState = document.createElement("p");
+  const emptyState = document.createElement("div");
   emptyState.className = "travel-catalog-empty-state is-hidden";
-  emptyState.textContent = "No encontramos resultados con esa busqueda.";
+  const isToursCatalog = screen === "tours";
+  const emptyTitle = isToursCatalog
+    ? "No encontramos tours que coincidan con tu búsqueda."
+    : "No encontramos resultados con esa búsqueda.";
+  const emptyHint = isToursCatalog
+    ? "Prueba con otro nombre o destino."
+    : "Prueba con otra búsqueda.";
+  emptyState.innerHTML = `
+    <strong>${emptyTitle}</strong>
+    <p>${emptyHint}</p>
+    <button type="button">Limpiar búsqueda</button>
+  `;
   grid.insertAdjacentElement("afterend", emptyState);
+  const clearButton = emptyState.querySelector("button");
 
   const normalize = (value) =>
     String(value || "")
@@ -1987,7 +2478,7 @@ function setupGastronomyCatalogSearch() {
       if (matches) visibleCount += 1;
     });
 
-    emptyState.classList.toggle("is-hidden", visibleCount > 0);
+    emptyState.classList.toggle("is-hidden", visibleCount > 0 || !query);
   };
 
   searchInput.addEventListener("input", filterCards);
@@ -2002,6 +2493,11 @@ function setupGastronomyCatalogSearch() {
   if (searchButton) {
     searchButton.addEventListener("click", filterCards);
   }
+  clearButton?.addEventListener("click", () => {
+    searchInput.value = "";
+    filterCards();
+    searchInput.focus();
+  });
   filterCards();
 }
 
@@ -2016,6 +2512,7 @@ setupLoginForm(activeThemeConfig, activeTheme);
 setupSignupForm(activeTheme);
 setupRecoverForm(activeTheme);
 setupResetForm(activeTheme);
+setupPlatformScreens(activeTheme);
 setupVenueLinks(activeTheme);
 setupTourLinks(activeTheme);
 setupTourBookingLinks(activeTheme);
@@ -2028,4 +2525,4 @@ setupTourPaymentFailed(activeTheme);
 setupTourPaymentTransfer(activeTheme);
 setupDashboardBooking();
 setupCompanionsForm();
-setupGastronomyCatalogSearch();
+setupCatalogSearch();

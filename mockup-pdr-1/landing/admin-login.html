@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acceso de plataforma | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="platform-login" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main id="contenido" class="travel-login-shell">
+      <header class="travel-login-header travel-login-header-centered">
+        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
+      </header>
+      <section class="travel-login-stage">
+        <div class="travel-login-card travel-platform-login-card">
+          <div class="travel-login-copy">
+            <p class="travel-platform-login-kicker">Multi tour / entorno interno</p>
+            <h1>Acceso de plataforma</h1>
+            <p>Ingresa para administrar los operadores de Multi tour.</p>
+          </div>
+          <form class="travel-login-form" data-form="login" novalidate>
+            <div class="travel-login-field">
+              <label for="login-id">Correo Electronico</label>
+              <input id="login-id" name="email" type="email" autocomplete="email" placeholder="correo@ejemplo.com" />
+            </div>
+            <div class="travel-login-field">
+              <div class="travel-login-field-head"><label for="login-password">Contrasena</label></div>
+              <div class="travel-login-password-wrap">
+                <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="..........." />
+                <button class="travel-login-visibility" type="button" data-toggle="#login-password">Ver</button>
+              </div>
+            </div>
+            <p class="feedback" data-feedback="login" aria-live="polite"></p>
+            <button class="travel-login-submit" type="submit"><span>Ingresar a plataforma</span></button>
+          </form>
+          <p class="travel-recover-back"><a href="login.html" data-route="login">Volver al acceso general</a></p>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

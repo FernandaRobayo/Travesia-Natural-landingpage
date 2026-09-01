@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auditoría | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="platform-audit" data-theme="platform">
+    <main class="platform-shell">
+      <aside class="platform-sidebar">
+        <a class="platform-brand" href="admin-plataforma.html" data-route="platformAdmin">MULTI<span>TOUR</span></a>
+        <p class="platform-role">Administrador de plataforma</p>
+        <nav class="platform-nav" aria-label="Navegacion de plataforma">
+          <a href="admin-plataforma.html" data-route="platformAdmin">Resumen</a>
+          <a href="admin-operadores.html" data-route="platformOperators">Operadores</a>
+          <a class="is-active" href="admin-auditoria.html" data-route="platformAudit">Auditoría</a>
+        </nav>
+        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesion</a>
+      </aside>
+      <section class="platform-content">
+        <header class="platform-topbar"><div><p class="platform-eyebrow">Trazabilidad transversal</p><h1>Auditoría de plataforma</h1></div></header>
+        <section class="platform-intro platform-intro-compact"><div><p class="platform-eyebrow">Eventos relevantes</p><h2>Las decisiones sobre operadores dejan evidencia.</h2></div><p>Consulta altas, cambios de estado y acciones administrativas relevantes. Esta vista no expone datos operativos de los operadores.</p></section>
+        <section class="platform-panel"><div class="platform-table-wrap"><table class="platform-table"><thead><tr><th>Fecha y hora</th><th>Acción</th><th>Operador</th><th>Cambio</th><th>Responsable</th><th>Motivo</th><th>Detalle</th></tr></thead><tbody data-platform-audit-table></tbody></table></div></section>
+        <dialog class="platform-audit-dialog" data-platform-audit-dialog aria-labelledby="platform-audit-dialog-title">
+          <div class="platform-audit-dialog-head"><div><p class="platform-eyebrow">Evento auditado</p><h2 id="platform-audit-dialog-title">Detalle de auditoría</h2></div><button class="platform-dialog-close" type="button" data-platform-audit-close aria-label="Cerrar detalle">Cerrar</button></div>
+          <dl class="platform-audit-detail-grid" data-platform-audit-detail></dl>
+        </dialog>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

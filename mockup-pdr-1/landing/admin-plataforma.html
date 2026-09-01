@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plataforma | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="platform-admin" data-theme="platform">
+    <main class="platform-shell">
+      <aside class="platform-sidebar">
+        <a class="platform-brand" href="admin-plataforma.html" data-route="platformAdmin">MULTI<span>TOUR</span></a>
+        <p class="platform-role">Administrador de plataforma</p>
+        <nav class="platform-nav" aria-label="Navegacion de plataforma">
+          <a class="is-active" href="admin-plataforma.html" data-route="platformAdmin">Resumen</a>
+          <a href="admin-operadores.html" data-route="platformOperators">Operadores</a>
+          <a href="admin-auditoria.html" data-route="platformAudit">Auditoria</a>
+        </nav>
+        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesion</a>
+      </aside>
+
+      <section class="platform-content">
+        <header class="platform-topbar">
+          <div>
+            <p class="platform-eyebrow">Control de plataforma</p>
+            <h1>Operadores bajo control</h1>
+          </div>
+          <a class="platform-primary" href="admin-crear-operador.html" data-route="platformCreate">Crear operador</a>
+        </header>
+
+        <section class="platform-intro">
+          <div>
+            <p class="platform-eyebrow">Vista transversal</p>
+            <h2>La plataforma conecta operadores, sin mezclar su operacion.</h2>
+          </div>
+          <p>Administra el alta y estado de cada tenant. Las reservas, pagos y caja pertenecen exclusivamente a cada operador.</p>
+        </section>
+
+        <section class="platform-metrics" aria-label="Resumen de operadores">
+          <article><span>Operadores activos</span><strong data-platform-active-count>2</strong><small>Listos para nuevas autenticaciones y reservas</small></article>
+          <article><span>Operadores inactivos</span><strong data-platform-inactive-count>1</strong><small>Conservan historial y auditoria</small></article>
+          <article><span>Altas este mes</span><strong data-platform-created-count>2</strong><small>Incluyen su primer administrador</small></article>
+        </section>
+
+        <section class="platform-panel">
+          <div class="platform-panel-head">
+            <div><p class="platform-eyebrow">Operadores recientes</p><h2>Estado de tenants</h2></div>
+            <a href="admin-operadores.html" data-route="platformOperators">Ver todos</a>
+          </div>
+          <div class="platform-tenant-list" data-platform-tenant-preview></div>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

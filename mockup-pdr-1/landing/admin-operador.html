@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administración del operador | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="operator-admin" data-theme="travesia-natural">
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">TRAVESIA <span>NATURAL</span></a>
+        <p class="operator-role">Administrador del operador</p>
+        <nav class="operator-nav" aria-label="Administración del operador">
+          <a class="is-active" href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
+          <a href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
+          <a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a>
+          <a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a>
+          <a href="admin-pagos.html" data-route="operatorPayments">Pagos</a>
+          <a href="admin-caja.html" data-route="operatorCash">Caja</a>
+          <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
+          <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
+        </nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content">
+        <header class="operator-topbar"><div><p class="operator-eyebrow">Travesía Natural</p><h1>Control de la operación</h1></div><span class="operator-date">Martes, 1 sep 2026</span></header>
+        <section class="operator-hero"><div><p class="operator-eyebrow">Vista diaria</p><h2>Decisiones comerciales y operativas en un solo lugar.</h2></div><p>Gestiona únicamente la información de tu operador: reservas, catálogo, descuentos, pagos, caja y ejecución.</p></section>
+        <section class="operator-metrics" aria-label="Resumen diario"><article><span>Reservas pendientes</span><strong>6</strong><a href="admin-reservas.html" data-route="operatorReservations">Revisar reservas</a></article><article><span>Pagos por validar</span><strong>3</strong><a href="admin-pagos.html" data-route="operatorPayments">Gestionar pagos</a></article><article><span>Servicios próximos</span><strong>4</strong><a href="admin-operacion.html" data-route="operatorOperations">Ver operación</a></article><article><span>Caja del día</span><strong>$1.840.000</strong><a href="admin-caja.html" data-route="operatorCash">Consultar caja</a></article></section>
+        <section class="operator-panel"><div class="operator-panel-head"><div><p class="operator-eyebrow">Flujos principales</p><h2>¿Qué necesitas gestionar?</h2></div></div><div class="operator-action-grid"><a href="admin-reservas.html" data-route="operatorReservations"><strong>Reservas y clientes</strong><span>Registra, ajusta y consulta reservas antes de su ejecución.</span></a><a href="admin-descuentos.html" data-route="operatorDiscounts"><strong>Descuentos y condiciones</strong><span>Parametriza vigencias, topes y reglas comerciales.</span></a><a href="admin-pagos.html" data-route="operatorPayments"><strong>Pagos y devoluciones</strong><span>Valida soportes, saldos y decisiones monetarias.</span></a><a href="admin-operacion.html" data-route="operatorOperations"><strong>Ejecución y costos</strong><span>Registra lo prestado, novedades y costos reales.</span></a></div></section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

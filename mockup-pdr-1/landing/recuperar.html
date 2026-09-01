@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260830-1" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
   </head>
   <body data-screen="recover" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -23,29 +23,80 @@
       <section class="travel-login-stage">
         <div class="travel-login-card travel-recover-card">
           <div class="travel-login-copy travel-recover-copy">
-            <h1>Recuperar Contrasena</h1>
+            <h1>Recuperar acceso</h1>
             <p>
-              Introduce tu correo electronico y te enviaremos las instrucciones
-              para restablecer tu contrasena.
+              Verifica tu identidad para establecer una nueva contrasena.
             </p>
           </div>
 
           <form class="travel-login-form" data-form="recover" novalidate>
-            <div class="travel-login-field">
-              <label for="recover-email">Correo Electronico</label>
-              <input
-                id="recover-email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="correo@ejemplo.com"
-              />
+            <div data-recover-step="identify">
+              <div class="travel-login-field">
+                <label for="recover-email">Correo Electronico</label>
+                <input
+                  id="recover-email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="correo@ejemplo.com"
+                />
+              </div>
+            </div>
+
+            <div data-recover-step="reset" hidden>
+              <p class="travel-recover-status" data-recover-email-status></p>
+
+              <div class="travel-login-field">
+                <label for="recover-code">Codigo de verificacion</label>
+                <input
+                  id="recover-code"
+                  name="code"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                  placeholder="000000"
+                />
+              </div>
+
+              <div class="travel-login-field">
+                <label for="recover-password">Nueva Contrasena</label>
+                <div class="travel-login-password-wrap">
+                  <input
+                    id="recover-password"
+                    name="password"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="..........."
+                  />
+                  <button class="travel-login-visibility" type="button" data-toggle="#recover-password">Ver</button>
+                </div>
+              </div>
+
+              <div class="travel-login-field">
+                <label for="recover-confirm">Confirmar Contrasena</label>
+                <div class="travel-login-password-wrap">
+                  <input
+                    id="recover-confirm"
+                    name="confirm_password"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="..........."
+                  />
+                  <button class="travel-login-visibility" type="button" data-toggle="#recover-confirm">Ver</button>
+                </div>
+              </div>
+
+              <div class="password-policy" aria-label="Requisitos de la contrasena">
+                <p>La contrasena debe contener:</p>
+                <ul><li>Minimo 8 caracteres</li><li>Al menos una letra mayuscula</li><li>Al menos una letra minuscula</li><li>Al menos un numero</li><li>Al menos un caracter especial</li></ul>
+              </div>
             </div>
 
             <p class="feedback" data-feedback="recover" aria-live="polite"></p>
 
-            <button class="travel-login-submit" type="submit">
-              <span>Enviar Instrucciones</span>
+            <button class="travel-login-submit" type="submit" data-recover-submit>
+              <span>Solicitar recuperacion</span>
             </button>
           </form>
 
