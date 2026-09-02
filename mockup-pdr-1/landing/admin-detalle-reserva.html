@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalle de reserva | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="operator-reservation-detail" data-theme="travesia-natural">
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del operador</p>
+        <nav class="operator-nav" aria-label="Administración del operador">
+          <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
+          <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
+          <a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a>
+          <a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a>
+          <a href="admin-pagos.html" data-route="operatorPayments">Pagos</a>
+          <a href="admin-caja.html" data-route="operatorCash">Caja</a>
+          <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
+          <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
+        </nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content">
+        <header class="operator-topbar">
+          <div><p class="operator-eyebrow">Consulta de reserva</p><h1>Detalle de reserva</h1></div>
+          <a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Volver a reservas</a>
+        </header>
+        <section class="operator-detail-hero">
+          <div><p class="operator-eyebrow" data-reservation-code>#RES-1842</p><h2 data-reservation-service>Tour Montañas</h2><p data-reservation-departure>Salida: 15 sep 2026 · 2 viajeros</p></div>
+          <span class="operator-status is-pending" data-reservation-status>Pendiente de pago</span>
+        </section>
+        <p class="operator-access-note">Consulta disponible únicamente dentro del operador activo. La información sensible de actividades de riesgo se consulta solo cuando la gestión autorizada lo requiere.</p>
+        <div class="operator-detail-grid">
+          <section class="operator-panel">
+            <p class="operator-eyebrow">Titular y viajeros</p>
+            <h2 data-reservation-customer>Laura Gómez</h2>
+            <div class="operator-detail-list">
+              <div><span>Correo</span><strong data-reservation-email>laura.gomez@ejemplo.com</strong></div>
+              <div><span>Viajeros registrados</span><strong data-reservation-travelers>2 personas</strong></div>
+              <div><span>Acompañantes</span><strong data-reservation-companions>1 registrado</strong></div>
+            </div>
+          </section>
+          <section class="operator-panel">
+            <p class="operator-eyebrow">Estado económico</p>
+            <h2 data-reservation-balance>$1.039.200 pendientes</h2>
+            <div class="operator-detail-list">
+              <div><span>Valor proyectado</span><strong data-reservation-projected>$1.299.000</strong></div>
+              <div><span>Descuentos aplicados</span><strong data-reservation-discount>-$259.800</strong></div>
+              <div><span>Valor final</span><strong data-reservation-final>$1.039.200</strong></div>
+              <div><span>Pagado o validado</span><strong data-reservation-paid>$0</strong></div>
+            </div>
+          </section>
+        </div>
+        <section class="operator-panel">
+          <div class="operator-panel-head"><div><p class="operator-eyebrow">Servicios reservados</p><h2>Proyección comercial</h2></div></div>
+          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Servicio</th><th>Fecha</th><th>Cantidad</th><th>Estado de ejecución</th></tr></thead><tbody data-reservation-services></tbody></table></div>
+        </section>
+        <section class="operator-panel">
+          <div class="operator-panel-head"><div><p class="operator-eyebrow">Pagos y soportes</p><h2>Seguimiento económico</h2></div><a class="operator-primary" data-reservation-action href="admin-pagos.html" data-route="operatorPayments">Gestionar pago</a></div>
+          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Modalidad</th><th>Estado</th><th>Valor</th><th>Saldo resultante</th></tr></thead><tbody><tr><td data-reservation-payment-method>Transferencia</td><td data-reservation-payment-status>Sin pago</td><td data-reservation-paid-table>$0</td><td data-reservation-balance-table>$1.039.200</td></tr></tbody></table></div>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

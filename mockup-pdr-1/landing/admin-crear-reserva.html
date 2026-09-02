@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear reserva | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="operator-create-reservation" data-theme="travesia-natural">
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del operador</p>
+        <nav class="operator-nav" aria-label="Administración del operador">
+          <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
+          <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
+          <a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a>
+          <a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a>
+          <a href="admin-pagos.html" data-route="operatorPayments">Pagos</a>
+          <a href="admin-caja.html" data-route="operatorCash">Caja</a>
+          <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
+          <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
+        </nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content">
+        <header class="operator-topbar">
+          <div><p class="operator-eyebrow">Gestión comercial</p><h1>Crear reserva</h1></div>
+          <a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Cancelar</a>
+        </header>
+        <section class="operator-tenant-context"><span>Operador activo</span><strong>[Nombre comercial del operador]</strong><p>Todos los catálogos, condiciones, cupos y valores se consultan en este contexto.</p></section>
+        <section class="operator-hero operator-hero-compact"><div><p class="operator-eyebrow">Nueva proyección comercial</p><h2>Registra el servicio, las personas y los valores antes de continuar al pago.</h2></div><p>La reserva aplica únicamente condiciones, disponibilidad y descuentos vigentes del operador activo.</p></section>
+        <form class="operator-reservation-form" data-form="operator-reservation" novalidate>
+          <section class="operator-panel">
+            <p class="operator-eyebrow">01. Cliente titular</p><h2>Datos para asociar la reserva</h2>
+            <div class="operator-form-grid"><label>Nombre completo<input data-holder-name required type="text" placeholder="Ej. Laura Gómez" /></label><label>Documento de identidad<input data-holder-document required type="text" placeholder="Ej. 1.234.567.890" /></label><label>Correo electrónico<input required type="email" placeholder="correo@ejemplo.com" /></label><label>Teléfono de contacto<input required type="tel" placeholder="Ej. 300 000 0000" /></label><label>Fecha de nacimiento<input required type="date" /></label></div>
+          </section>
+          <section class="operator-panel">
+            <p class="operator-eyebrow">02. Servicios y viajeros</p><h2>Oferta seleccionada</h2>
+            <div class="operator-form-grid"><label>Servicio principal<select data-reservation-service required><option value="">Selecciona un servicio</option><option value="mountains">Tour destino ejemplo - Montañas</option><option value="cenotes">Aventura en cenotes ocultos</option><option value="cultural">Recorrido cultural e histórico</option><option value="rafting">Rafting y acampada extrema</option></select></label><label>Salida disponible<select data-reservation-departure required disabled><option value="">Selecciona primero un servicio</option></select></label><label>Cantidad total de viajeros<input data-reservation-travelers required type="number" min="1" value="2" /></label><label>Hospedaje, si aplica<select data-reservation-lodging><option value="none">No aplica</option><option value="mirador">Ecohotel Mirador</option></select></label></div>
+            <p class="operator-capacity-message" data-lodging-capacity aria-live="polite" hidden></p>
+            <div class="operator-inclusions" data-service-inclusions hidden></div>
+          </section>
+          <section class="operator-panel" data-companions-section>
+            <div class="operator-panel-head"><div><p class="operator-eyebrow">03. Acompañantes</p><h2>Datos individuales requeridos</h2></div><span data-companion-count>1 acompañante requerido</span></div>
+            <p class="operator-copy">La cantidad total de viajeros determina los acompañantes que deben registrarse. Los documentos no pueden repetirse dentro de la misma reserva.</p>
+            <div class="operator-companion-list" data-companion-list></div>
+          </section>
+          <section class="operator-panel" data-risk-section hidden>
+            <p class="operator-eyebrow">Requisitos de actividad de riesgo</p><h2>Información obligatoria antes de registrar</h2>
+            <p class="operator-copy">Este servicio requiere consentimiento informado, tipo de sangre, contacto de emergencia y restricciones físicas o movilidad reducida para cada viajero.</p>
+            <div class="operator-risk-list" data-risk-list></div>
+          </section>
+          <section class="operator-panel">
+            <p class="operator-eyebrow">04. Condiciones y pago</p><h2>Reglas aplicables</h2>
+            <div class="operator-form-grid"><label>Modalidad de pago esperada<select data-payment-method disabled><option value="">Selecciona primero un servicio</option></select></label></div>
+            <section class="operator-conditions" aria-label="Condiciones de reserva" data-reservation-conditions><strong>Condiciones de reserva</strong><p>Selecciona un servicio para consultar las condiciones parametrizadas.</p></section>
+            <label class="operator-check"><input data-conditions-accepted required type="checkbox" /> Confirmo que el cliente acepta las condiciones aplicables a esta reserva.</label>
+          </section>
+          <section class="operator-panel operator-reservation-summary">
+            <div><p class="operator-eyebrow">Valores calculados</p><h2>Resumen de la reserva</h2><p>Se recalcula con el servicio, personas, servicios relacionados y descuentos aplicables del operador activo.</p></div>
+            <div class="operator-summary-values"><div><span>Valor proyectado</span><strong data-projected-value>$0</strong></div><div><span>Descuentos aplicables</span><strong data-discount-value>$0</strong></div><div><span>Valor final</span><strong data-final-value>$0</strong></div></div>
+          </section>
+          <p class="operator-form-feedback" data-reservation-feedback aria-live="polite">Completa los campos obligatorios para registrar la reserva.</p>
+          <div class="operator-form-actions"><a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Cancelar</a><button class="operator-primary" data-register-reservation type="submit" disabled>Registrar reserva</button></div>
+        </form>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

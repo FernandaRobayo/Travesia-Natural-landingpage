@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reserva registrada | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="operator-reservation-created" data-theme="travesia-natural">
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del operador</p>
+        <nav class="operator-nav" aria-label="Administración del operador">
+          <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
+          <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
+          <a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a>
+          <a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a>
+          <a href="admin-pagos.html" data-route="operatorPayments">Pagos</a>
+          <a href="admin-caja.html" data-route="operatorCash">Caja</a>
+          <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
+          <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
+        </nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content">
+        <header class="operator-topbar"><div><p class="operator-eyebrow">Registro completado</p><h1>Reserva registrada</h1></div><a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Volver a reservas</a></header>
+        <section class="operator-success-card">
+          <div class="operator-success-mark" aria-hidden="true">✓</div>
+          <div><p class="operator-eyebrow">Nueva reserva</p><h2 data-created-code>#RES-1843</h2><p>La reserva quedó registrada como proyección comercial dentro del operador activo.</p></div>
+          <span class="operator-status is-pending">Pendiente de pago</span>
+        </section>
+        <section class="operator-detail-grid">
+          <article class="operator-panel"><p class="operator-eyebrow">Resumen</p><h2 data-created-service>Servicio seleccionado</h2><div class="operator-detail-list"><div><span>Salida</span><strong data-created-departure>--</strong></div><div><span>Viajeros</span><strong data-created-travelers>--</strong></div><div><span>Titular</span><strong data-created-holder>--</strong></div></div></article>
+          <article class="operator-panel"><p class="operator-eyebrow">Estado económico</p><h2>Estado de pago</h2><span class="operator-payment-state" data-created-payment>Sin pago</span><div class="operator-detail-list"><div><span>Modalidad esperada</span><strong data-created-method>Sin modalidad definida</strong></div><div><span>Valor final</span><strong data-created-final>$0</strong></div><div><span>Valor proyectado</span><strong data-created-projected>$0</strong></div><div><span>Descuentos aplicados</span><strong data-created-discount>$0</strong></div><div><span>Saldo pendiente</span><strong data-created-balance>$0</strong></div></div></article>
+        </section>
+        <section class="operator-panel operator-next-panel"><p class="operator-eyebrow">Siguiente paso</p><h2>Gestiona el pago según la modalidad habilitada.</h2><p class="operator-copy">La reserva se confirmará solo cuando cumpla la condición de pago parametrizada. Mientras tanto, conserva el seguimiento y saldo pendiente.</p><div class="operator-form-actions"><a class="operator-outline" data-created-detail href="admin-detalle-reserva.html?reservation=RES-1843" data-route="operatorReservationDetail">Ver detalle</a><a class="operator-primary" data-created-payment-manage href="admin-gestion-pago.html?reservation=RES-1843">Gestionar pago</a></div></section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

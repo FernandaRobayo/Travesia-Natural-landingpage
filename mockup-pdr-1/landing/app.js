@@ -56,8 +56,6 @@ const THEMES = {
       lodging: "Alojamiento | Multitour",
       gastronomy: "Gastronomia | Multitour",
       restaurants: "Restaurantes | Multitour",
-      bars: "Bares | Multitour",
-      cafes: "Cafeterias | Multitour",
       "gastronomy-detail": "Detalle gastronomico | Multitour",
       "tour-detail": "Detalle tour | Multitour",
       "tour-booking": "Reservar tour | Multitour",
@@ -136,8 +134,6 @@ const THEMES = {
       lodging: "Alojamiento | Travesia Natural",
       gastronomy: "Gastronomia | Travesia Natural",
       restaurants: "Restaurantes | Travesia Natural",
-      bars: "Bares | Travesia Natural",
-      cafes: "Cafeterias | Travesia Natural",
       "gastronomy-detail": "Detalle gastronomico | Travesia Natural",
       "tour-detail": "Detalle tour | Travesia Natural",
       "tour-booking": "Reservar tour | Travesia Natural",
@@ -180,7 +176,8 @@ function getTheme() {
 }
 
 function withTheme(path, theme) {
-  return `${path}?theme=${encodeURIComponent(theme)}`;
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}theme=${encodeURIComponent(theme)}`;
 }
 
 function applyCopy(themeConfig) {
@@ -205,8 +202,6 @@ function applyRoutes(theme) {
     lodging: "alojamiento.html",
     gastronomy: "gastronomia.html",
     restaurants: "restaurantes.html",
-    bars: "bares.html",
-    cafes: "cafeterias.html",
     gastronomyDetail: "detalle-gastronomia.html",
     tourDetail: "detalle-tour.html",
     tourBooking: "reservar-tour.html",
@@ -228,7 +223,15 @@ function applyRoutes(theme) {
     platformLogin: "admin-login.html",
     operatorAdmin: "admin-operador.html",
     operatorReservations: "admin-reservas.html",
+    operatorReservationDetail: "admin-detalle-reserva.html",
+    operatorCreateReservation: "admin-crear-reserva.html",
+    operatorReservationCreated: "admin-reserva-registrada.html",
+    operatorReservationPayment: "admin-gestion-pago.html",
     operatorCatalogs: "admin-catalogos.html",
+    operatorNewService: "admin-nuevo-servicio.html",
+    operatorTourCatalog: "admin-gestionar-catalogo.html",
+    operatorLodgingCatalog: "admin-gestionar-hospedaje.html",
+    operatorTransportCatalog: "admin-gestionar-transporte.html",
     operatorDiscounts: "admin-descuentos.html",
     operatorPayments: "admin-pagos.html",
     operatorCash: "admin-caja.html",
@@ -240,7 +243,11 @@ function applyRoutes(theme) {
   document.querySelectorAll("[data-route]").forEach((node) => {
     const routeKey = node.dataset.route;
     const path = routeMap[routeKey];
-    if (path) node.setAttribute("href", withTheme(path, theme));
+    if (!path) return;
+
+    const currentHref = node.getAttribute("href") || "";
+    const query = currentHref.includes("?") ? currentHref.slice(currentHref.indexOf("?")) : "";
+    node.setAttribute("href", withTheme(`${path}${query}`, theme));
   });
 }
 
@@ -1249,14 +1256,6 @@ function setupGastronomyDetail(theme) {
     restaurants: {
       path: "restaurantes.html",
       label: "Volver a restaurantes",
-    },
-    bars: {
-      path: "bares.html",
-      label: "Volver a bares",
-    },
-    cafes: {
-      path: "cafeterias.html",
-      label: "Volver a cafeterias",
     },
   };
   const sourceConfig = sourceMap[sourceKey] || sourceMap.gastronomy;
@@ -2501,6 +2500,559 @@ function setupCatalogSearch() {
   filterCards();
 }
 
+function setupOperatorReservations() {
+  if (document.body.dataset.screen !== "operator-reservations") return;
+
+  const toggle = document.querySelector("[data-reservation-scope-toggle]");
+  const archivedRows = document.querySelectorAll("[data-reservation-archived]");
+  const createdRow = document.querySelector("[data-created-reservation]");
+
+  try {
+    const draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null");
+    if (draft?.code && createdRow) {
+      const isPending = draft.status === "Pendiente de pago";
+      const detailHref = withTheme(`admin-detalle-reserva.html?reservation=${draft.code}`, getTheme());
+      const actionHref = isPending
+        ? withTheme(`admin-gestion-pago.html?reservation=${draft.code}`, getTheme())
+        : detailHref;
+      const actionLabel = isPending ? "Gestionar pago" : "Ver detalle";
+      createdRow.innerHTML = `<td><a class="operator-reservation-link" href="${detailHref}">#${escapeHtml(draft.code)}</a><small>${escapeHtml(draft.date)} · ${draft.travelers} viajeros</small></td><td>${escapeHtml(draft.customer)}</td><td>${escapeHtml(draft.service)}</td><td><span class="operator-status ${escapeHtml(draft.statusClass || "is-pending")}">${escapeHtml(draft.status || "Pendiente de pago")}</span></td><td>${escapeHtml(draft.balance || "$0")}</td><td><a href="${actionHref}">${actionLabel}</a></td>`;
+      createdRow.hidden = false;
+    }
+  } catch { /* A static reservation list remains available if session storage is unavailable. */ }
+
+  if (!toggle || !archivedRows.length) return;
+
+  toggle.addEventListener("click", () => {
+    const showAll = toggle.getAttribute("aria-expanded") !== "true";
+    archivedRows.forEach((row) => {
+      row.hidden = !showAll;
+    });
+    toggle.setAttribute("aria-expanded", String(showAll));
+    toggle.textContent = showAll ? "Ver reservas activas" : "Ver todas las reservas";
+  });
+}
+
+function setupOperatorCatalogs() {
+  if (document.body.dataset.screen !== "operator-catalogs") return;
+  const periods = [
+    "01 sep 2026 - 30 sep 2026",
+    "01 sep 2026 - 30 sep 2026",
+    "01 sep 2026 - 30 sep 2026",
+    "01 sep 2026 - 30 sep 2026",
+    "01 sep 2026 - 30 sep 2026",
+    "01 sep 2026 - 30 sep 2026",
+  ];
+  document.querySelectorAll(".operator-table tbody tr").forEach((row, index) => {
+    const validity = row.querySelector("td:nth-child(4)");
+    const status = row.querySelector("td:nth-child(5)");
+    if (validity) validity.textContent = periods[index] || "—";
+    if (status && periods[index]) status.innerHTML = '<span class="operator-status is-confirmed">Activo</span>';
+  });
+  const body = document.querySelector(".operator-table tbody");
+  const typeLabels = { tour: "Actividad principal", lodging: "Hospedaje", food: "Alimentación" };
+  getOperatorCatalog().forEach((item) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td><strong>${escapeHtml(item.name)}</strong></td><td>${typeLabels[item.type] || "Servicio"}</td><td>${escapeHtml(item.policy)}</td><td>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</td><td><span class="operator-status is-confirmed">Activo</span></td>`;
+    body?.append(row);
+  });
+  const create = document.querySelector(".operator-topbar .operator-primary");
+  if (create) create.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-servicio.html", getTheme()); });
+  const actions = ["admin-gestionar-catalogo.html", "admin-gestionar-hospedaje.html", null, "admin-gestionar-transporte.html"];
+  document.querySelectorAll(".operator-catalog-grid button").forEach((button, index) => {
+    if (actions[index]) button.addEventListener("click", () => { window.location.href = withTheme(actions[index], getTheme()); });
+  });
+}
+
+function setupManagedTourCatalog() {
+  if (!document.querySelector("[data-managed-tour-catalog], [data-managed-catalog]")) return;
+  document.querySelectorAll("[data-toggle-service]").forEach((button) => {
+    const row = button.closest("tr");
+    const actionCell = row.querySelector("td:last-child");
+    const manage = actionCell.querySelector("a");
+    manage.className = "operator-row-manage";
+    button.className = "operator-row-toggle";
+    actionCell.textContent = "";
+    actionCell.append(manage, button);
+    row.querySelector("[data-service-status]").className = "operator-status is-confirmed";
+    button.addEventListener("click", () => {
+      const active = button.dataset.toggleService === "deactivate";
+      const validity = row.querySelector("[data-service-validity]")?.textContent.trim();
+      if (!active && (!validity || validity === "—")) return;
+      button.dataset.toggleService = active ? "activate" : "deactivate";
+      button.textContent = active ? "Activar" : "Desactivar";
+      const status = row.querySelector("[data-service-status]");
+      status.textContent = active ? "Inactivo" : "Activo";
+      status.className = `operator-status ${active ? "is-cancelled" : "is-confirmed"}`;
+      row.dataset.availableForNewReservations = String(!active);
+    });
+  });
+}
+
+const OPERATOR_CATALOG_STORAGE_KEY = "multitour-operator-catalog";
+
+function getOperatorCatalog() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_CATALOG_STORAGE_KEY) || "[]"); } catch { return []; }
+}
+
+function setupOperatorNewService() {
+  if (document.body.dataset.screen !== "operator-new-service") return;
+  const form = document.querySelector("[data-new-service-form]");
+  const formGrid = form?.querySelector(".operator-form-grid");
+  const priceLabel = form?.querySelector("[data-service-price]")?.closest("label");
+  if (priceLabel?.firstChild) priceLabel.firstChild.nodeValue = "Tarifa base";
+  formGrid?.insertAdjacentHTML("beforeend", '<label>Capacidad / cupo<input data-service-capacity type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label><label>Restricciones operativas<textarea data-service-restrictions placeholder="Opcional: condiciones que limitan la disponibilidad"></textarea></label>');
+  const image = form?.querySelector("[data-service-image]");
+  const preview = form?.querySelector("[data-service-preview]");
+  const feedback = form?.querySelector("[data-service-feedback]");
+  image?.addEventListener("change", () => {
+    const file = image.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.addEventListener("load", () => { preview.src = reader.result; preview.dataset.ready = "true"; preview.hidden = false; });
+    reader.readAsDataURL(file);
+  });
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const start = form.querySelector("[data-service-start]").value;
+    const end = form.querySelector("[data-service-end]").value;
+    if (!form.checkValidity() || end < start || !preview.dataset.ready) {
+      feedback.textContent = "Completa los datos, adjunta una imagen y define una vigencia válida.";
+      return;
+    }
+    const resource = { id: `resource-${Date.now()}`, name: form.querySelector("[data-service-name]").value.trim(), type: form.querySelector("[data-service-type]").value, price: Number(form.querySelector("[data-service-price]").value), capacity: Number(form.querySelector("[data-service-capacity]").value) || null, restrictions: form.querySelector("[data-service-restrictions]").value.trim(), start, end, policy: form.querySelector("[data-service-policy]").value, image: preview.src, active: true };
+    const catalog = getOperatorCatalog();
+    catalog.push(resource);
+    localStorage.setItem(OPERATOR_CATALOG_STORAGE_KEY, JSON.stringify(catalog));
+    window.location.href = withTheme("admin-catalogos.html", getTheme());
+  });
+}
+
+function renderClientCatalogProducts() {
+  const screen = document.body.dataset.screen;
+  const typeByScreen = { tours: "tour", lodging: "lodging", gastronomy: "food" };
+  const type = typeByScreen[screen];
+  if (!type) return;
+  const grid = document.querySelector(".travel-tours-grid");
+  if (!grid) return;
+  const formatter = new Intl.NumberFormat("es-CO");
+  getOperatorCatalog().filter((item) => item.type === type && item.active).forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "travel-tour-card";
+    card.innerHTML = `<div class="travel-tour-media" style="background-image:url('${item.image}')"></div><div class="travel-tour-body"><strong>${escapeHtml(item.name)}</strong><span class="travel-tour-location">Vigencia: ${escapeHtml(item.start)} - ${escapeHtml(item.end)}</span><div class="travel-tour-meta"><div><small>Desde</small><em>$${formatter.format(item.price)}</em></div><button type="button">Ver detalle</button></div></div>`;
+    grid.append(card);
+  });
+}
+
+function setupOperatorReservationDetail() {
+  if (document.body.dataset.screen !== "operator-reservation-detail") return;
+
+  const reservations = {
+    "RES-1842": { customer: "Laura Gómez", email: "laura.gomez@ejemplo.com", service: "Tour Montañas", date: "15 sep 2026", travelers: 2, companions: "1 registrado", status: "Pendiente de pago", statusClass: "is-pending", projected: "$1.299.000", discount: "-$259.800", final: "$1.039.200", paid: "$0", balance: "$1.039.200", payment: "Sin pago", method: "Transferencia", execution: "Pendiente de ejecución", action: "Gestionar pago", href: "admin-pagos.html" },
+    "RES-1841": { customer: "Mateo Ríos", email: "mateo.rios@ejemplo.com", service: "Rafting y acampada", date: "13 sep 2026", travelers: 2, companions: "1 registrado", status: "Confirmada", statusClass: "is-confirmed", projected: "$1.600.000", discount: "$0", final: "$1.600.000", paid: "$1.600.000", balance: "$0", payment: "Pagado", method: "Transferencia", execution: "Pendiente de ejecución", action: "Ver operación", href: "admin-operacion.html" },
+    "RES-1840": { customer: "Carolina Díaz", email: "carolina.diaz@ejemplo.com", service: "Ruta arqueológica", date: "1 sep 2026", travelers: 4, companions: "3 registrados", status: "En ejecución", statusClass: "is-execution", projected: "$2.400.000", discount: "$0", final: "$2.400.000", paid: "$2.400.000", balance: "$0", payment: "Pagado", method: "Efectivo", execution: "En ejecución", action: "Ver operación", href: "admin-operacion.html" },
+    "RES-1837": { customer: "Juliana Cruz", email: "juliana.cruz@ejemplo.com", service: "Tour Montañas", date: "22 sep 2026", travelers: 3, companions: "2 registrados", status: "Pendiente de pago", statusClass: "is-pending", projected: "$3.897.000", discount: "-$779.400", final: "$3.117.600", paid: "$1.039.200", balance: "$2.078.400", payment: "Parcial", method: "Abono", execution: "Pendiente de ejecución", action: "Gestionar pago", href: "admin-pagos.html" },
+    "RES-1829": { customer: "Andrés Silva", email: "andres.silva@ejemplo.com", service: "Tour Montañas", date: "29 ago 2026", travelers: 2, companions: "1 registrado", status: "Finalizada", statusClass: "is-finalized", projected: "$2.598.000", discount: "-$519.600", final: "$2.078.400", paid: "$2.078.400", balance: "$0", payment: "Pagado", method: "Transferencia", execution: "Finalizada", action: "Ver operación", href: "admin-operacion.html" },
+    "RES-1822": { customer: "Paula Méndez", email: "paula.mendez@ejemplo.com", service: "Rafting y acampada", date: "27 ago 2026", travelers: 2, companions: "1 registrado", status: "Cancelada", statusClass: "is-cancelled", projected: "$1.600.000", discount: "$0", final: "$1.600.000", paid: "$0", balance: "$0", payment: "Sin pago", method: "Transferencia", execution: "No ejecutada", action: "Ver pago", href: "admin-pagos.html" },
+  };
+  try {
+    const draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null");
+    if (draft?.code) reservations[draft.code] = draft;
+  } catch { /* The static mock can still show its default reservation data. */ }
+  const code = new URLSearchParams(window.location.search).get("reservation") || "RES-1842";
+  const reservation = reservations[code] || reservations["RES-1842"];
+  const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
+
+  setText("[data-reservation-code]", `#${code}`);
+  setText("[data-reservation-service]", reservation.service);
+  setText("[data-reservation-departure]", `Salida: ${reservation.date} · ${reservation.travelers} viajeros`);
+  setText("[data-reservation-customer]", reservation.customer);
+  setText("[data-reservation-email]", reservation.email);
+  setText("[data-reservation-travelers]", `${reservation.travelers} personas`);
+  setText("[data-reservation-companions]", reservation.companions);
+  setText("[data-reservation-projected]", reservation.projected);
+  setText("[data-reservation-discount]", reservation.discount);
+  setText("[data-reservation-final]", reservation.final);
+  setText("[data-reservation-paid]", reservation.paid);
+  setText("[data-reservation-balance]", `${reservation.balance} ${reservation.balance === "$0" ? "sin saldo pendiente" : "pendientes"}`);
+  setText("[data-reservation-payment-method]", reservation.method);
+  setText("[data-reservation-payment-status]", reservation.payment);
+  setText("[data-reservation-paid-table]", reservation.paid);
+  setText("[data-reservation-balance-table]", reservation.balance);
+
+  const status = document.querySelector("[data-reservation-status]");
+  if (status) { status.textContent = reservation.status; status.className = `operator-status ${reservation.statusClass}`; }
+  const services = document.querySelector("[data-reservation-services]");
+  if (services) services.innerHTML = `<tr><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${escapeHtml(reservation.date)}</td><td>${reservation.travelers} viajeros</td><td>${escapeHtml(reservation.execution)}</td></tr>`;
+  const action = document.querySelector("[data-reservation-action]");
+  if (action) { action.textContent = reservation.action; action.href = reservation.href; }
+}
+
+function setupOperatorReservationForm() {
+  const form = document.querySelector('[data-form="operator-reservation"]');
+  if (!form) return;
+
+  const services = {
+    mountains: {
+      name: "Tour destino ejemplo - Montañas", price: 1299000, discount: 0.2, risk: false, lodgingCapacity: 2,
+      departures: ["15 sep 2026", "22 sep 2026", "29 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
+      inclusions: ["Alimentación incluida: plato del día", "Transporte incluido: trayecto de ida y vuelta"],
+      conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
+    },
+    cenotes: {
+      name: "Aventura en cenotes ocultos", price: 520000, discount: 0, risk: false, lodgingCapacity: 2,
+      departures: ["12 sep 2026", "19 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
+      inclusions: ["Alimentación incluida: snack ligero", "Transporte incluido: traslado al punto de salida"],
+      conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
+    },
+    rafting: {
+      name: "Rafting y acampada extrema", price: 799000, discount: 0, risk: true, lodgingCapacity: 2,
+      departures: ["13 sep 2026", "27 sep 2026"], payments: ["Transferencia", "Abono"],
+      inclusions: ["Alimentación incluida: refrigerio de la actividad", "Transporte incluido: traslado al punto de salida"],
+      conditions: ["La actividad requiere requisitos de riesgo para cada viajero.", "La modificación o cancelación depende de las condiciones vigentes del servicio."],
+    },
+    cultural: {
+      name: "Recorrido cultural e histórico", price: 349000, discount: 0, risk: false, lodgingCapacity: 2,
+      departures: ["16 sep 2026", "23 sep 2026", "30 sep 2026"], payments: ["Transferencia", "Efectivo"],
+      inclusions: ["Alimentación incluida: opción gastronómica del recorrido", "Transporte incluido: trayecto programado"],
+      conditions: ["La modificación o cancelación depende de las condiciones vigentes del servicio.", "Los descuentos se aplican según la configuración comercial vigente."],
+    },
+  };
+  const serviceSelect = form.querySelector("[data-reservation-service]");
+  const departureSelect = form.querySelector("[data-reservation-departure]");
+  const travelerInput = form.querySelector("[data-reservation-travelers]");
+  const lodgingSelect = form.querySelector("[data-reservation-lodging]");
+  const holderDocument = form.querySelector("[data-holder-document]");
+  const companionList = form.querySelector("[data-companion-list]");
+  const companionCount = form.querySelector("[data-companion-count]");
+  const riskSection = form.querySelector("[data-risk-section]");
+  const riskList = form.querySelector("[data-risk-list]");
+  const paymentSelect = form.querySelector("[data-payment-method]");
+  const conditions = form.querySelector("[data-reservation-conditions]");
+  const inclusions = form.querySelector("[data-service-inclusions]");
+  const capacityMessage = form.querySelector("[data-lodging-capacity]");
+  const feedback = form.querySelector("[data-reservation-feedback]");
+  const registerButton = form.querySelector("[data-register-reservation]");
+  const projectedNode = form.querySelector("[data-projected-value]");
+  const discountNode = form.querySelector("[data-discount-value]");
+  const finalNode = form.querySelector("[data-final-value]");
+
+  const formatCurrency = (value) => `$${Math.round(value).toLocaleString("es-CO")}`;
+  const normalizeDocument = (value) => value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const selectedService = () => services[serviceSelect.value];
+  const travelers = () => Math.max(1, Number.parseInt(travelerInput.value, 10) || 1);
+
+  const renderCompanions = () => {
+    const requiredCompanions = Math.max(0, travelers() - 1);
+    const previous = [...companionList.querySelectorAll("[data-companion-document]")].map((input) => input.value);
+    companionCount.textContent = requiredCompanions === 0 ? "No requiere acompañantes" : `${requiredCompanions} acompañante${requiredCompanions === 1 ? " requerido" : "s requeridos"}`;
+    companionList.innerHTML = Array.from({ length: requiredCompanions }, (_, index) => `
+      <article class="operator-companion-card">
+        <strong>Acompañante ${index + 1}</strong>
+        <div class="operator-form-grid">
+          <label>Nombre completo<input required type="text" placeholder="Nombre completo" /></label>
+          <label>Documento de identidad<input data-companion-document required type="text" value="${escapeHtml(previous[index] || "")}" placeholder="Documento" /></label>
+          <label>Fecha de nacimiento<input required type="date" /></label>
+        </div>
+      </article>`).join("");
+  };
+
+  const renderRiskRequirements = (service) => {
+    riskSection.hidden = !service?.risk;
+    if (!service?.risk) { riskList.innerHTML = ""; return; }
+    const people = ["Titular", ...Array.from({ length: Math.max(0, travelers() - 1) }, (_, index) => `Acompañante ${index + 1}`)];
+    riskList.innerHTML = people.map((person) => `<article class="operator-risk-card"><strong>${person}</strong><div class="operator-form-grid"><label>Tipo de sangre<input required type="text" placeholder="Ej. O+" /></label><label>Contacto de emergencia<input required type="text" placeholder="Nombre y teléfono" /></label><label class="operator-form-wide">Restricciones físicas o movilidad reducida<textarea required placeholder="Indica restricciones o escribe Ninguna."></textarea></label></div><label class="operator-check"><input required type="checkbox" /> Consentimiento informado o exoneración registrado.</label></article>`).join("");
+  };
+
+  const renderServiceConfiguration = () => {
+    const service = selectedService();
+    departureSelect.innerHTML = '<option value="">Selecciona una salida</option>';
+    paymentSelect.innerHTML = '<option value="">Selecciona una modalidad</option>';
+    departureSelect.disabled = !service;
+    paymentSelect.disabled = !service;
+    inclusions.hidden = !service;
+    if (!service) { inclusions.innerHTML = ""; conditions.innerHTML = "<strong>Condiciones de reserva</strong><p>Selecciona un servicio para consultar las condiciones parametrizadas.</p>"; return; }
+    departureSelect.insertAdjacentHTML("beforeend", service.departures.map((date) => `<option value="${date}">${date}</option>`).join(""));
+    paymentSelect.insertAdjacentHTML("beforeend", service.payments.map((method) => `<option value="${method}">${method}</option>`).join(""));
+    inclusions.innerHTML = `<strong>Servicios relacionados incluidos</strong>${service.inclusions.map((item) => `<span>${item}</span>`).join("")}`;
+    conditions.innerHTML = `<strong>Condiciones de reserva</strong><ul>${service.conditions.map((item) => `<li>${item}</li>`).join("")}</ul>`;
+  };
+
+  const validate = () => {
+    const service = selectedService();
+    const lodgingOverCapacity = lodgingSelect.value !== "none" && service && travelers() > service.lodgingCapacity;
+    const documents = [holderDocument, ...form.querySelectorAll("[data-companion-document]")].map((input) => normalizeDocument(input.value)).filter(Boolean);
+    const duplicatedDocument = documents.some((document, index) => documents.indexOf(document) !== index);
+    const serviceReady = Boolean(service && departureSelect.value);
+    const isValid = Boolean(serviceReady && form.checkValidity() && !lodgingOverCapacity && !duplicatedDocument);
+
+    if (!service) feedback.textContent = "Selecciona un servicio para consultar sus requisitos y valores.";
+    else if (lodgingOverCapacity) feedback.textContent = "La capacidad del hospedaje no cubre la cantidad total de viajeros.";
+    else if (duplicatedDocument) feedback.textContent = "El documento del titular y los acompañantes debe ser único dentro de la reserva.";
+    else if (!form.checkValidity()) feedback.textContent = "Completa los campos obligatorios y registra los requisitos aplicables.";
+    else feedback.textContent = "La reserva cumple las validaciones y está lista para registrarse.";
+    feedback.classList.toggle("is-valid", isValid);
+    registerButton.disabled = !isValid;
+  };
+
+  const renderSummary = () => {
+    const service = selectedService();
+    const projected = service ? service.price * travelers() : 0;
+    const discount = service ? projected * service.discount : 0;
+    projectedNode.textContent = formatCurrency(projected);
+    discountNode.textContent = discount ? `-${formatCurrency(discount)}` : "$0";
+    finalNode.textContent = formatCurrency(projected - discount);
+    if (!service || lodgingSelect.value === "none") { capacityMessage.textContent = ""; capacityMessage.hidden = true; return; }
+    const hasCapacity = travelers() <= service.lodgingCapacity;
+    capacityMessage.textContent = hasCapacity ? `Hospedaje con capacidad para hasta ${service.lodgingCapacity} viajeros.` : `Capacidad insuficiente: este hospedaje admite hasta ${service.lodgingCapacity} viajeros.`;
+    capacityMessage.hidden = false;
+    capacityMessage.classList.toggle("is-error", !hasCapacity);
+  };
+
+  const sync = ({ serviceChanged = false } = {}) => {
+    if (serviceChanged) renderServiceConfiguration();
+    renderCompanions();
+    renderRiskRequirements(selectedService());
+    renderSummary();
+    validate();
+  };
+
+  serviceSelect.addEventListener("change", () => { form.querySelector("[data-conditions-accepted]").checked = false; sync({ serviceChanged: true }); });
+  travelerInput.addEventListener("input", () => sync());
+  lodgingSelect.addEventListener("change", () => sync());
+  form.addEventListener("input", () => validate());
+  form.addEventListener("change", () => validate());
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    validate();
+    if (registerButton.disabled) return;
+
+    const service = selectedService();
+    const code = "RES-1843";
+    const projected = service.price * travelers();
+    const discount = projected * service.discount;
+    sessionStorage.setItem("operatorReservationDraft", JSON.stringify({
+      code,
+      customer: form.querySelector("[data-holder-name]").value.trim(),
+      email: "No registrado en esta vista",
+      service: service.name,
+      date: departureSelect.value,
+      travelers: travelers(),
+      companions: `${Math.max(0, travelers() - 1)} registrado(s)`,
+      status: "Pendiente de pago",
+      statusClass: "is-pending",
+      projected: formatCurrency(projected),
+      discount: discount ? `-${formatCurrency(discount)}` : "$0",
+      final: formatCurrency(projected - discount),
+      paid: "$0",
+      balance: formatCurrency(projected - discount),
+      payment: "Sin pago",
+      method: paymentSelect.value || "Sin modalidad definida",
+      execution: "Pendiente de ejecución",
+      action: "Gestionar pago",
+      href: "admin-pagos.html",
+    }));
+    window.location.href = withTheme(`admin-gestion-pago.html?reservation=${code}`, getTheme());
+  });
+  sync({ serviceChanged: true });
+}
+
+function setupOperatorReservationCreated() {
+  if (document.body.dataset.screen !== "operator-reservation-created") return;
+
+  let draft = null;
+  try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
+  const reservation = draft || { code: "RES-1843", customer: "Cliente registrado", service: "Servicio seleccionado", date: "Por confirmar", travelers: 1, projected: "$0", discount: "$0", final: "$0", balance: "$0", payment: "Sin pago", method: "Sin modalidad definida" };
+  const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
+  setText("[data-created-code]", `#${reservation.code}`);
+  setText("[data-created-service]", reservation.service);
+  setText("[data-created-departure]", reservation.date);
+  setText("[data-created-travelers]", `${reservation.travelers} persona${reservation.travelers === 1 ? "" : "s"}`);
+  setText("[data-created-holder]", reservation.customer);
+  setText("[data-created-final]", reservation.final);
+  setText("[data-created-projected]", reservation.projected);
+  setText("[data-created-discount]", reservation.discount);
+  setText("[data-created-balance]", reservation.balance);
+  setText("[data-created-payment]", reservation.payment);
+  setText("[data-created-method]", reservation.method);
+  const detail = document.querySelector("[data-created-detail]");
+  if (detail) detail.href = withTheme(`admin-detalle-reserva.html?reservation=${reservation.code}`, getTheme());
+  const payment = document.querySelector("[data-created-payment-manage]");
+  if (payment) payment.href = withTheme(`admin-gestion-pago.html?reservation=${reservation.code}`, getTheme());
+}
+
+function setupOperatorReservationPayment() {
+  if (document.body.dataset.screen !== "operator-reservation-payment") return;
+
+  let draft = null;
+  try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
+  const code = new URLSearchParams(window.location.search).get("reservation") || "RES-1843";
+  const reservation = draft?.code === code ? draft : { code, customer: "Paula", method: "Efectivo", payment: "Sin pago", final: "$2.078.400", paid: "$0", balance: "$2.078.400", status: "Pendiente de pago", statusClass: "is-pending" };
+  const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
+  setText("[data-payment-reservation-code]", `#${reservation.code}`);
+  setText("[data-payment-customer]", reservation.customer);
+  setText("[data-payment-method]", reservation.method);
+  setText("[data-payment-status]", reservation.payment);
+  setText("[data-payment-final]", reservation.final);
+  setText("[data-payment-balance]", reservation.balance);
+  const reservationStatus = document.querySelector("[data-payment-reservation-status]");
+  if (reservationStatus) {
+    reservationStatus.textContent = reservation.status || "Pendiente de pago";
+    reservationStatus.className = `operator-status ${reservation.statusClass || "is-pending"}`;
+  }
+  document.querySelectorAll("[data-payment-back]").forEach((node) => {
+    node.href = withTheme(`admin-detalle-reserva.html?reservation=${reservation.code}`, getTheme());
+  });
+
+  const form = document.querySelector("[data-payment-form]");
+  const amount = document.querySelector("[data-payment-amount]");
+  const support = document.querySelector("[data-payment-support]");
+  const feedback = document.querySelector("[data-payment-feedback]");
+  const submit = document.querySelector("[data-payment-submit]");
+  const review = document.querySelector("[data-payment-review]");
+  const approve = document.querySelector("[data-payment-approve]");
+  const reject = document.querySelector("[data-payment-reject]");
+  const paymentHeading = document.querySelector("[data-payment-heading]");
+  const completed = document.querySelector("[data-payment-completed]");
+  const isTransfer = reservation.method === "Transferencia";
+  const isInstallment = reservation.method === "Abono";
+  const hasSupportedMethod = ["Efectivo", "Transferencia", "Abono"].includes(reservation.method);
+  const parseCurrency = (value) => Number(String(value || "").replace(/[^0-9]/g, "")) || 0;
+  const formatCurrency = (value) => `$${new Intl.NumberFormat("es-CO").format(value)}`;
+
+  const renderEntryState = () => {
+    const isSettled = reservation.payment === "Pagado" || parseCurrency(reservation.balance) === 0;
+    document.querySelectorAll("[data-payment-entry]").forEach((node) => {
+      const isSupport = node.querySelector("[data-payment-support]");
+      node.hidden = isSettled || Boolean(isSupport && !isTransfer);
+    });
+    if (feedback) feedback.hidden = isSettled;
+    if (submit) submit.hidden = isSettled;
+    if (completed) completed.hidden = !isSettled;
+    if (isSettled) {
+      if (paymentHeading) paymentHeading.textContent = "Pago registrado";
+      setText("[data-payment-paid]", reservation.paid || reservation.final);
+    }
+    if (review) review.hidden = isSettled || !(isTransfer && reservation.payment === "En validación" && reservation.supportPending);
+  };
+
+  if (support) {
+    support.closest("label").hidden = !isTransfer;
+    support.required = isTransfer;
+  }
+  if (isTransfer && reservation.payment === "En validación" && reservation.supportPending) {
+    if (amount) amount.disabled = true;
+    if (support) support.disabled = true;
+    if (submit) submit.disabled = true;
+  }
+  if (amount) amount.placeholder = isInstallment ? "Monto del abono" : "Monto recibido";
+  if (submit) submit.textContent = isTransfer ? "Registrar soporte" : isInstallment ? "Registrar abono" : "Registrar pago";
+  if (!hasSupportedMethod) {
+    if (amount) amount.disabled = true;
+    if (submit) submit.disabled = true;
+    if (feedback) feedback.textContent = "No hay una modalidad de pago habilitada para esta reserva. Defínela antes de registrar dinero.";
+  }
+  renderEntryState();
+
+  const persist = () => sessionStorage.setItem("operatorReservationDraft", JSON.stringify(reservation));
+  const renderPaymentState = () => {
+    setText("[data-payment-status]", reservation.payment);
+    setText("[data-payment-balance]", reservation.balance);
+    renderEntryState();
+    if (reservationStatus) {
+      reservationStatus.textContent = reservation.status;
+      reservationStatus.className = `operator-status ${reservation.statusClass}`;
+    }
+  };
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!hasSupportedMethod) return;
+    const enteredAmount = parseCurrency(amount?.value);
+    const balance = parseCurrency(reservation.balance);
+    const currentPaid = parseCurrency(reservation.paid);
+    if (!enteredAmount || enteredAmount <= 0 || enteredAmount > balance) {
+      feedback.textContent = "Registra un monto mayor a $0 y que no supere el saldo pendiente.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    if (isTransfer && !support?.files?.length) {
+      feedback.textContent = "Adjunta el soporte de transferencia para enviarlo a validación.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    if (!isTransfer && !isInstallment && enteredAmount < balance) {
+      feedback.textContent = "El efectivo debe cubrir el saldo pendiente. Registra un abono si el pago es parcial.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+
+    if (isTransfer) {
+      reservation.payment = "En validación";
+      reservation.status = "Pendiente de pago";
+      reservation.statusClass = "is-pending";
+      reservation.pendingTransferAmount = enteredAmount;
+      reservation.supportPending = true;
+      feedback.textContent = "Soporte registrado. El pago queda en validación y la reserva permanece pendiente de pago.";
+    } else {
+      const newPaid = currentPaid + enteredAmount;
+      const newBalance = Math.max(0, parseCurrency(reservation.final) - newPaid);
+      reservation.paid = formatCurrency(newPaid);
+      reservation.balance = formatCurrency(newBalance);
+      const paidInFull = newBalance === 0;
+      reservation.payment = paidInFull ? "Pagado" : "Parcial";
+      reservation.status = paidInFull ? "Confirmada" : "Pendiente de pago";
+      reservation.statusClass = paidInFull ? "is-confirmed" : "is-pending";
+      feedback.textContent = paidInFull
+        ? "Pago registrado. Se cumplió la condición parametrizada y la reserva quedó confirmada."
+        : "Abono registrado. El pago queda parcial y se conserva el saldo pendiente.";
+    }
+
+    persist();
+    renderPaymentState();
+    feedback.classList.add("is-valid");
+    if (submit) submit.disabled = true;
+    if (amount) amount.disabled = true;
+    if (support) support.disabled = true;
+  });
+
+  approve?.addEventListener("click", () => {
+    const validatedAmount = Number(reservation.pendingTransferAmount || 0);
+    const newPaid = parseCurrency(reservation.paid) + validatedAmount;
+    const newBalance = Math.max(0, parseCurrency(reservation.final) - newPaid);
+    reservation.paid = formatCurrency(newPaid);
+    reservation.balance = formatCurrency(newBalance);
+    reservation.payment = newBalance === 0 ? "Pagado" : "Parcial";
+    reservation.status = newBalance === 0 ? "Confirmada" : "Pendiente de pago";
+    reservation.statusClass = newBalance === 0 ? "is-confirmed" : "is-pending";
+    delete reservation.pendingTransferAmount;
+    delete reservation.supportPending;
+    persist();
+    renderPaymentState();
+    review.hidden = true;
+    feedback.textContent = newBalance === 0
+      ? "Soporte validado. Se cumplió la condición parametrizada y la reserva quedó confirmada."
+      : "Soporte validado. El pago queda parcial y se conserva el saldo pendiente.";
+    feedback.classList.add("is-valid");
+  });
+
+  reject?.addEventListener("click", () => {
+    reservation.payment = "Rechazado";
+    reservation.status = "Pendiente de pago";
+    reservation.statusClass = "is-pending";
+    delete reservation.pendingTransferAmount;
+    delete reservation.supportPending;
+    persist();
+    renderPaymentState();
+    review.hidden = true;
+    feedback.textContent = "Soporte rechazado. Se mantiene el saldo pendiente y puedes registrar un nuevo pago dentro del plazo vigente.";
+    feedback.classList.remove("is-valid");
+    if (amount) { amount.disabled = false; amount.value = ""; }
+    if (support) support.disabled = false;
+    if (submit) submit.disabled = false;
+  });
+}
+
 const activeTheme = getTheme();
 const activeThemeConfig = THEMES[activeTheme];
 
@@ -2526,3 +3078,12 @@ setupTourPaymentTransfer(activeTheme);
 setupDashboardBooking();
 setupCompanionsForm();
 setupCatalogSearch();
+setupOperatorCatalogs();
+setupManagedTourCatalog();
+setupOperatorNewService();
+renderClientCatalogProducts();
+setupOperatorReservations();
+setupOperatorReservationDetail();
+setupOperatorReservationForm();
+setupOperatorReservationCreated();
+setupOperatorReservationPayment();

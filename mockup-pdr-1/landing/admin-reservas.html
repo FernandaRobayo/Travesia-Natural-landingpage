@@ -1,3 +1,62 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Reservas | Travesía Natural</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" /><link rel="stylesheet" href="main.css?v=20260901-3" /></head>
-<body data-screen="operator-reservations" data-theme="travesia-natural"><main class="operator-shell"><aside class="operator-sidebar"><a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">TRAVESIA <span>NATURAL</span></a><p class="operator-role">Administrador del operador</p><nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a></nav><a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a></aside><section class="operator-content"><header class="operator-topbar"><div><p class="operator-eyebrow">Gestión comercial</p><h1>Reservas</h1></div><a class="operator-primary" href="admin-catalogos.html" data-route="operatorCatalogs">Crear reserva</a></header><section class="operator-hero operator-hero-compact"><div><p class="operator-eyebrow">Seguimiento</p><h2>Reserva, capacidad y valores siempre conectados.</h2></div><p>Las modificaciones antes de ejecución recalculan disponibilidad, descuentos y saldo.</p></section><section class="operator-panel"><div class="operator-panel-head"><div><p class="operator-eyebrow">Reservas activas</p><h2>Seguimiento de hoy</h2></div><a href="admin-pagos.html" data-route="operatorPayments">Ver pagos pendientes</a></div><div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Reserva</th><th>Cliente</th><th>Servicio</th><th>Estado</th><th>Saldo</th><th>Acción</th></tr></thead><tbody><tr><td><strong>#RES-1842</strong><small>15 sep 2026 · 2 viajeros</small></td><td>Laura Gómez</td><td>Tour Montañas</td><td><span class="operator-status is-pending">Pendiente de pago</span></td><td>$1.039.200</td><td><a href="admin-pagos.html" data-route="operatorPayments">Gestionar pago</a></td></tr><tr><td><strong>#RES-1841</strong><small>13 sep 2026 · 2 viajeros</small></td><td>Mateo Ríos</td><td>Rafting y acampada</td><td><span class="operator-status is-confirmed">Confirmada</span></td><td>$0</td><td><a href="admin-operacion.html" data-route="operatorOperations">Preparar salida</a></td></tr><tr><td><strong>#RES-1837</strong><small>22 sep 2026 · 3 viajeros</small></td><td>Juliana Cruz</td><td>Tour Montañas</td><td><span class="operator-status is-pending">Pendiente de pago</span></td><td>$2.078.400</td><td><a href="admin-pagos.html" data-route="operatorPayments">Gestionar pago</a></td></tr></tbody></table></div></section></section></main><script src="app.js"></script></body></html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservas | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="operator-reservations" data-theme="travesia-natural">
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del operador</p>
+        <nav class="operator-nav" aria-label="Administración del operador">
+          <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
+          <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
+          <a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a>
+          <a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a>
+          <a href="admin-pagos.html" data-route="operatorPayments">Pagos</a>
+          <a href="admin-caja.html" data-route="operatorCash">Caja</a>
+          <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
+          <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
+        </nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content">
+        <header class="operator-topbar">
+          <div><p class="operator-eyebrow">Gestión comercial</p><h1>Reservas</h1></div>
+          <a class="operator-primary" href="admin-crear-reserva.html" data-route="operatorCreateReservation">Crear reserva</a>
+        </header>
+        <section class="operator-hero operator-hero-compact">
+          <div><p class="operator-eyebrow">Seguimiento</p><h2>Reserva, capacidad y valores siempre conectados.</h2></div>
+          <p>Las modificaciones permitidas antes de la ejecución recalculan disponibilidad, descuentos y saldo.</p>
+        </section>
+        <section class="operator-panel">
+          <div class="operator-panel-head">
+            <div><p class="operator-eyebrow">Reservas activas</p><h2>Seguimiento de reservas</h2></div>
+            <button class="operator-table-toggle" type="button" data-reservation-scope-toggle aria-expanded="false">Ver todas las reservas</button>
+          </div>
+          <div class="operator-table-wrap">
+            <table class="operator-table">
+              <thead><tr><th>Reserva</th><th>Cliente</th><th>Servicio</th><th>Estado</th><th>Saldo</th><th>Acción</th></tr></thead>
+              <tbody>
+                <tr data-created-reservation hidden></tr>
+                <tr><td><a class="operator-reservation-link" href="admin-detalle-reserva.html?reservation=RES-1842" data-route="operatorReservationDetail">#RES-1842</a><small>15 sep 2026 · 2 viajeros</small></td><td>Laura Gómez</td><td>Tour Montañas</td><td><span class="operator-status is-pending">Pendiente de pago</span></td><td>$1.039.200</td><td><a href="admin-pagos.html" data-route="operatorPayments">Gestionar pago</a></td></tr>
+                <tr><td><a class="operator-reservation-link" href="admin-detalle-reserva.html?reservation=RES-1841" data-route="operatorReservationDetail">#RES-1841</a><small>13 sep 2026 · 2 viajeros</small></td><td>Mateo Ríos</td><td>Rafting y acampada</td><td><span class="operator-status is-confirmed">Confirmada</span></td><td>$0</td><td><a href="admin-operacion.html" data-route="operatorOperations">Ver operación</a></td></tr>
+                <tr><td><a class="operator-reservation-link" href="admin-detalle-reserva.html?reservation=RES-1840" data-route="operatorReservationDetail">#RES-1840</a><small>1 sep 2026 · 4 viajeros</small></td><td>Carolina Díaz</td><td>Ruta arqueológica</td><td><span class="operator-status is-execution">En ejecución</span></td><td>$0</td><td><a href="admin-operacion.html" data-route="operatorOperations">Ver operación</a></td></tr>
+                <tr><td><a class="operator-reservation-link" href="admin-detalle-reserva.html?reservation=RES-1837" data-route="operatorReservationDetail">#RES-1837</a><small>22 sep 2026 · 3 viajeros</small></td><td>Juliana Cruz</td><td>Tour Montañas</td><td><span class="operator-status is-pending">Pendiente de pago</span></td><td>$2.078.400</td><td><a href="admin-pagos.html" data-route="operatorPayments">Gestionar pago</a></td></tr>
+                <tr data-reservation-archived hidden><td><a class="operator-reservation-link" href="admin-detalle-reserva.html?reservation=RES-1829" data-route="operatorReservationDetail">#RES-1829</a><small>29 ago 2026 · 2 viajeros</small></td><td>Andrés Silva</td><td>Tour Montañas</td><td><span class="operator-status is-finalized">Finalizada</span></td><td>$0</td><td><a href="admin-operacion.html" data-route="operatorOperations">Ver operación</a></td></tr>
+                <tr data-reservation-archived hidden><td><a class="operator-reservation-link" href="admin-detalle-reserva.html?reservation=RES-1822" data-route="operatorReservationDetail">#RES-1822</a><small>27 ago 2026 · 2 viajeros</small></td><td>Paula Méndez</td><td>Rafting y acampada</td><td><span class="operator-status is-cancelled">Cancelada</span></td><td>$0</td><td><a href="admin-pagos.html" data-route="operatorPayments">Ver pago</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de pago | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260901-4" />
+  </head>
+  <body data-screen="operator-reservation-payment" data-theme="travesia-natural">
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del operador</p>
+        <nav class="operator-nav" aria-label="Administración del operador">
+          <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
+          <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
+          <a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a>
+          <a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a>
+          <a href="admin-pagos.html" data-route="operatorPayments">Pagos</a>
+          <a href="admin-caja.html" data-route="operatorCash">Caja</a>
+          <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
+          <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
+        </nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content">
+        <header class="operator-topbar">
+          <div><p class="operator-eyebrow">Seguimiento de reserva</p><h1>Gestión de pago</h1></div>
+        </header>
+        <section class="operator-detail-hero">
+          <div><p class="operator-eyebrow">Reserva</p><h2 data-payment-reservation-code>#RES-1843</h2></div>
+          <span class="operator-status is-pending" data-payment-reservation-status>Pendiente de pago</span>
+        </section>
+        <section class="operator-detail-grid">
+          <article class="operator-panel">
+            <p class="operator-eyebrow">Información de pago</p>
+            <h2 data-payment-customer>Paula</h2>
+            <div class="operator-detail-list">
+              <div><span>Modalidad</span><strong data-payment-method>Efectivo</strong></div>
+              <div><span>Estado de pago</span><strong data-payment-status>Sin pago</strong></div>
+            </div>
+          </article>
+          <article class="operator-panel">
+            <p class="operator-eyebrow">Estado económico</p>
+            <h2 data-payment-balance>$2.078.400</h2>
+            <div class="operator-detail-list">
+              <div><span>Valor final</span><strong data-payment-final>$2.078.400</strong></div>
+              <div><span>Saldo pendiente</span><strong data-payment-balance>$2.078.400</strong></div>
+            </div>
+          </article>
+        </section>
+        <section class="operator-panel operator-next-panel">
+          <p class="operator-eyebrow">Acción de pago</p>
+          <h2 data-payment-heading>Registra el pago de esta reserva</h2>
+          <p class="operator-copy">La condición parametrizada de esta reserva exige el pago total para confirmarla. El flujo se ajusta a la modalidad habilitada.</p>
+          <form class="operator-form-grid" data-payment-form>
+            <label class="operator-form-wide" data-payment-entry>Monto recibido<input data-payment-amount type="text" inputmode="numeric" autocomplete="off" required /></label>
+            <label class="operator-form-wide" data-payment-entry hidden>Soporte de transferencia<input data-payment-support type="file" accept=".pdf,.jpg,.jpeg,.png" /></label>
+            <p class="operator-form-feedback operator-form-wide" data-payment-feedback>Registra el monto para actualizar el estado de pago y el saldo pendiente.</p>
+            <div class="operator-payment-completed operator-form-wide" data-payment-completed hidden><p>No existen valores pendientes por registrar para esta reserva.</p><div><span>Monto recibido</span><strong data-payment-paid>$0</strong></div></div>
+            <div class="operator-form-actions operator-payment-actions operator-form-wide"><a class="operator-outline" data-payment-back href="admin-detalle-reserva.html?reservation=RES-1843">Volver a la reserva</a><button class="operator-primary" data-payment-submit type="submit">Registrar pago</button></div>
+          </form>
+          <div class="operator-form-actions operator-payment-review" data-payment-review hidden><button class="operator-outline" data-payment-reject type="button">Rechazar soporte</button><button class="operator-primary" data-payment-approve type="button">Validar soporte</button></div>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
