@@ -391,7 +391,7 @@ function setupLoginForm(themeConfig, theme) {
     setFeedback("login", themeConfig.feedback.success, "is-success");
 
     window.setTimeout(() => {
-      const nextPath = activeRole === "platform-admin" ? "admin-plataforma.html" : activeRole === "staff" ? "indice.html" : "panel-cliente.html";
+      const nextPath = activeRole === "platform-admin" ? "admin-plataforma.html" : activeRole === "staff" ? "admin-operador.html" : "panel-cliente.html";
       window.location.href = withTheme(nextPath, theme);
     }, 700);
   });
@@ -2500,6 +2500,63 @@ function setupCatalogSearch() {
   filterCards();
 }
 
+const OPERATOR_RESERVATIONS = {
+  "RES-1842": { customer: "Laura Gómez", email: "laura.gomez@ejemplo.com", service: "Tour Montañas", date: "15 sep 2026", travelers: 2, companions: "1 registrado", status: "Pendiente de pago", statusClass: "is-pending", projected: "$1.299.000", discount: "-$259.800", final: "$1.039.200", paid: "$0", balance: "$1.039.200", payment: "Sin pago", method: "Transferencia", execution: "Pendiente de ejecución", action: "Gestionar pago", href: "admin-pagos.html" },
+  "RES-1841": { customer: "Mateo Ríos", email: "mateo.rios@ejemplo.com", service: "Rafting y acampada", date: "13 sep 2026", travelers: 2, companions: "1 registrado", status: "Confirmada", statusClass: "is-confirmed", projected: "$1.600.000", discount: "$0", final: "$1.600.000", paid: "$1.600.000", balance: "$0", payment: "Pagado", method: "Transferencia", execution: "Pendiente de ejecución", action: "Ver operación", href: "admin-operacion.html" },
+  "RES-1840": { customer: "Carolina Díaz", email: "carolina.diaz@ejemplo.com", service: "Ruta arqueológica", date: "1 sep 2026", travelers: 4, companions: "3 registrados", status: "En ejecución", statusClass: "is-execution", projected: "$2.400.000", discount: "$0", final: "$2.400.000", paid: "$2.400.000", balance: "$0", payment: "Pagado", method: "Efectivo", execution: "En ejecución", action: "Ver operación", href: "admin-operacion.html" },
+  "RES-1837": { customer: "Juliana Cruz", email: "juliana.cruz@ejemplo.com", service: "Tour Montañas", date: "22 sep 2026", travelers: 3, companions: "2 registrados", status: "Pendiente de pago", statusClass: "is-pending", projected: "$3.897.000", discount: "-$779.400", final: "$3.117.600", paid: "$1.039.200", balance: "$2.078.400", payment: "Parcial", method: "Abono", execution: "Pendiente de ejecución", action: "Gestionar pago", href: "admin-pagos.html" },
+  "RES-1829": { customer: "Andrés Silva", email: "andres.silva@ejemplo.com", service: "Tour Montañas", date: "29 ago 2026", travelers: 2, companions: "1 registrado", status: "Finalizada", statusClass: "is-finalized", projected: "$2.598.000", discount: "-$519.600", final: "$2.078.400", paid: "$2.078.400", balance: "$0", payment: "Pagado", method: "Transferencia", execution: "Finalizada", action: "Ver operación", href: "admin-operacion.html" },
+  "RES-1822": { customer: "Paula Méndez", email: "paula.mendez@ejemplo.com", service: "Rafting y acampada", date: "27 ago 2026", travelers: 2, companions: "1 registrado", status: "Cancelada", statusClass: "is-cancelled", projected: "$1.600.000", discount: "$0", final: "$1.600.000", paid: "$0", balance: "$0", payment: "Sin pago", method: "Transferencia", execution: "No ejecutada", action: "Ver pago", href: "admin-pagos.html" },
+};
+
+function parseCOP(text) {
+  return Number(String(text ?? "").replace(/[^0-9]/g, "")) || 0;
+}
+
+const OPERATOR_RESERVATION_ADJUSTMENTS_KEY = "multitour-reservation-adjustments";
+
+function getOperatorReservationAdjustments() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_RESERVATION_ADJUSTMENTS_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorReservationAdjustment(code) {
+  return getOperatorReservationAdjustments()[code] || null;
+}
+
+function setOperatorReservationAdjustment(code, adjustment) {
+  const adjustments = getOperatorReservationAdjustments();
+  adjustments[code] = adjustment;
+  localStorage.setItem(OPERATOR_RESERVATION_ADJUSTMENTS_KEY, JSON.stringify(adjustments));
+}
+
+// Antes de ejecucion (Pendiente de pago / Confirmada) la reserva admite modificaciones;
+// En ejecucion, Finalizada y Cancelada no admiten descuento adicional (RF-008/RF-003A).
+function isReservationEligibleForAdditionalDiscount(statusClass) {
+  return statusClass === "is-pending" || statusClass === "is-confirmed";
+}
+
+// Aplica, si existe, el descuento adicional guardado sobre el valor actual de la reserva.
+function resolveReservationWithAdjustment(code, reservation) {
+  const adjustment = getOperatorReservationAdjustment(code);
+  if (!adjustment) return reservation;
+  const currentFinal = parseCOP(reservation.final);
+  const newFinal = Math.round(currentFinal * (1 - adjustment.percentage / 100));
+  const paid = parseCOP(reservation.paid);
+  const newBalance = Math.max(newFinal - paid, 0);
+  return { ...reservation, final: formatCOP(newFinal), balance: formatCOP(newBalance) };
+}
+
+function setupOperatorPayments() {
+  if (document.body.dataset.screen !== "operator-payments") return;
+  const counter = document.querySelector(".operator-panel-head .operator-status.is-pending");
+  const panel = counter?.closest(".operator-panel");
+  const rows = panel?.querySelectorAll("tbody tr") || [];
+  if (counter) {
+    const count = rows.length;
+    counter.textContent = `${count} pendiente${count === 1 ? "" : "s"}`;
+  }
+}
+
 function setupOperatorReservations() {
   if (document.body.dataset.screen !== "operator-reservations") return;
 
@@ -2521,6 +2578,32 @@ function setupOperatorReservations() {
     }
   } catch { /* A static reservation list remains available if session storage is unavailable. */ }
 
+  const mode = new URLSearchParams(window.location.search).get("mode");
+  document.querySelectorAll(".operator-table tbody tr").forEach((row) => {
+    const link = row.querySelector(".operator-reservation-link");
+    if (!link) return;
+    const code = new URL(link.href).searchParams.get("reservation");
+    if (!code) return;
+    if (getOperatorReservationAdjustment(code) && OPERATOR_RESERVATIONS[code]) {
+      const adjusted = resolveReservationWithAdjustment(code, OPERATOR_RESERVATIONS[code]);
+      const balanceCell = row.querySelector("td:nth-child(5)");
+      if (balanceCell) balanceCell.innerHTML = `${escapeHtml(adjusted.balance)}<br><small>Descuento adicional aplicado</small>`;
+    }
+    if (mode === "additional-discount") {
+      const statusClass = Array.from(row.querySelector(".operator-status")?.classList || []).find((cls) => cls.startsWith("is-"));
+      const actionCell = row.querySelector("td:last-child");
+      if (actionCell && isReservationEligibleForAdditionalDiscount(statusClass)) {
+        actionCell.innerHTML = `<a href="${withTheme(`admin-aplicar-descuento.html?reservation=${code}`, getTheme())}">Aplicar descuento</a>`;
+      }
+    }
+  });
+  if (mode === "additional-discount") {
+    const hero = document.querySelector(".operator-hero-compact");
+    if (hero && !hero.querySelector("[data-additional-discount-banner]")) {
+      hero.insertAdjacentHTML("beforeend", '<p data-additional-discount-banner>Selecciona la reserva a la que deseas aplicar un descuento adicional.</p>');
+    }
+  }
+
   if (!toggle || !archivedRows.length) return;
 
   toggle.addEventListener("click", () => {
@@ -2533,6 +2616,94 @@ function setupOperatorReservations() {
   });
 }
 
+const OPERATOR_SERVICE_STATUS_KEY = "multitour-service-status";
+
+function getOperatorServiceStatusMap() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_SERVICE_STATUS_KEY) || "{}"); } catch { return {}; }
+}
+
+function setOperatorServiceStatus(catalogId, recordKey, active) {
+  const map = getOperatorServiceStatusMap();
+  map[catalogId] = map[catalogId] || {};
+  map[catalogId][recordKey] = active ? "active" : "inactive";
+  localStorage.setItem(OPERATOR_SERVICE_STATUS_KEY, JSON.stringify(map));
+}
+
+function resolveOperatorServiceActive(catalogId, recordKey, defaultActive) {
+  const stored = getOperatorServiceStatusMap()[catalogId]?.[recordKey];
+  return stored ? stored === "active" : defaultActive;
+}
+
+const OPERATOR_SERVICE_FIELDS_KEY = "multitour-service-fields";
+
+function getOperatorServiceFieldsMap() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_SERVICE_FIELDS_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorServiceFields(catalogId, recordKey) {
+  return getOperatorServiceFieldsMap()[catalogId]?.[recordKey] || null;
+}
+
+function setOperatorServiceFields(catalogId, recordKey, fields) {
+  const map = getOperatorServiceFieldsMap();
+  map[catalogId] = map[catalogId] || {};
+  map[catalogId][recordKey] = fields;
+  localStorage.setItem(OPERATOR_SERVICE_FIELDS_KEY, JSON.stringify(map));
+}
+
+// Espejo de los registros demo ya definidos en cada HTML de "Gestionar <catalogo>",
+// usando como clave el mismo texto de la primera celda que ya identifica cada fila.
+const OPERATOR_MONTH_ABBR = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+function parseOperatorDate(text) {
+  const match = /^(\d{1,2})\s+([a-z]{3})\s+(\d{4})$/i.exec((text || "").trim());
+  if (!match) return "";
+  const monthIndex = OPERATOR_MONTH_ABBR.indexOf(match[2].toLowerCase());
+  if (monthIndex === -1) return "";
+  return `${match[3]}-${String(monthIndex + 1).padStart(2, "0")}-${match[1].padStart(2, "0")}`;
+}
+
+function formatOperatorDate(isoDate) {
+  const [year, month, day] = (isoDate || "").split("-");
+  const monthName = OPERATOR_MONTH_ABBR[Number(month) - 1];
+  if (!year || !day || !monthName) return "";
+  return `${day} ${monthName} ${year}`;
+}
+
+const OPERATOR_CATALOG_DEFAULTS = {
+  "catalogo-catalog-panel": {
+    cardIndex: 0,
+    backHref: "admin-gestionar-catalogo.html",
+    records: [
+      { key: "Tour destino ejemplo - Montañas", active: true, typeLabel: "Actividad principal", fields: { name: "Tour destino ejemplo - Montañas", tariff: "$1.299.000", validity: "01 sep 2026 - 30 sep 2026", policy: "Confirmación directa solo con pago válido" } },
+      { key: "Aventura en cenotes ocultos", active: true, typeLabel: "Actividad principal", fields: { name: "Aventura en cenotes ocultos", tariff: "$520.000", validity: "01 sep 2026 - 30 sep 2026", policy: "Confirmación directa solo con pago válido" } },
+      { key: "Recorrido cultural e histórico", active: true, typeLabel: "Actividad principal", fields: { name: "Recorrido cultural e histórico", tariff: "$349.000", validity: "01 sep 2026 - 30 sep 2026", policy: "Confirmación directa solo con pago válido" } },
+      { key: "Rafting y acampada extrema", active: true, typeLabel: "Actividad principal", fields: { name: "Rafting y acampada extrema", tariff: "$799.000", validity: "01 sep 2026 - 30 sep 2026", policy: "Confirmación directa solo con pago válido" } },
+    ],
+  },
+  "hospedaje-catalog-panel": {
+    cardIndex: 1,
+    backHref: "admin-gestionar-hospedaje.html",
+    records: [
+      { key: "Ecohotel Mirador", active: true, fields: { name: "Ecohotel Mirador", capacity: "2", tariff: "$580.000", validity: "01 sep 2026 - 30 sep 2026", policy: "Apartamiento temporal" } },
+    ],
+  },
+  "alimentacion-catalog-panel": {
+    cardIndex: 2,
+    backHref: "admin-gestionar-alimentacion.html",
+    records: [
+      { key: "Por configurar", active: false, fields: { restaurant: "Por configurar", dish: "Plato del día", tariff: "Por configurar", validity: "01 sep 2026 - 30 sep 2026", policy: "Sin apartamiento previo" } },
+    ],
+  },
+  "transporte-catalog-panel": {
+    cardIndex: 3,
+    backHref: "admin-gestionar-transporte.html",
+    records: [
+      { key: "Transporte programado", active: true, fields: { name: "Transporte programado", capacity: "14", tariff: "Por configurar", cost: "Por configurar", policy: "Sin apartamiento previo", validity: "Por configurar" } },
+    ],
+  },
+};
+
 function setupOperatorCatalogs() {
   if (document.body.dataset.screen !== "operator-catalogs") return;
   const periods = [
@@ -2543,14 +2714,29 @@ function setupOperatorCatalogs() {
     "01 sep 2026 - 30 sep 2026",
     "01 sep 2026 - 30 sep 2026",
   ];
+  const rowCatalogLookup = [
+    { catalogId: "catalogo-catalog-panel", key: "Tour destino ejemplo - Montañas" },
+    { catalogId: "catalogo-catalog-panel", key: "Aventura en cenotes ocultos" },
+    { catalogId: "catalogo-catalog-panel", key: "Recorrido cultural e histórico" },
+    { catalogId: "catalogo-catalog-panel", key: "Rafting y acampada extrema" },
+    { catalogId: "hospedaje-catalog-panel", key: "Ecohotel Mirador" },
+    { catalogId: "alimentacion-catalog-panel", key: "Por configurar" },
+  ];
   document.querySelectorAll(".operator-table tbody tr").forEach((row, index) => {
     const validity = row.querySelector("td:nth-child(4)");
     const status = row.querySelector("td:nth-child(5)");
     if (validity) validity.textContent = periods[index] || "—";
-    if (status && periods[index]) status.innerHTML = '<span class="operator-status is-confirmed">Activo</span>';
+    const lookup = rowCatalogLookup[index];
+    if (status && periods[index] && lookup) {
+      const defaultRecord = OPERATOR_CATALOG_DEFAULTS[lookup.catalogId]?.records.find((r) => r.key === lookup.key);
+      const active = resolveOperatorServiceActive(lookup.catalogId, lookup.key, defaultRecord ? defaultRecord.active : true);
+      status.innerHTML = active
+        ? '<span class="operator-status is-confirmed">Activo</span>'
+        : '<span class="operator-status is-cancelled">Inactivo</span>';
+    }
   });
   const body = document.querySelector(".operator-table tbody");
-  const typeLabels = { tour: "Actividad principal", lodging: "Hospedaje", food: "Alimentación" };
+  const typeLabels = { tour: "Actividad principal", lodging: "Hospedaje", food: "Alimentación", transport: "Transporte" };
   getOperatorCatalog().forEach((item) => {
     const row = document.createElement("tr");
     row.innerHTML = `<td><strong>${escapeHtml(item.name)}</strong></td><td>${typeLabels[item.type] || "Servicio"}</td><td>${escapeHtml(item.policy)}</td><td>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</td><td><span class="operator-status is-confirmed">Activo</span></td>`;
@@ -2558,14 +2744,23 @@ function setupOperatorCatalogs() {
   });
   const create = document.querySelector(".operator-topbar .operator-primary");
   if (create) create.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-servicio.html", getTheme()); });
-  const actions = ["admin-gestionar-catalogo.html", "admin-gestionar-hospedaje.html", null, "admin-gestionar-transporte.html"];
+  const actions = ["admin-gestionar-catalogo.html", "admin-gestionar-hospedaje.html", "admin-gestionar-alimentacion.html", "admin-gestionar-transporte.html"];
   document.querySelectorAll(".operator-catalog-grid button").forEach((button, index) => {
     if (actions[index]) button.addEventListener("click", () => { window.location.href = withTheme(actions[index], getTheme()); });
+  });
+  const catalogCards = document.querySelectorAll(".operator-catalog-grid article");
+  Object.entries(OPERATOR_CATALOG_DEFAULTS).forEach(([catalogId, entry]) => {
+    const strong = catalogCards[entry.cardIndex]?.querySelector("strong");
+    if (!strong) return;
+    const activeCount = entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length;
+    strong.textContent = `${activeCount} activo${activeCount === 1 ? "" : "s"}`;
   });
 }
 
 function setupManagedTourCatalog() {
-  if (!document.querySelector("[data-managed-tour-catalog], [data-managed-catalog]")) return;
+  const panel = document.querySelector("[data-managed-tour-catalog], [data-managed-catalog]");
+  if (!panel) return;
+  const catalogId = panel.id;
   document.querySelectorAll("[data-toggle-service]").forEach((button) => {
     const row = button.closest("tr");
     const actionCell = row.querySelector("td:last-child");
@@ -2574,18 +2769,84 @@ function setupManagedTourCatalog() {
     button.className = "operator-row-toggle";
     actionCell.textContent = "";
     actionCell.append(manage, button);
-    row.querySelector("[data-service-status]").className = "operator-status is-confirmed";
+    const recordKey = row.querySelector("td:first-child")?.textContent.trim() || "";
+    const defaultRecord = catalogId ? OPERATOR_CATALOG_DEFAULTS[catalogId]?.records.find((r) => r.key === recordKey) : null;
+    if (defaultRecord?.fields) {
+      const fields = getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields;
+      Object.entries(fields).forEach(([field, value]) => {
+        const cell = row.querySelector(`[data-service-${field}]`);
+        if (!cell) return;
+        cell.textContent = field === "capacity" ? `${value} viajero${value === "1" ? "" : "s"}` : value;
+      });
+    }
+    const defaultActive = button.dataset.toggleService === "deactivate";
+    const applyState = (active) => {
+      button.dataset.toggleService = active ? "deactivate" : "activate";
+      button.textContent = active ? "Desactivar" : "Activar";
+      const status = row.querySelector("[data-service-status]");
+      status.textContent = active ? "Activo" : "Inactivo";
+      status.className = `operator-status ${active ? "is-confirmed" : "is-cancelled"}`;
+      row.dataset.availableForNewReservations = String(active);
+    };
+    applyState(catalogId ? resolveOperatorServiceActive(catalogId, recordKey, defaultActive) : defaultActive);
     button.addEventListener("click", () => {
       const active = button.dataset.toggleService === "deactivate";
       const validity = row.querySelector("[data-service-validity]")?.textContent.trim();
       if (!active && (!validity || validity === "—")) return;
-      button.dataset.toggleService = active ? "activate" : "deactivate";
-      button.textContent = active ? "Activar" : "Desactivar";
-      const status = row.querySelector("[data-service-status]");
-      status.textContent = active ? "Inactivo" : "Activo";
-      status.className = `operator-status ${active ? "is-cancelled" : "is-confirmed"}`;
-      row.dataset.availableForNewReservations = String(!active);
+      const nextActive = !active;
+      applyState(nextActive);
+      if (catalogId) setOperatorServiceStatus(catalogId, recordKey, nextActive);
     });
+  });
+}
+
+function setupOperatorConfigureScreen() {
+  const form = document.querySelector("[data-configure-form]");
+  if (!form) return;
+  const catalogId = form.dataset.configureForm;
+  const catalog = OPERATOR_CATALOG_DEFAULTS[catalogId];
+  const recordKey = new URLSearchParams(window.location.search).get("record") || "";
+  const defaultRecord = catalog?.records.find((r) => r.key === recordKey);
+  const feedback = form.querySelector("[data-config-feedback]");
+  const backHref = catalog?.backHref || "admin-catalogos.html";
+  if (!defaultRecord) {
+    if (feedback) feedback.textContent = "No se encontró el registro seleccionado. Vuelve al listado e ingresa nuevamente por Gestionar.";
+    form.querySelectorAll("input, select, button").forEach((el) => { el.disabled = true; });
+    return;
+  }
+  const fields = getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields;
+  const [validityStart, validityEnd] = (fields.validity || "").split(" - ");
+  form.querySelectorAll("[data-field]").forEach((input) => {
+    const field = input.dataset.field;
+    if (field === "validityStart") input.value = parseOperatorDate(validityStart);
+    else if (field === "validityEnd") input.value = parseOperatorDate(validityEnd);
+    else input.value = fields[field] && fields[field] !== "Por configurar" ? fields[field] : "";
+  });
+  const title = document.querySelector("[data-config-title]");
+  if (title) title.textContent = fields.name || fields.dish || fields.restaurant || recordKey;
+  const typeInput = form.querySelector("[data-config-type]");
+  if (typeInput) typeInput.value = defaultRecord.typeLabel || "";
+  const isActive = resolveOperatorServiceActive(catalogId, recordKey, defaultRecord.active);
+  const statusBadge = document.querySelector("[data-config-status]");
+  if (statusBadge) {
+    statusBadge.textContent = isActive ? "Activo" : "Inactivo";
+    statusBadge.className = `operator-status ${isActive ? "is-confirmed" : "is-cancelled"}`;
+  }
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const updatedFields = {};
+    form.querySelectorAll("[data-field]").forEach((input) => {
+      const field = input.dataset.field;
+      if (field === "validityStart" || field === "validityEnd") return;
+      const value = input.value.trim();
+      if (value) updatedFields[field] = value;
+    });
+    const start = form.querySelector('[data-field="validityStart"]')?.value || "";
+    const end = form.querySelector('[data-field="validityEnd"]')?.value || "";
+    if (start && end) updatedFields.validity = `${formatOperatorDate(start)} - ${formatOperatorDate(end)}`;
+    else if (fields.validity && fields.validity !== "Por configurar") updatedFields.validity = fields.validity;
+    setOperatorServiceFields(catalogId, recordKey, updatedFields);
+    window.location.href = withTheme(backHref, getTheme());
   });
 }
 
@@ -2595,14 +2856,190 @@ function getOperatorCatalog() {
   try { return JSON.parse(localStorage.getItem(OPERATOR_CATALOG_STORAGE_KEY) || "[]"); } catch { return []; }
 }
 
+// Los establecimientos asociados (hoteles/restaurantes externos promocionados)
+// se guardan aparte del catalogo reservable: no son un servicio de la operacion turistica.
+const OPERATOR_ASSOCIATED_ESTABLISHMENTS_KEY = "multitour-associated-establishments";
+
+function getOperatorAssociatedEstablishments() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_ASSOCIATED_ESTABLISHMENTS_KEY) || "[]"); } catch { return []; }
+}
+
+const OPERATOR_DISCOUNTS_STORAGE_KEY = "multitour-discounts";
+
+function getOperatorDiscounts() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_DISCOUNTS_STORAGE_KEY) || "[]"); } catch { return []; }
+}
+
+function getOperatorCatalogServiceOptions() {
+  return Object.values(OPERATOR_CATALOG_DEFAULTS).flatMap((entry) => entry.records.map((record) => ({
+    key: record.key,
+    label: record.fields?.name || record.fields?.dish || record.fields?.restaurant || record.key,
+  })));
+}
+
+function setupOperatorDiscounts() {
+  if (document.body.dataset.screen !== "operator-discounts") return;
+  const createButton = document.querySelector(".operator-topbar .operator-primary");
+  if (createButton) createButton.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-descuento.html", getTheme()); });
+  const existingPromo = document.querySelector(".operator-promo");
+  const promoPanel = existingPromo?.closest(".operator-panel");
+  const counter = promoPanel?.querySelector(".operator-panel-head .operator-status");
+  const discounts = getOperatorDiscounts();
+  const hasLegacyOverride = discounts.some((discount) => discount.id === "legacy-tour-montanas");
+  const legacyStaticPromo = document.querySelector('.operator-promo[data-discount-id="legacy-tour-montanas"]');
+  if (legacyStaticPromo && hasLegacyOverride) legacyStaticPromo.remove();
+  discounts.forEach((discount) => {
+    const promo = document.createElement("div");
+    promo.className = "operator-promo";
+    promo.dataset.discountId = discount.id;
+    const baseLabel = discount.base === "subtotal" ? "subtotal resultante del descuento anterior" : "valor original";
+    const stackableLabel = discount.stackable === "si" ? "acumulable" : "no acumulable";
+    const capLabel = discount.cap ? ` Tope: ${escapeHtml(discount.cap)}.` : "";
+    promo.innerHTML = `<div><span>${escapeHtml((discount.serviceLabel || discount.service).toUpperCase())}</span><strong>${escapeHtml(String(discount.percentage))}% de descuento</strong><p>Vigente hasta el ${escapeHtml(formatOperatorDate(discount.end))}. Base de cálculo: ${baseLabel}. Prioridad ${escapeHtml(String(discount.priority))}, ${stackableLabel}.${capLabel}</p></div><button type="button">Editar parámetros</button>`;
+    promoPanel?.appendChild(promo);
+  });
+  document.querySelectorAll(".operator-promo button").forEach((button) => {
+    const id = button.closest(".operator-promo")?.dataset.discountId;
+    if (!id) return;
+    button.addEventListener("click", () => { window.location.href = withTheme(`admin-editar-descuento.html?id=${encodeURIComponent(id)}`, getTheme()); });
+  });
+  const totalActive = (hasLegacyOverride ? 0 : 1) + discounts.length;
+  if (counter) counter.textContent = `${totalActive} activa${totalActive === 1 ? "" : "s"}`;
+}
+
+function setupOperatorNewDiscount() {
+  if (document.body.dataset.screen !== "operator-new-discount") return;
+  const form = document.querySelector("[data-new-discount-form]");
+  const serviceSelect = form?.querySelector("[data-discount-service]");
+  getOperatorCatalogServiceOptions().forEach(({ key, label }) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = label;
+    serviceSelect?.append(option);
+  });
+  const feedback = form?.querySelector("[data-discount-feedback]");
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const start = form.querySelector("[data-discount-start]").value;
+    const end = form.querySelector("[data-discount-end]").value;
+    if (!form.checkValidity() || end < start) {
+      feedback.textContent = "Completa los parámetros y define una vigencia válida.";
+      return;
+    }
+    const serviceInput = form.querySelector("[data-discount-service]");
+    const discount = {
+      id: `discount-${Date.now()}`,
+      service: serviceInput.value,
+      serviceLabel: serviceInput.selectedOptions[0]?.textContent || serviceInput.value,
+      percentage: Number(form.querySelector("[data-discount-percentage]").value),
+      start,
+      end,
+      priority: Number(form.querySelector("[data-discount-priority]").value),
+      stackable: form.querySelector("[data-discount-stackable]").value,
+      cap: form.querySelector("[data-discount-cap]").value.trim(),
+      base: form.querySelector("[data-discount-base]").value,
+      active: true,
+    };
+    const discounts = getOperatorDiscounts();
+    discounts.push(discount);
+    localStorage.setItem(OPERATOR_DISCOUNTS_STORAGE_KEY, JSON.stringify(discounts));
+    window.location.href = withTheme("admin-descuentos.html", getTheme());
+  });
+}
+
+function setupOperatorEditDiscount() {
+  if (document.body.dataset.screen !== "operator-edit-discount") return;
+  const form = document.querySelector("[data-edit-discount-form]");
+  const serviceSelect = form?.querySelector("[data-discount-service]");
+  getOperatorCatalogServiceOptions().forEach(({ key, label }) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = label;
+    serviceSelect?.append(option);
+  });
+  const feedback = form?.querySelector("[data-discount-feedback]");
+  const id = new URLSearchParams(window.location.search).get("id") || "";
+  const discounts = getOperatorDiscounts();
+  let discount = discounts.find((item) => item.id === id);
+  const isUnstructuredLegacy = !discount && id === "legacy-tour-montanas";
+  if (!discount && !isUnstructuredLegacy) {
+    if (feedback) feedback.textContent = "No se encontró el descuento seleccionado. Vuelve a Descuentos e ingresa nuevamente por Editar parámetros.";
+    form?.querySelectorAll("input, select, button").forEach((el) => { el.disabled = true; });
+    return;
+  }
+  if (isUnstructuredLegacy) {
+    discount = { id, percentage: 20, end: "2026-09-30" };
+    if (feedback) feedback.textContent = "Esta promoción no tenía parámetros estructurados previos: confirma servicio, vigencia desde, prioridad, acumulable y base de cálculo antes de guardar.";
+  }
+  if (discount.service) serviceSelect.value = discount.service;
+  if (discount.percentage != null) form.querySelector("[data-discount-percentage]").value = discount.percentage;
+  if (discount.start) form.querySelector("[data-discount-start]").value = discount.start;
+  if (discount.end) form.querySelector("[data-discount-end]").value = discount.end;
+  if (discount.priority != null) form.querySelector("[data-discount-priority]").value = discount.priority;
+  if (discount.stackable) form.querySelector("[data-discount-stackable]").value = discount.stackable;
+  if (discount.cap) form.querySelector("[data-discount-cap]").value = discount.cap;
+  if (discount.base) form.querySelector("[data-discount-base]").value = discount.base;
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const start = form.querySelector("[data-discount-start]").value;
+    const end = form.querySelector("[data-discount-end]").value;
+    const percentageValue = form.querySelector("[data-discount-percentage]").value;
+    const priorityValue = form.querySelector("[data-discount-priority]").value;
+    const baseValue = form.querySelector("[data-discount-base]").value;
+    const percentage = Number(percentageValue);
+    const missingRequired = !start || !end || !priorityValue || !percentageValue || !baseValue;
+    if (missingRequired || !form.checkValidity() || percentage < 0 || percentage > 100 || end < start) {
+      feedback.textContent = "Completa vigencia desde, vigencia hasta, prioridad, porcentaje y base de cálculo (el porcentaje entre 0 y 100, y la vigencia hasta no anterior a la vigencia desde) antes de guardar.";
+      return;
+    }
+    const serviceInput = form.querySelector("[data-discount-service]");
+    const updated = {
+      id,
+      service: serviceInput.value,
+      serviceLabel: serviceInput.selectedOptions[0]?.textContent || serviceInput.value,
+      percentage,
+      start,
+      end,
+      priority: Number(priorityValue),
+      stackable: form.querySelector("[data-discount-stackable]").value,
+      cap: form.querySelector("[data-discount-cap]").value.trim(),
+      base: baseValue,
+      active: true,
+    };
+    const index = discounts.findIndex((item) => item.id === id);
+    if (index === -1) discounts.push(updated); else discounts[index] = updated;
+    localStorage.setItem(OPERATOR_DISCOUNTS_STORAGE_KEY, JSON.stringify(discounts));
+    window.location.href = withTheme("admin-descuentos.html", getTheme());
+  });
+}
+
 function setupOperatorNewService() {
   if (document.body.dataset.screen !== "operator-new-service") return;
   const form = document.querySelector("[data-new-service-form]");
   const formGrid = form?.querySelector(".operator-form-grid");
   const priceLabel = form?.querySelector("[data-service-price]")?.closest("label");
   if (priceLabel?.firstChild) priceLabel.firstChild.nodeValue = "Tarifa base";
-  formGrid?.insertAdjacentHTML("beforeend", '<label>Capacidad / cupo<input data-service-capacity type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label><label>Restricciones operativas<textarea data-service-restrictions placeholder="Opcional: condiciones que limitan la disponibilidad"></textarea></label>');
+  formGrid?.insertAdjacentHTML("beforeend", '<label data-operational-field>Capacidad / cupo<input data-service-capacity type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label><label data-operational-field>Restricciones operativas<textarea data-service-restrictions placeholder="Opcional: condiciones que limitan la disponibilidad"></textarea></label>');
   const image = form?.querySelector("[data-service-image]");
+  const imageLabel = image?.closest("label");
+  const kindSelect = form?.querySelector("[data-service-kind]");
+  const establishmentTypeSelect = form?.querySelector("[data-establishment-type]");
+  const operationalFields = form?.querySelectorAll("[data-operational-field]");
+  const establishmentFields = form?.querySelectorAll("[data-establishment-field]");
+  const ESTABLISHMENT_IMAGE_LABELS = { hotel: "Imagen del hotel", restaurant: "Imagen del restaurante" };
+  const syncServiceKind = () => {
+    const isEstablishment = kindSelect?.value === "establishment";
+    operationalFields?.forEach((field) => { field.hidden = isEstablishment; });
+    establishmentFields?.forEach((field) => { field.hidden = !isEstablishment; });
+    if (imageLabel?.firstChild) {
+      imageLabel.firstChild.nodeValue = isEstablishment
+        ? ESTABLISHMENT_IMAGE_LABELS[establishmentTypeSelect?.value] || ESTABLISHMENT_IMAGE_LABELS.hotel
+        : "Imagen del servicio";
+    }
+  };
+  syncServiceKind();
+  kindSelect?.addEventListener("change", syncServiceKind);
+  establishmentTypeSelect?.addEventListener("change", syncServiceKind);
   const preview = form?.querySelector("[data-service-preview]");
   const feedback = form?.querySelector("[data-service-feedback]");
   image?.addEventListener("change", () => {
@@ -2614,6 +3051,18 @@ function setupOperatorNewService() {
   });
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (kindSelect?.value === "establishment") {
+      if (!form.checkValidity() || !preview.dataset.ready) {
+        feedback.textContent = "Completa el nombre comercial y adjunta una imagen del establecimiento.";
+        return;
+      }
+      const establishment = { id: `establishment-${Date.now()}`, kind: establishmentTypeSelect?.value || "hotel", name: form.querySelector("[data-service-name]").value.trim(), description: form.querySelector("[data-establishment-info]")?.value.trim() || "", image: preview.src };
+      const establishments = getOperatorAssociatedEstablishments();
+      establishments.push(establishment);
+      localStorage.setItem(OPERATOR_ASSOCIATED_ESTABLISHMENTS_KEY, JSON.stringify(establishments));
+      window.location.href = withTheme("admin-catalogos.html", getTheme());
+      return;
+    }
     const start = form.querySelector("[data-service-start]").value;
     const end = form.querySelector("[data-service-end]").value;
     if (!form.checkValidity() || end < start || !preview.dataset.ready) {
@@ -2644,23 +3093,70 @@ function renderClientCatalogProducts() {
   });
 }
 
+function setupOperatorApplyDiscount() {
+  if (document.body.dataset.screen !== "operator-apply-discount") return;
+  const form = document.querySelector("[data-apply-discount-form]");
+  const feedback = form?.querySelector("[data-apply-discount-feedback]");
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
+  const base = OPERATOR_RESERVATIONS[code];
+  const disableForm = () => form?.querySelectorAll("input, textarea, button").forEach((el) => { el.disabled = true; });
+  if (!base) {
+    if (feedback) feedback.textContent = "No se encontró la reserva seleccionada. Vuelve a Reservas e ingresa nuevamente por Aplicar descuento.";
+    disableForm();
+    return;
+  }
+  if (!isReservationEligibleForAdditionalDiscount(base.statusClass)) {
+    if (feedback) feedback.textContent = `Esta reserva está en estado "${base.status}" y ya no admite modificaciones: no se puede aplicar un descuento adicional.`;
+    disableForm();
+    return;
+  }
+  const reservation = resolveReservationWithAdjustment(code, base);
+  form.querySelector("[data-reservation-code-field]").value = `#${code}`;
+  form.querySelector("[data-reservation-customer-field]").value = reservation.customer;
+  form.querySelector("[data-reservation-service-field]").value = reservation.service;
+  form.querySelector("[data-reservation-value-field]").value = reservation.final;
+  const currentValue = parseCOP(reservation.final);
+  const percentageInput = form.querySelector("[data-adjustment-percentage]");
+  const newValueField = form.querySelector("[data-adjustment-new-value]");
+  const updateNewValue = () => {
+    const percentage = Number(percentageInput.value) || 0;
+    newValueField.value = formatCOP(Math.round(currentValue * (1 - percentage / 100)));
+  };
+  updateNewValue();
+  percentageInput.addEventListener("input", updateNewValue);
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const percentage = Number(percentageInput.value);
+    const reason = form.querySelector("[data-adjustment-reason]").value.trim();
+    if (!form.checkValidity() || percentage <= 0 || percentage > 100 || !reason) {
+      feedback.textContent = "Ingresa un porcentaje entre 1 y 100 y describe el motivo obligatorio del descuento adicional.";
+      return;
+    }
+    if (!isReservationEligibleForAdditionalDiscount(base.statusClass)) {
+      feedback.textContent = `Esta reserva está en estado "${base.status}" y ya no admite modificaciones.`;
+      return;
+    }
+    setOperatorReservationAdjustment(code, { percentage, reason, appliedAt: new Date().toISOString() });
+    feedback.textContent = "Descuento adicional aplicado correctamente.";
+    feedback.classList.add("is-valid");
+    disableForm();
+    window.setTimeout(() => {
+      window.location.href = withTheme("admin-reservas.html", getTheme());
+    }, 1400);
+  });
+}
+
 function setupOperatorReservationDetail() {
   if (document.body.dataset.screen !== "operator-reservation-detail") return;
 
-  const reservations = {
-    "RES-1842": { customer: "Laura Gómez", email: "laura.gomez@ejemplo.com", service: "Tour Montañas", date: "15 sep 2026", travelers: 2, companions: "1 registrado", status: "Pendiente de pago", statusClass: "is-pending", projected: "$1.299.000", discount: "-$259.800", final: "$1.039.200", paid: "$0", balance: "$1.039.200", payment: "Sin pago", method: "Transferencia", execution: "Pendiente de ejecución", action: "Gestionar pago", href: "admin-pagos.html" },
-    "RES-1841": { customer: "Mateo Ríos", email: "mateo.rios@ejemplo.com", service: "Rafting y acampada", date: "13 sep 2026", travelers: 2, companions: "1 registrado", status: "Confirmada", statusClass: "is-confirmed", projected: "$1.600.000", discount: "$0", final: "$1.600.000", paid: "$1.600.000", balance: "$0", payment: "Pagado", method: "Transferencia", execution: "Pendiente de ejecución", action: "Ver operación", href: "admin-operacion.html" },
-    "RES-1840": { customer: "Carolina Díaz", email: "carolina.diaz@ejemplo.com", service: "Ruta arqueológica", date: "1 sep 2026", travelers: 4, companions: "3 registrados", status: "En ejecución", statusClass: "is-execution", projected: "$2.400.000", discount: "$0", final: "$2.400.000", paid: "$2.400.000", balance: "$0", payment: "Pagado", method: "Efectivo", execution: "En ejecución", action: "Ver operación", href: "admin-operacion.html" },
-    "RES-1837": { customer: "Juliana Cruz", email: "juliana.cruz@ejemplo.com", service: "Tour Montañas", date: "22 sep 2026", travelers: 3, companions: "2 registrados", status: "Pendiente de pago", statusClass: "is-pending", projected: "$3.897.000", discount: "-$779.400", final: "$3.117.600", paid: "$1.039.200", balance: "$2.078.400", payment: "Parcial", method: "Abono", execution: "Pendiente de ejecución", action: "Gestionar pago", href: "admin-pagos.html" },
-    "RES-1829": { customer: "Andrés Silva", email: "andres.silva@ejemplo.com", service: "Tour Montañas", date: "29 ago 2026", travelers: 2, companions: "1 registrado", status: "Finalizada", statusClass: "is-finalized", projected: "$2.598.000", discount: "-$519.600", final: "$2.078.400", paid: "$2.078.400", balance: "$0", payment: "Pagado", method: "Transferencia", execution: "Finalizada", action: "Ver operación", href: "admin-operacion.html" },
-    "RES-1822": { customer: "Paula Méndez", email: "paula.mendez@ejemplo.com", service: "Rafting y acampada", date: "27 ago 2026", travelers: 2, companions: "1 registrado", status: "Cancelada", statusClass: "is-cancelled", projected: "$1.600.000", discount: "$0", final: "$1.600.000", paid: "$0", balance: "$0", payment: "Sin pago", method: "Transferencia", execution: "No ejecutada", action: "Ver pago", href: "admin-pagos.html" },
-  };
+  const reservations = { ...OPERATOR_RESERVATIONS };
   try {
     const draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null");
     if (draft?.code) reservations[draft.code] = draft;
   } catch { /* The static mock can still show its default reservation data. */ }
   const code = new URLSearchParams(window.location.search).get("reservation") || "RES-1842";
-  const reservation = reservations[code] || reservations["RES-1842"];
+  const rawBase = reservations[code] || reservations["RES-1842"];
+  const reservation = resolveReservationWithAdjustment(code, rawBase);
   const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
 
   setText("[data-reservation-code]", `#${code}`);
@@ -2686,6 +3182,23 @@ function setupOperatorReservationDetail() {
   if (services) services.innerHTML = `<tr><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${escapeHtml(reservation.date)}</td><td>${reservation.travelers} viajeros</td><td>${escapeHtml(reservation.execution)}</td></tr>`;
   const action = document.querySelector("[data-reservation-action]");
   if (action) { action.textContent = reservation.action; action.href = reservation.href; }
+
+  const adjustment = getOperatorReservationAdjustment(code);
+  const discountPanel = document.querySelector("[data-additional-discount-panel]");
+  if (discountPanel) {
+    if (adjustment) {
+      const previous = parseCOP(rawBase.final);
+      const discounted = Math.max(previous - parseCOP(reservation.final), 0);
+      setText("[data-additional-discount-percentage]", `${adjustment.percentage}%`);
+      setText("[data-additional-discount-reason]", adjustment.reason);
+      setText("[data-additional-discount-previous]", formatCOP(previous));
+      setText("[data-additional-discount-amount]", formatCOP(discounted));
+      setText("[data-additional-discount-final]", reservation.final);
+      discountPanel.hidden = false;
+    } else {
+      discountPanel.hidden = true;
+    }
+  }
 }
 
 function setupOperatorReservationForm() {
@@ -2887,7 +3400,20 @@ function setupOperatorReservationPayment() {
   let draft = null;
   try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
   const code = new URLSearchParams(window.location.search).get("reservation") || "RES-1843";
-  const reservation = draft?.code === code ? draft : { code, customer: "Paula", method: "Efectivo", payment: "Sin pago", final: "$2.078.400", paid: "$0", balance: "$2.078.400", status: "Pendiente de pago", statusClass: "is-pending" };
+  const base = OPERATOR_RESERVATIONS[code];
+  const fallback = { code, customer: "Paula", method: "Efectivo", payment: "Sin pago", final: "$2.078.400", paid: "$0", balance: "$2.078.400", status: "Pendiente de pago", statusClass: "is-pending" };
+  let reservation = draft?.code === code ? draft : (base ? { ...base } : fallback);
+
+  // El % de descuento adicional se recalcula siempre sobre el valor original (OPERATOR_RESERVATIONS),
+  // nunca sobre un valor ya descontado guardado en el draft, para no aplicarlo dos veces.
+  const adjustment = getOperatorReservationAdjustment(code);
+  if (adjustment && base) {
+    const adjustedBase = resolveReservationWithAdjustment(code, base);
+    const paidSoFar = parseCOP(reservation.paid);
+    const newFinal = parseCOP(adjustedBase.final);
+    reservation = { ...reservation, final: formatCOP(newFinal), balance: formatCOP(Math.max(newFinal - paidSoFar, 0)) };
+  }
+
   const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
   setText("[data-payment-reservation-code]", `#${reservation.code}`);
   setText("[data-payment-customer]", reservation.customer);
@@ -2895,6 +3421,11 @@ function setupOperatorReservationPayment() {
   setText("[data-payment-status]", reservation.payment);
   setText("[data-payment-final]", reservation.final);
   setText("[data-payment-balance]", reservation.balance);
+  const discountRow = document.querySelector("[data-payment-discount-row]");
+  if (discountRow) {
+    discountRow.hidden = !adjustment;
+    if (adjustment) setText("[data-payment-discount-percentage]", `${adjustment.percentage}%`);
+  }
   const reservationStatus = document.querySelector("[data-payment-reservation-status]");
   if (reservationStatus) {
     reservationStatus.textContent = reservation.status || "Pendiente de pago";
@@ -3080,9 +3611,15 @@ setupCompanionsForm();
 setupCatalogSearch();
 setupOperatorCatalogs();
 setupManagedTourCatalog();
+setupOperatorConfigureScreen();
 setupOperatorNewService();
+setupOperatorDiscounts();
+setupOperatorNewDiscount();
+setupOperatorEditDiscount();
 renderClientCatalogProducts();
 setupOperatorReservations();
+setupOperatorPayments();
+setupOperatorApplyDiscount();
 setupOperatorReservationDetail();
 setupOperatorReservationForm();
 setupOperatorReservationCreated();

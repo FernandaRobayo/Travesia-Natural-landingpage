@@ -5460,6 +5460,7 @@ body {
 .operator-primary { border: 1px solid #16877d; background: #16877d; color: #fff; box-shadow: 0 10px 22px rgba(15, 118, 110, 0.16); }
 .operator-primary:hover { background: #0d746b; }
 .operator-outline { border: 1px solid #bcd4ca; background: #f5faf7; color: #0e756c; }
+.operator-topbar--catalog-management .operator-outline { align-self: flex-end; position: relative; top: 10px; }
 .operator-hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.7fr); gap: 28px; margin-bottom: 24px; padding: 25px 28px; border: 1px solid #d5e4dc; border-radius: 16px; background: linear-gradient(135deg, #e9f4ed, #fffefa 76%); }
 .operator-hero-compact { margin-bottom: 22px; }
 .operator-hero h2 { max-width: 740px; font-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.58rem); line-height: 1.25; }
@@ -5507,6 +5508,12 @@ body {
 .operator-status.is-execution { background: #e3eef5; color: #2d6480; }
 .operator-status.is-finalized { background: #edf1ed; color: #516458; }
 .operator-status.is-cancelled { background: #f6e5e1; color: #a34a38; }
+#catalogo-catalog-panel [data-service-status].operator-status.is-confirmed { display: inline-flex; align-items: center; gap: 6px; width: max-content; min-height: 28px; max-height: 32px; padding: 6px 12px; font-size: 14px; font-weight: 600; line-height: 1.2; border-radius: 999px; background: #eaf7ee; color: #1f6b46; border: 1px solid #bfe6cc; box-shadow: none; }
+#catalogo-catalog-panel [data-service-status].operator-status.is-confirmed::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #3fa66b; flex-shrink: 0; }
+#alimentacion-catalog-panel [data-service-status].operator-status.is-confirmed { display: inline-flex; align-items: center; gap: 6px; width: max-content; min-height: 28px; max-height: 32px; padding: 6px 12px; font-size: 14px; font-weight: 600; line-height: 1.2; border-radius: 999px; background: #eaf7ee; color: #1f6b46; border: 1px solid #bfe6cc; box-shadow: none; }
+#alimentacion-catalog-panel [data-service-status].operator-status.is-confirmed::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #3fa66b; flex-shrink: 0; }
+#alimentacion-catalog-panel .operator-table td:last-child { white-space: nowrap; }
+#transporte-catalog-panel .operator-table td:last-child { white-space: nowrap; }
 .operator-table-toggle { border: 0; padding: 7px 0; background: transparent; color: #0d746b; font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
 .operator-table-toggle:hover { color: #075d55; text-decoration: underline; }
 .operator-detail-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 14px; padding: 24px 28px; border-radius: 16px; background: #193d3a; color: #fff; }
