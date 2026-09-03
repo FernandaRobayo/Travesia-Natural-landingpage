@@ -23,13 +23,17 @@
           <a href="admin-caja.html" data-route="operatorCash">Caja</a>
           <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
           <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
+          <a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a>
         </nav>
         <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
       </aside>
       <section class="operator-content">
         <header class="operator-topbar">
           <div><p class="operator-eyebrow">Consulta de reserva</p><h1>Detalle de reserva</h1></div>
-          <a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Volver a reservas</a>
+          <div class="operator-form-actions">
+            <a class="operator-outline" data-cancel-modify-link href="admin-cancelar-modificar-reserva.html" data-route="operatorCancelModifyReservation" hidden>Cancelar o modificar reserva</a>
+            <a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Volver a reservas</a>
+          </div>
         </header>
         <section class="operator-detail-hero">
           <div><p class="operator-eyebrow" data-reservation-code>#RES-1842</p><h2 data-reservation-service>Tour Montañas</h2><p data-reservation-departure>Salida: 15 sep 2026 · 2 viajeros</p></div>
@@ -66,6 +70,24 @@
             <div><span>Valor anterior</span><strong data-additional-discount-previous>$0</strong></div>
             <div><span>Valor descontado</span><strong data-additional-discount-amount>$0</strong></div>
             <div><span>Valor final</span><strong data-additional-discount-final>$0</strong></div>
+          </div>
+        </section>
+        <section class="operator-panel" data-cancellation-history-panel hidden>
+          <p class="operator-eyebrow">Historial</p>
+          <h2>Cancelación registrada</h2>
+          <div class="operator-detail-list">
+            <div><span>Causal</span><strong data-cancellation-history-reason>—</strong></div>
+            <div><span>Fecha de registro</span><strong data-cancellation-history-date>—</strong></div>
+          </div>
+        </section>
+        <section class="operator-panel" data-refund-origin-panel hidden>
+          <div class="operator-panel-head">
+            <div><p class="operator-eyebrow">Cancelación o modificación registrada</p><h2>Devolución pendiente de gestionar</h2></div>
+            <a class="operator-primary" data-refund-origin-action href="admin-gestionar-devolucion.html" data-route="operatorManageRefund">Gestionar devolución</a>
+          </div>
+          <div class="operator-detail-list">
+            <div><span>Causal</span><strong data-refund-origin-reason>—</strong></div>
+            <div><span>Valor potencial a devolver</span><strong data-refund-origin-amount>$0</strong></div>
           </div>
         </section>
         <section class="operator-panel">

@@ -388,6 +388,11 @@ function setupLoginForm(themeConfig, theme) {
       ? "platform-admin"
       : document.querySelector("[data-role-option].is-active")?.dataset.roleOption || "client";
 
+    if (activeRole === "staff") {
+      const staffRole = document.querySelector("[data-staff-role-option].is-active")?.dataset.staffRoleOption || "admin";
+      setOperatorRole(staffRole === "colaborador" ? "colaborador" : "admin");
+    }
+
     setFeedback("login", themeConfig.feedback.success, "is-success");
 
     window.setTimeout(() => {
@@ -397,6 +402,240 @@ function setupLoginForm(themeConfig, theme) {
   });
 }
 
+// Roles base confirmados en el PDR (seccion 14): Administrador y Colaborador operativo.
+// No se inventan permisos nuevos: el Colaborador operativo reutiliza las MISMAS pantallas
+// del Administrador, solo se ocultan/restringen las acciones que el PDR reserva al
+// Administrador (linea 102/112/114/116/566/689).
+const OPERATOR_ROLE_KEY = "multitour-operator-role";
+
+// Restriccion base (PDR linea 114/554): el Colaborador operativo solo puede validar o
+// rechazar soportes de transferencia cuando el tenant lo habilite expresamente para ese
+// rol. Ningun tenant lo ha habilitado en este entorno local (no existe parametrizacion de
+// tenant real todavia): por defecto queda deshabilitado, no se inventa una habilitacion.
+const OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT = false;
+
+function getOperatorRole() {
+  try {
+    return localStorage.getItem(OPERATOR_ROLE_KEY) === "colaborador" ? "colaborador" : "admin";
+  } catch {
+    return "admin";
+  }
+}
+
+function setOperatorRole(role) {
+  try {
+    localStorage.setItem(OPERATOR_ROLE_KEY, role === "colaborador" ? "colaborador" : "admin");
+  } catch { /* Sin localStorage disponible: el rol solo aplica a la vista actual. */ }
+}
+
+function isOperatorColaborador() {
+  return getOperatorRole() === "colaborador";
+}
+
+function getOperatorRoleLabel() {
+  return isOperatorColaborador() ? "Colaborador del operador" : "Administrador del operador";
+}
+
+// Aplica el rol activo en CUALQUIER pantalla del operador: actualiza la etiqueta del
+// rol en el sidebar y oculta "Descuentos" del menu para el Colaborador operativo (PDR
+// linea 102/116/947: sin permisos para configurar o autorizar descuentos).
+function setupOperatorRoleChrome() {
+  const roleLabel = document.querySelector(".operator-sidebar .operator-role");
+  if (roleLabel) roleLabel.textContent = getOperatorRoleLabel();
+  if (!isOperatorColaborador()) return;
+  document.querySelector('.operator-nav [data-route="operatorDiscounts"]')?.remove();
+  // El Colaborador operativo no ve ni administra el modulo de Colaboradores (PDR linea
+  // 102/112/116/947: gestion de usuarios internos reservada al Administrador).
+  document.querySelector('.operator-nav [data-route="operatorCollaborators"]')?.remove();
+  // Acciones reservadas al Administrador del operador (crear/gestionar catalogo, ajustar
+  // base diaria, autorizar/rechazar devolucion): se ocultan por completo para el
+  // Colaborador operativo, sin inventar un permiso nuevo (PDR linea 116/394/566/767).
+  document.querySelectorAll("[data-role-admin-only]").forEach((el) => el.remove());
+}
+
+// Resumen del Colaborador del operador: reutiliza EXACTAMENTE los mismos datos/servicios
+// ya construidos para Reportes (getOperatorReportsDashboard) y Caja (getOperatorCashDay +
+// computeOperatorCashTotals), sin inventar una fuente nueva. El Resumen del Administrador
+// (numeros fijos de referencia, textos y el bloque "Flujos principales") queda intacto:
+// esta funcion solo actua cuando el rol activo es Colaborador.
+function setupOperatorDashboardRole() {
+  if (document.body.dataset.screen !== "operator-admin") return;
+  if (!isOperatorColaborador()) return;
+
+  const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+
+  setText(
+    "[data-dashboard-hero-title]",
+    "Seguimiento comercial y operativo en un solo lugar.",
+  );
+  setText(
+    "[data-dashboard-hero-body]",
+    "Consulta la información de tu operador: reservas, catálogo, pagos, caja y ejecución.",
+  );
+
+  const dashboard = getOperatorReportsDashboard();
+  setText("[data-dashboard-created]", String(dashboard.createdToday));
+  setText("[data-dashboard-pending]", String(dashboard.pendingPayment));
+  setText("[data-dashboard-confirmed]", String(dashboard.confirmed));
+  setText("[data-dashboard-cancelled]", String(dashboard.cancelled));
+  setText("[data-dashboard-upcoming]", String(dashboard.upcomingExecutions));
+
+  // Regla (PDR linea 114/554): el titulo de la tarjeta de pagos refleja si el tenant
+  // habilito al Colaborador para validar soportes; nunca habilita la accion sin permiso.
+  setText(
+    "[data-dashboard-pagos-label]",
+    OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT ? "Pagos y soportes por validar" : "Pagos pendientes de seguimiento",
+  );
+  // Mismo criterio ya usado en Pagos: un soporte deja de estar pendiente cuando su
+  // decision registrada (o su estado por defecto) queda en Pagado, Parcial o Rechazado.
+  const resolvedSupportStatuses = ["Pagado", "Parcial", "Rechazado"];
+  const supportState = getOperatorPaymentSupportState();
+  const pendingSupportCount = Object.values(OPERATOR_PAYMENT_SUPPORT_RECORDS).filter((record) => {
+    const status = supportState[record.code]?.status || record.status;
+    return !resolvedSupportStatuses.includes(status);
+  }).length;
+  setText("[data-dashboard-pagos-count]", String(pendingSupportCount));
+
+  // Mismo total ya mostrado en Caja (misma jornada, mismos movimientos): BASE + INGRESOS -
+  // PAGOS OPERACIONALES - GASTOS - DEVOLUCIONES.
+  const cashTotals = computeOperatorCashTotals(getOperatorCashDay());
+  setText("[data-dashboard-caja-total]", formatCOP(cashTotals.total));
+
+  // Regla 7: no se agrega un bloque nuevo de "Flujos principales" para el Colaborador; las
+  // tarjetas de indicadores ya funcionan como accesos principales.
+  document.querySelector("[data-dashboard-flujos-principales]")?.remove();
+}
+
+// Bloquea el acceso directo por URL a pantallas reservadas al Administrador del operador
+// cuando el rol activo es Colaborador, redirigiendo a la pantalla de reemplazo indicada.
+// Sin esto, ocultar el enlace del menu no impediria escribir la URL directamente.
+function guardOperatorAdminOnlyScreen(fallbackPath) {
+  if (!isOperatorColaborador()) return;
+  window.location.href = withTheme(fallbackPath, getTheme());
+}
+
+// Gestion de colaboradores del Administrador del operador (PDR seccion 14, linea
+// 102/112/116/947; linea 129 para el mecanismo de credenciales; linea 95/1040 para
+// aislamiento por tenant). Tenant principal de validacion y demostracion ya usado en toda
+// la plataforma (PDR linea 65; mismo id ya usado en getPlatformTenants()): no se inventa
+// un tenant nuevo.
+const OPERATOR_CURRENT_TENANT_ID = "travesia-natural";
+const OPERATOR_CURRENT_TENANT_NAME = "Travesia Natural";
+const OPERATOR_COLLABORATOR_ROLE = "Colaborador operativo";
+const OPERATOR_COLLABORATORS_KEY = "multitour-operator-collaborators";
+
+// Sin datos de demostracion quemados: el listado empieza vacio hasta que el Administrador
+// registre un colaborador real.
+function getOperatorCollaborators() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_COLLABORATORS_KEY) || "[]"); } catch { return []; }
+}
+
+function setOperatorCollaborators(list) {
+  localStorage.setItem(OPERATOR_COLLABORATORS_KEY, JSON.stringify(list));
+}
+
+// PDR linea 95/1040: aislamiento estricto por tenant. Se filtra explicitamente por el
+// tenant activo aunque hoy solo exista uno, para no cruzar informacion entre operadores.
+function getOperatorCollaboratorsForCurrentTenant() {
+  return getOperatorCollaborators().filter((c) => c.tenantId === OPERATOR_CURRENT_TENANT_ID);
+}
+
+function setupOperatorCollaborators() {
+  if (document.body.dataset.screen !== "operator-collaborators") return;
+  guardOperatorAdminOnlyScreen("admin-operador.html");
+
+  const list = document.querySelector("[data-collaborators-list]");
+  const emptyNote = document.querySelector("[data-collaborators-empty]");
+  const wrap = document.querySelector("[data-collaborators-wrap]");
+  const collaborators = getOperatorCollaboratorsForCurrentTenant();
+  if (emptyNote) emptyNote.hidden = collaborators.length > 0;
+  if (wrap) wrap.hidden = collaborators.length === 0;
+  if (list) {
+    list.innerHTML = collaborators
+      .map((c) => {
+        const detailHref = withTheme(`admin-detalle-colaborador.html?id=${encodeURIComponent(c.id)}`, getTheme());
+        return `<tr><td><strong>${escapeHtml(c.name)}</strong></td><td>${escapeHtml(c.email)}</td><td>${escapeHtml(c.role)}</td><td><a href="${detailHref}">Ver detalle</a></td></tr>`;
+      })
+      .join("");
+  }
+}
+
+// PDR linea 129: nombre completo, correo electronico, contrasena inicial y confirmacion
+// (mismo mecanismo ya usado para el primer Administrador de un tenant en Crear operador).
+// El rol queda fijo en "Colaborador operativo" y el tenant se asocia automaticamente al
+// operador activo: no se permite elegir Administrador, roles personalizados ni otro
+// tenant. La contrasena se valida pero no se persiste (mismo comportamiento ya usado en
+// Crear operador).
+function setupOperatorRegisterCollaborator() {
+  if (document.body.dataset.screen !== "operator-register-collaborator") return;
+  guardOperatorAdminOnlyScreen("admin-operador.html");
+
+  const tenantNameNode = document.querySelector("[data-collaborator-tenant-name]");
+  if (tenantNameNode) tenantNameNode.textContent = OPERATOR_CURRENT_TENANT_NAME;
+
+  const form = document.querySelector("[data-register-collaborator-form]");
+  const feedback = document.querySelector("[data-register-collaborator-feedback]");
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const name = String(data.get("name") || "").trim();
+    const email = String(data.get("email") || "").trim();
+    const initialPassword = String(data.get("initialPassword") || "");
+    const confirmPassword = String(data.get("confirmPassword") || "");
+
+    if (!name || !email || !initialPassword || !confirmPassword) {
+      if (feedback) { feedback.textContent = "Completa el nombre, el correo y la contraseña del colaborador."; feedback.classList.remove("is-valid"); }
+      return;
+    }
+    const passwordPolicyError = getMvpPasswordPolicyError(initialPassword);
+    if (passwordPolicyError) {
+      if (feedback) { feedback.textContent = passwordPolicyError; feedback.classList.remove("is-valid"); }
+      return;
+    }
+    if (initialPassword !== confirmPassword) {
+      if (feedback) { feedback.textContent = "La contraseña inicial y su confirmación deben coincidir."; feedback.classList.remove("is-valid"); }
+      return;
+    }
+
+    const collaborators = getOperatorCollaborators();
+    collaborators.push({
+      id: `colaborador-${Date.now()}`,
+      name,
+      email,
+      role: OPERATOR_COLLABORATOR_ROLE,
+      tenantId: OPERATOR_CURRENT_TENANT_ID,
+      createdAt: new Date().toISOString(),
+    });
+    setOperatorCollaborators(collaborators);
+    if (feedback) { feedback.textContent = "Colaborador registrado correctamente."; feedback.classList.add("is-valid"); }
+    window.setTimeout(() => { window.location.href = withTheme("admin-colaboradores.html", getTheme()); }, 700);
+  });
+}
+
+function setupOperatorCollaboratorDetail() {
+  if (document.body.dataset.screen !== "operator-collaborator-detail") return;
+  guardOperatorAdminOnlyScreen("admin-operador.html");
+
+  const id = new URLSearchParams(window.location.search).get("id") || "";
+  const collaborator = getOperatorCollaboratorsForCurrentTenant().find((c) => c.id === id);
+  const foundPanel = document.querySelector("[data-collaborator-detail-found]");
+  const notFoundNote = document.querySelector("[data-collaborator-not-found]");
+  if (!collaborator) {
+    if (foundPanel) foundPanel.hidden = true;
+    if (notFoundNote) notFoundNote.hidden = false;
+    return;
+  }
+  if (foundPanel) foundPanel.hidden = false;
+  if (notFoundNote) notFoundNote.hidden = true;
+  const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+  setText("[data-collaborator-name]", collaborator.name);
+  setText("[data-collaborator-name-field]", collaborator.name);
+  setText("[data-collaborator-email]", collaborator.email);
+  setText("[data-collaborator-role]", collaborator.role);
+  setText("[data-collaborator-tenant]", OPERATOR_CURRENT_TENANT_NAME);
+  setText("[data-collaborator-created-at]", new Date(collaborator.createdAt).toLocaleString("es-CO"));
+}
+
 function setupRoleSwitch() {
   const options = document.querySelectorAll("[data-role-option]");
   if (!options.length) return;
@@ -404,11 +643,13 @@ function setupRoleSwitch() {
   const clientSignup = document.querySelector("[data-client-signup]");
   const staffAccess = document.querySelector("[data-staff-access]");
   const loginSubtitle = document.querySelector("[data-login-subtitle]");
+  const staffRoleSwitch = document.querySelector("[data-staff-role-switch]");
 
   const syncSignupAccess = (role) => {
     const isStaff = role === "staff";
     if (clientSignup) clientSignup.hidden = isStaff;
     if (staffAccess) staffAccess.hidden = !isStaff;
+    if (staffRoleSwitch) staffRoleSwitch.hidden = !isStaff;
     if (loginSubtitle) loginSubtitle.textContent = isStaff
       ? "Ingresa a tu cuenta para gestionar la operacion."
       : "Ingresa a tu cuenta para gestionar tus viajes.";
@@ -428,6 +669,20 @@ function setupRoleSwitch() {
   });
 
   syncSignupAccess(document.querySelector("[data-role-option].is-active")?.dataset.roleOption);
+
+  // Roles base del PDR dentro del equipo del operador (seccion 14): Administrador y
+  // Colaborador operativo. No se inventa un rol nuevo.
+  const staffOptions = document.querySelectorAll("[data-staff-role-option]");
+  staffOptions.forEach((option) => {
+    option.addEventListener("click", () => {
+      staffOptions.forEach((node) => {
+        node.classList.remove("is-active");
+        node.setAttribute("aria-pressed", "false");
+      });
+      option.classList.add("is-active");
+      option.setAttribute("aria-pressed", "true");
+    });
+  });
 }
 
 function setupRecoverForm(theme) {
@@ -2546,15 +2801,1102 @@ function resolveReservationWithAdjustment(code, reservation) {
   return { ...reservation, final: formatCOP(newFinal), balance: formatCOP(newBalance) };
 }
 
+// Espejo de los registros demo ya definidos en admin-pagos.html.
+const OPERATOR_PAYMENT_SUPPORT_RECORDS = {
+  "RES-1842": { code: "RES-1842", customer: "Laura Gómez", method: "Transferencia", amount: "$1.039.200", support: "comprobante-transferencia-RES-1842.pdf", status: "En validación" },
+  "RES-1837": { code: "RES-1837", customer: "Juliana Cruz", method: "Abono", amount: "$800.000", status: "Saldo pendiente" },
+};
+
+const OPERATOR_PAYMENT_FOLLOWUPS_KEY = "multitour-payment-followups";
+
+function getOperatorPaymentFollowups() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_FOLLOWUPS_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorPaymentFollowupsForCode(code) {
+  return getOperatorPaymentFollowups()[code] || [];
+}
+
+// Historico de seguimientos: cada nota se agrega a la lista existente, nunca la reemplaza.
+function appendOperatorPaymentFollowup(code, entry) {
+  const all = getOperatorPaymentFollowups();
+  all[code] = [...(all[code] || []), entry];
+  localStorage.setItem(OPERATOR_PAYMENT_FOLLOWUPS_KEY, JSON.stringify(all));
+}
+
+const OPERATOR_PAYMENT_SUPPORT_STATE_KEY = "multitour-payment-support-state";
+const OPERATOR_PAYMENT_SUPPORT_LOG_KEY = "multitour-payment-support-log";
+
+function getOperatorPaymentSupportState() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_SUPPORT_STATE_KEY) || "{}"); } catch { return {}; }
+}
+
+function setOperatorPaymentSupportState(code, state) {
+  const all = getOperatorPaymentSupportState();
+  all[code] = state;
+  localStorage.setItem(OPERATOR_PAYMENT_SUPPORT_STATE_KEY, JSON.stringify(all));
+}
+
+function getOperatorPaymentSupportLog() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_SUPPORT_LOG_KEY) || "[]"); } catch { return []; }
+}
+
+// Historico de trazabilidad: cada intento (aprobado o rechazado) se agrega, nunca se sobrescribe.
+function appendOperatorPaymentSupportLog(entry) {
+  const log = getOperatorPaymentSupportLog();
+  log.push(entry);
+  localStorage.setItem(OPERATOR_PAYMENT_SUPPORT_LOG_KEY, JSON.stringify(log));
+}
+
 function setupOperatorPayments() {
   if (document.body.dataset.screen !== "operator-payments") return;
+  const supportState = getOperatorPaymentSupportState();
+  document.querySelectorAll("[data-payment-row]").forEach((row) => {
+    const code = row.dataset.paymentRow;
+    const decision = supportState[code];
+    if (!decision) return;
+    const statusEl = row.querySelector("[data-payment-row-status]");
+    if (statusEl) {
+      statusEl.textContent = decision.status;
+      statusEl.className = `operator-status ${decision.status === "Rechazado" ? "is-cancelled" : decision.status === "Pagado" ? "is-confirmed" : "is-pending"}`;
+    }
+    const actionCell = row.querySelector("[data-payment-row-action]");
+    if (actionCell) actionCell.innerHTML = "";
+    row.dataset.paymentPending = "false";
+  });
+  document.querySelectorAll("[data-validate-support]").forEach((button) => {
+    const code = button.dataset.validateSupport;
+    button.addEventListener("click", () => {
+      window.location.href = withTheme(`admin-validar-soporte.html?reservation=${code}`, getTheme());
+    });
+  });
+  document.querySelectorAll("[data-register-followup]").forEach((button) => {
+    const code = button.dataset.registerFollowup;
+    button.addEventListener("click", () => {
+      window.location.href = withTheme(`admin-registrar-seguimiento.html?reservation=${code}`, getTheme());
+    });
+  });
+  document.querySelector("[data-consult-refund-requests]")?.addEventListener("click", () => {
+    window.location.href = withTheme("admin-solicitudes-devolucion.html", getTheme());
+  });
   const counter = document.querySelector(".operator-panel-head .operator-status.is-pending");
   const panel = counter?.closest(".operator-panel");
-  const rows = panel?.querySelectorAll("tbody tr") || [];
+  const pendingRows = Array.from(panel?.querySelectorAll("[data-payment-row]") || []).filter((row) => row.dataset.paymentPending !== "false");
   if (counter) {
-    const count = rows.length;
+    const count = pendingRows.length;
     counter.textContent = `${count} pendiente${count === 1 ? "" : "s"}`;
   }
+}
+
+const SUPPORT_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
+// Iconos genericos (no son comprobantes reales): solo representan el tipo de archivo adjunto.
+const SUPPORT_IMAGE_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="140" viewBox="0 0 220 140">'
+  + '<rect width="220" height="140" rx="10" fill="#eef5f1"/>'
+  + '<path d="M32 104l38-42 26 28 22-24 40 38" stroke="#8fae9f" stroke-width="5" fill="none"/>'
+  + '<circle cx="66" cy="46" r="11" fill="#8fae9f"/>'
+  + '</svg>',
+);
+const SUPPORT_DOCUMENT_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="280" viewBox="0 0 220 280">'
+  + '<rect x="10" y="10" width="200" height="260" rx="6" fill="#ffffff" stroke="#cbd8d2" stroke-width="2"/>'
+  + '<path d="M150 10v40h40z" fill="#e3ece7"/>'
+  + '<rect x="30" y="70" width="140" height="10" rx="3" fill="#dbe6e1"/>'
+  + '<rect x="30" y="95" width="140" height="10" rx="3" fill="#dbe6e1"/>'
+  + '<rect x="30" y="120" width="90" height="10" rx="3" fill="#dbe6e1"/>'
+  + '<rect x="30" y="220" width="52" height="24" rx="4" fill="#c0392b"/>'
+  + '<text x="40" y="237" font-family="Arial" font-size="13" fill="#ffffff">PDF</text>'
+  + '</svg>',
+);
+
+function classifySupportFile(filename) {
+  if (!filename) return "none";
+  const ext = filename.split(".").pop().toLowerCase();
+  return SUPPORT_IMAGE_EXTENSIONS.includes(ext) ? "image" : "document";
+}
+
+// El nombre del archivo se muestra una sola vez (data-validate-support-filename).
+// Imagen: vista previa directa. PDF/documento: "Ver soporte" abre el documento
+// (sin dejar un texto de referencia una vez que ya existe visualizacion real).
+function renderSupportPreview(form, filename) {
+  const imageEl = form.querySelector("[data-validate-support-image]");
+  const viewButton = form.querySelector("[data-validate-support-view]");
+  const documentEl = form.querySelector("[data-validate-support-document]");
+  const filenameEl = form.querySelector("[data-validate-support-filename]");
+  const type = classifySupportFile(filename);
+
+  if (filenameEl) filenameEl.textContent = filename ? `Archivo: ${filename}` : "Sin soporte adjunto";
+  if (imageEl) {
+    imageEl.hidden = type !== "image";
+    if (type === "image") imageEl.src = SUPPORT_IMAGE_PLACEHOLDER;
+  }
+  if (viewButton) {
+    viewButton.hidden = type !== "document";
+    if (type === "document") {
+      viewButton.addEventListener("click", () => {
+        if (!documentEl) return;
+        const isOpen = !documentEl.hidden;
+        if (isOpen) {
+          documentEl.hidden = true;
+        } else {
+          documentEl.src = SUPPORT_DOCUMENT_PLACEHOLDER;
+          documentEl.hidden = false;
+        }
+      });
+    }
+  }
+}
+
+function setupOperatorValidateSupport() {
+  if (document.body.dataset.screen !== "operator-validate-support") return;
+  // Restriccion base (PDR linea 114/554): el Colaborador operativo solo puede validar o
+  // rechazar soportes de transferencia cuando el tenant lo habilite expresamente.
+  if (isOperatorColaborador() && !OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT) {
+    guardOperatorAdminOnlyScreen("admin-pagos.html");
+    return;
+  }
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
+  const record = OPERATOR_PAYMENT_SUPPORT_RECORDS[code];
+  const reservation = OPERATOR_RESERVATIONS[code];
+  const form = document.querySelector("[data-validate-support-form]");
+  const feedback = document.querySelector("[data-validate-feedback]");
+  // El boton "Ver soporte" queda excluido: revisar el comprobante debe seguir disponible
+  // aunque el soporte ya haya sido decidido o no se encuentre la reserva.
+  const disableAll = () => form?.querySelectorAll("input, textarea, button:not([data-validate-support-view])").forEach((el) => { el.disabled = true; });
+
+  if (!record || !reservation) {
+    if (feedback) feedback.textContent = "No se encontró el soporte de pago seleccionado. Vuelve a Pagos e ingresa nuevamente por Validar soporte.";
+    disableAll();
+    return;
+  }
+
+  const existingState = getOperatorPaymentSupportState()[code];
+  const currentStatus = existingState ? existingState.status : record.status;
+  form.querySelector("[data-validate-code]").value = `#${code}`;
+  form.querySelector("[data-validate-customer]").value = record.customer;
+  form.querySelector("[data-validate-method]").value = record.method;
+  form.querySelector("[data-validate-amount]").value = record.amount;
+  form.querySelector("[data-validate-status]").value = currentStatus;
+  renderSupportPreview(form, record.support);
+
+  if (existingState) {
+    if (feedback) {
+      const decidedLabel = existingState.status === "Rechazado" ? "rechazado" : "validado";
+      feedback.textContent = `Este soporte ya fue ${decidedLabel}. No se puede volver a decidir sobre el mismo intento.`;
+    }
+    disableAll();
+    return;
+  }
+
+  const reasonInput = form.querySelector("[data-validate-reason]");
+  const approveButton = form.querySelector("[data-validate-approve]");
+  const rejectButton = form.querySelector("[data-validate-reject]");
+
+  const decide = (action) => {
+    const reason = reasonInput.value.trim();
+    if (!reason) {
+      feedback.textContent = "Registra el motivo obligatorio antes de aprobar o rechazar el soporte.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    const decidedAt = new Date();
+    const actor = "Administrador del operador";
+    let status;
+    let paid = parseCOP(reservation.paid);
+    let balance = parseCOP(reservation.balance);
+    if (action === "approve") {
+      const validatedAmount = parseCOP(record.amount);
+      paid = parseCOP(reservation.paid) + validatedAmount;
+      balance = Math.max(0, parseCOP(reservation.final) - paid);
+      status = balance === 0 ? "Pagado" : "Parcial";
+    } else {
+      status = "Rechazado";
+    }
+    setOperatorPaymentSupportState(code, { status, paid: formatCOP(paid), balance: formatCOP(balance), decidedAt: decidedAt.toISOString() });
+    appendOperatorPaymentSupportLog({
+      reservation: code,
+      action,
+      status,
+      actor,
+      reason,
+      date: decidedAt.toISOString().slice(0, 10),
+      time: decidedAt.toTimeString().slice(0, 5),
+    });
+    feedback.textContent = action === "approve" ? "Soporte aprobado correctamente." : "Soporte rechazado correctamente.";
+    feedback.classList.add("is-valid");
+    disableAll();
+    window.setTimeout(() => {
+      window.location.href = withTheme("admin-pagos.html", getTheme());
+    }, 1400);
+  };
+
+  approveButton?.addEventListener("click", () => decide("approve"));
+  rejectButton?.addEventListener("click", () => decide("reject"));
+}
+
+function setupOperatorPaymentFollowup() {
+  if (document.body.dataset.screen !== "operator-payment-followup") return;
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
+  const record = OPERATOR_PAYMENT_SUPPORT_RECORDS[code];
+  const reservation = OPERATOR_RESERVATIONS[code];
+  const form = document.querySelector("[data-followup-form]");
+  const feedback = document.querySelector("[data-followup-feedback]");
+
+  if (!record || !reservation) {
+    if (feedback) feedback.textContent = "No se encontró el pago seleccionado. Vuelve a Pagos e ingresa nuevamente por Registrar seguimiento.";
+    form?.querySelectorAll("input, textarea, button").forEach((el) => { el.disabled = true; });
+    return;
+  }
+
+  form.querySelector("[data-followup-code]").value = `#${code}`;
+  form.querySelector("[data-followup-customer]").value = record.customer;
+  form.querySelector("[data-followup-method]").value = record.method;
+  form.querySelector("[data-followup-amount]").value = record.amount;
+  form.querySelector("[data-followup-balance]").value = reservation.balance;
+  form.querySelector("[data-followup-status]").value = record.status;
+  // No existe hoy parametrizacion de tiempos (Configurar pagos) confirmada en el PDR ni en el
+  // catalogo actual: se informa explicitamente en vez de inventar un plazo o vigencia.
+  form.querySelector("[data-followup-deadline]").value = "Sin parametrización de plazo definida para esta modalidad.";
+
+  const noteInput = form.querySelector("[data-followup-note]");
+  const historyBody = document.querySelector("[data-followup-history]");
+  const emptyNote = document.querySelector("[data-followup-empty]");
+
+  const renderHistory = () => {
+    const entries = getOperatorPaymentFollowupsForCode(code);
+    if (historyBody) {
+      historyBody.innerHTML = entries
+        .map((entry) => `<tr><td>${escapeHtml(entry.date)}</td><td>${escapeHtml(entry.time)}</td><td>${escapeHtml(entry.actor)}</td><td>${escapeHtml(entry.note)}</td></tr>`)
+        .join("");
+    }
+    if (emptyNote) emptyNote.hidden = entries.length > 0;
+  };
+  renderHistory();
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const note = noteInput.value.trim();
+    if (!note) {
+      feedback.textContent = "Registra una nota de seguimiento antes de guardar.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    const now = new Date();
+    appendOperatorPaymentFollowup(code, {
+      note,
+      actor: "Administrador del operador",
+      date: now.toISOString().slice(0, 10),
+      time: now.toTimeString().slice(0, 5),
+    });
+    noteInput.value = "";
+    feedback.textContent = "Seguimiento registrado correctamente.";
+    feedback.classList.add("is-valid");
+    renderHistory();
+  });
+}
+
+// Devoluciones monetarias (RF-015B): sin datos de demostracion quemados. La lista
+// empieza vacia hasta que exista un flujo real que registre una solicitud.
+const OPERATOR_REFUND_REQUESTS_KEY = "multitour-refund-requests";
+
+function getOperatorRefundRequests() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_REFUND_REQUESTS_KEY) || "[]"); } catch { return []; }
+}
+
+function saveOperatorRefundRequests(list) {
+  localStorage.setItem(OPERATOR_REFUND_REQUESTS_KEY, JSON.stringify(list));
+}
+
+function getOperatorRefundRequest(id) {
+  return getOperatorRefundRequests().find((item) => item.id === id) || null;
+}
+
+// Actualiza SIEMPRE el mismo registro (nunca crea uno nuevo) y nunca borra campos ya
+// registrados: autorizacion y ejecucion se acumulan, no se sobrescriben entre si.
+function updateOperatorRefundRequest(id, patch) {
+  const list = getOperatorRefundRequests();
+  const index = list.findIndex((item) => item.id === id);
+  if (index === -1) return null;
+  list[index] = { ...list[index], ...patch };
+  saveOperatorRefundRequests(list);
+  return list[index];
+}
+
+function setupOperatorRefundRequests() {
+  if (document.body.dataset.screen !== "operator-refund-requests") return;
+  const list = getOperatorRefundRequests();
+  const tbody = document.querySelector("[data-refund-list]");
+  const emptyNote = document.querySelector("[data-refund-empty]");
+  const counter = document.querySelector("[data-refund-count]");
+  if (counter) counter.textContent = `${list.length} solicitud${list.length === 1 ? "" : "es"}`;
+  if (emptyNote) emptyNote.hidden = list.length > 0;
+  if (tbody) {
+    tbody.innerHTML = list
+      .map((request) => {
+        const actionLabel = request.pendingCalculation
+          ? "Consultar detalle"
+          : request.status === "Pendiente de autorización"
+            ? "Autorizar devolución"
+            : request.status === "Autorizada"
+              ? "Registrar ejecución"
+              : "Consultar detalle";
+        const detailHref = withTheme(`admin-detalle-devolucion.html?id=${encodeURIComponent(request.id)}`, getTheme());
+        return `<tr><td><a class="operator-reservation-link" href="${detailHref}">#${escapeHtml(request.reservationCode)}</a></td><td>${escapeHtml(request.customer)}</td><td>${escapeHtml(request.reason)}</td><td>${escapeHtml(request.amount)}</td><td><span class="operator-status is-pending">${escapeHtml(request.status)}</span></td><td>${escapeHtml(request.requestedAt)}</td><td><a href="${detailHref}">${actionLabel}</a></td></tr>`;
+      })
+      .join("");
+  }
+}
+
+function setupOperatorRefundDetail() {
+  if (document.body.dataset.screen !== "operator-refund-detail") return;
+  const id = new URLSearchParams(window.location.search).get("id") || "";
+  const request = getOperatorRefundRequest(id);
+
+  const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+
+  if (!request) {
+    setText("[data-refund-reservation]", "No se encontró la solicitud seleccionada.");
+    setText("[data-refund-customer]", "—");
+    setText("[data-refund-reason]", "—");
+    setText("[data-refund-note]", "—");
+    setText("[data-refund-amount]", "—");
+    setText("[data-refund-owner]", "—");
+    setText("[data-refund-date]", "—");
+    setText("[data-refund-method]", "—");
+    setText("[data-refund-cash-movement]", "—");
+    setText("[data-refund-status]", "—");
+    return;
+  }
+
+  const decisionPanel = document.querySelector("[data-refund-decision-panel]");
+  const executePanel = document.querySelector("[data-refund-execute-panel]");
+  const pendingCalculationNote = document.querySelector("[data-refund-pending-calculation-note]");
+  const authorizeButton = document.querySelector("[data-refund-authorize]");
+  const rejectButton = document.querySelector("[data-refund-reject]");
+
+  const render = (current) => {
+    setText("[data-refund-reservation]", `#${current.reservationCode}`);
+    setText("[data-refund-customer]", current.customer);
+    setText("[data-refund-reason]", current.reason);
+    setText("[data-refund-note]", current.administrativeNote || "Sin observaciones registradas.");
+    setText("[data-refund-amount]", current.amount);
+    setText("[data-refund-decision-note-display]", current.authorizationNote || current.rejectionReason || "No aplica");
+    setText("[data-refund-owner]", current.executedBy || current.rejectedBy || current.authorizedBy || "Sin responsable asignado");
+    setText("[data-refund-date]", current.requestedAt);
+    setText("[data-refund-method]", current.exitMethod || "No aplica");
+    setText("[data-refund-cash-movement]", current.cashMovementRef || "No aplica");
+    setText("[data-refund-status]", current.status);
+
+    const isPending = current.status === "Pendiente de autorización";
+    // No existe en el PDR ninguna formula/parametrizacion para calcular el valor a
+    // devolver: mientras el monto quede "pendiente de calculo", NO se puede autorizar,
+    // pero SI puede rechazarse por causal administrativa (no requiere un monto).
+    if (pendingCalculationNote) pendingCalculationNote.hidden = !(isPending && current.pendingCalculation);
+    // Regla (PDR linea 566/689): solo el Administrador del operador autoriza o rechaza una
+    // devolucion. El Colaborador operativo nunca ve este panel, solo puede registrar la
+    // ejecucion cuando ya exista autorizacion previa (executePanel, sin restriccion de rol).
+    if (decisionPanel) decisionPanel.hidden = !isPending || isOperatorColaborador();
+    // "Autorizar devolucion" permanece visible siempre (es la decision del Administrador
+    // del tenant): solo se deshabilita mientras el monto siga pendiente de parametrizacion.
+    if (authorizeButton) {
+      authorizeButton.disabled = Boolean(current.pendingCalculation);
+      authorizeButton.title = current.pendingCalculation
+        ? "Falta determinar el monto según la condición comercial parametrizada antes de poder autorizar."
+        : "";
+    }
+    if (executePanel) executePanel.hidden = current.status !== "Autorizada";
+  };
+  render(request);
+
+  const decisionForm = document.querySelector("[data-refund-decision-form]");
+  const decisionNoteInput = document.querySelector("[data-refund-decision-note]");
+  const decisionFeedback = document.querySelector("[data-refund-decision-feedback]");
+  const disableDecisionForm = () => decisionForm?.querySelectorAll("textarea, button").forEach((el) => { el.disabled = true; });
+
+  // Regla 1: solo el Administrador del operador (Tenant Admin) autoriza o rechaza.
+  authorizeButton?.addEventListener("click", () => {
+    const note = decisionNoteInput.value.trim();
+    if (!note) {
+      decisionFeedback.textContent = "Registra el motivo para autorizar la devolución.";
+      decisionFeedback.classList.remove("is-valid");
+      return;
+    }
+    const updated = updateOperatorRefundRequest(id, {
+      status: "Autorizada",
+      authorizedBy: "Administrador del operador",
+      authorizedAt: new Date().toISOString(),
+      authorizationNote: note,
+    });
+    if (!updated) return;
+    render(updated);
+    decisionFeedback.textContent = "Devolución autorizada correctamente.";
+    decisionFeedback.classList.add("is-valid");
+    disableDecisionForm();
+  });
+
+  rejectButton?.addEventListener("click", () => {
+    const note = decisionNoteInput.value.trim();
+    if (!note) {
+      decisionFeedback.textContent = "Registra el motivo del rechazo.";
+      decisionFeedback.classList.remove("is-valid");
+      return;
+    }
+    const updated = updateOperatorRefundRequest(id, {
+      status: "Rechazada",
+      rejectedBy: "Administrador del operador",
+      rejectedAt: new Date().toISOString(),
+      rejectionReason: note,
+    });
+    if (!updated) return;
+    render(updated);
+    decisionFeedback.textContent = "Devolución rechazada correctamente.";
+    decisionFeedback.classList.add("is-valid");
+    disableDecisionForm();
+  });
+
+  const executeForm = document.querySelector("[data-refund-execute-form]");
+  const outflowSelect = document.querySelector("[data-refund-execute-outflow]");
+  const outflowFields = document.querySelectorAll("[data-refund-outflow-field]");
+  outflowSelect?.addEventListener("change", () => {
+    const show = outflowSelect.value === "si";
+    outflowFields.forEach((field) => { field.hidden = !show; });
+  });
+  executeForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const feedback = document.querySelector("[data-refund-execute-feedback]");
+    const outflow = outflowSelect.value;
+    if (!outflow) {
+      feedback.textContent = "Indica si hubo salida efectiva de dinero.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    // No se marca "Ejecutada" si no hubo salida real de dinero (RF-015B): en ese caso
+    // el resultado queda como saldo a favor pendiente.
+    if (outflow === "si") {
+      const cashMovement = document.querySelector("[data-refund-execute-cash]").value.trim();
+      if (!cashMovement) {
+        feedback.textContent = "Registra el movimiento de caja asociado a la salida de dinero.";
+        feedback.classList.remove("is-valid");
+        return;
+      }
+      const method = document.querySelector("[data-refund-execute-method]").value;
+      const updated = updateOperatorRefundRequest(id, {
+        status: "Ejecutada",
+        executedBy: getOperatorRoleLabel(),
+        executedAt: new Date().toISOString(),
+        exitMethod: method,
+        cashMovementRef: cashMovement,
+      });
+      if (!updated) return;
+      render(updated);
+      feedback.textContent = "Ejecución registrada correctamente.";
+    } else {
+      const updated = updateOperatorRefundRequest(id, {
+        status: "Saldo a favor pendiente",
+        executedBy: getOperatorRoleLabel(),
+        executedAt: new Date().toISOString(),
+      });
+      if (!updated) return;
+      render(updated);
+      feedback.textContent = "Registrado como saldo a favor pendiente: no hubo salida efectiva de dinero.";
+    }
+    feedback.classList.add("is-valid");
+    executeForm.querySelectorAll("select, input, button").forEach((el) => { el.disabled = true; });
+  });
+}
+
+// Cancelacion/modificacion de reserva (RF-008A/RF-015A/RF-015B, linea 636): se guarda
+// por codigo de reserva, sin crear otra reserva. NO existe en el PDR ninguna formula o
+// tabla parametrizada para calcular el valor a devolver (verificado exhaustivamente):
+// toda solicitud de devolucion queda con el valor "pendiente de calculo" hasta que esa
+// condicion comercial se defina, y no puede autorizarse ni ejecutarse mientras tanto.
+const REFUND_PENDING_CALCULATION_LABEL = "Pendiente de parametrización comercial";
+const OPERATOR_REFUND_ORIGINS_KEY = "multitour-refund-origins";
+
+function getOperatorRefundOrigins() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_REFUND_ORIGINS_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorRefundOrigin(code) {
+  return getOperatorRefundOrigins()[code] || null;
+}
+
+function setOperatorRefundOrigin(code, origin) {
+  const all = getOperatorRefundOrigins();
+  all[code] = origin;
+  localStorage.setItem(OPERATOR_REFUND_ORIGINS_KEY, JSON.stringify(all));
+}
+
+// El estado "Cancelada" de la reserva (RF-008A, linea 972) es independiente de si
+// existe o no valor potencial a devolver: una cancelacion con $0 pagado tambien debe
+// dejar la reserva en "Cancelada", aunque no genere solicitud de devolucion.
+const OPERATOR_RESERVATION_CANCELLATIONS_KEY = "multitour-reservation-cancellations";
+
+function getOperatorReservationCancellations() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_RESERVATION_CANCELLATIONS_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorReservationCancellation(code) {
+  return getOperatorReservationCancellations()[code] || null;
+}
+
+function setOperatorReservationCancellation(code, cancellation) {
+  const all = getOperatorReservationCancellations();
+  all[code] = cancellation;
+  localStorage.setItem(OPERATOR_RESERVATION_CANCELLATIONS_KEY, JSON.stringify(all));
+}
+
+// Modificacion de reserva (RF-015A, linea 383): cambia servicio/fecha/viajeros/hospedaje
+// de la MISMA reserva y recalcula valor proyectado, descuento, valor final y saldo. Los
+// pagos ya registrados no se pierden (el saldo se recalcula sobre el pagado existente).
+const OPERATOR_RESERVATION_MODIFICATIONS_KEY = "multitour-reservation-modifications";
+
+function getOperatorReservationModifications() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_RESERVATION_MODIFICATIONS_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorReservationModification(code) {
+  return getOperatorReservationModifications()[code] || null;
+}
+
+function setOperatorReservationModification(code, modification) {
+  const all = getOperatorReservationModifications();
+  all[code] = modification;
+  localStorage.setItem(OPERATOR_RESERVATION_MODIFICATIONS_KEY, JSON.stringify(all));
+}
+
+function setupOperatorCancelModifyReservation() {
+  if (document.body.dataset.screen !== "operator-cancel-modify-reservation") return;
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
+  const reservation = OPERATOR_RESERVATIONS[code];
+  const form = document.querySelector("[data-cancel-modify-form]");
+  const feedback = document.querySelector("[data-cancel-modify-feedback]");
+  const disableAll = () => form?.querySelectorAll("input, textarea, select, button").forEach((el) => { el.disabled = true; });
+
+  document.querySelectorAll("[data-cancel-modify-back]").forEach((link) => {
+    link.href = withTheme(`admin-detalle-reserva.html?reservation=${code}`, getTheme());
+  });
+
+  if (!reservation) {
+    if (feedback) feedback.textContent = "No se encontró la reserva seleccionada.";
+    disableAll();
+    return;
+  }
+  if (["is-finalized", "is-cancelled"].includes(reservation.statusClass)) {
+    if (feedback) feedback.textContent = `Esta reserva está en estado "${reservation.status}" y ya no admite cancelación o modificación.`;
+    disableAll();
+    return;
+  }
+
+  form.querySelector("[data-cancel-modify-code]").value = `#${code}`;
+  form.querySelector("[data-cancel-modify-customer]").value = reservation.customer;
+  form.querySelector("[data-cancel-modify-status]").value = reservation.status;
+  form.querySelector("[data-cancel-modify-paid]").value = reservation.paid;
+
+  // En ejecucion no se permiten ajustes ordinarios: solo cancelacion extraordinaria
+  // por emergencia (RF-008A, linea 463/729, CA-008A).
+  const typeSelect = form.querySelector("[data-cancel-modify-type]");
+  const modificationOption = form.querySelector("[data-cancel-modify-type-modification]");
+  const executionNote = document.querySelector("[data-cancel-modify-execution-note]");
+  const isInExecution = reservation.statusClass === "is-execution";
+  if (isInExecution) {
+    if (modificationOption) modificationOption.disabled = true;
+    if (executionNote) executionNote.hidden = false;
+    typeSelect.value = "Cancelación";
+  }
+
+  const causalInput = form.querySelector("[data-cancel-modify-causal]");
+  if (isInExecution) causalInput.placeholder = "Describe la emergencia que justifica la cancelación extraordinaria";
+
+  const paidValue = parseCOP(reservation.paid);
+
+  // Mismo catalogo de servicios ya aprobado en Crear reserva (setupOperatorReservationForm):
+  // no se inventan servicios, precios ni descuentos nuevos.
+  const services = {
+    mountains: { name: "Tour destino ejemplo - Montañas", price: 1299000, discount: 0.2, lodgingCapacity: 2, departures: ["15 sep 2026", "22 sep 2026", "29 sep 2026"] },
+    cenotes: { name: "Aventura en cenotes ocultos", price: 520000, discount: 0, lodgingCapacity: 2, departures: ["12 sep 2026", "19 sep 2026"] },
+    rafting: { name: "Rafting y acampada extrema", price: 799000, discount: 0, lodgingCapacity: 2, departures: ["13 sep 2026", "27 sep 2026"] },
+    cultural: { name: "Recorrido cultural e histórico", price: 349000, discount: 0, lodgingCapacity: 2, departures: ["16 sep 2026", "23 sep 2026", "30 sep 2026"] },
+  };
+
+  const modifyFieldsSection = document.querySelector("[data-modify-fields]");
+  const serviceSelect = form.querySelector("[data-modify-service]");
+  const departureSelect = form.querySelector("[data-modify-departure]");
+  const travelersInput = form.querySelector("[data-modify-travelers]");
+  const lodgingSelect = form.querySelector("[data-modify-lodging]");
+  const capacityMessage = form.querySelector("[data-modify-capacity]");
+  const projectedNode = form.querySelector("[data-modify-projected]");
+  const discountNode = form.querySelector("[data-modify-discount]");
+  const finalNode = form.querySelector("[data-modify-final]");
+  const balanceNode = form.querySelector("[data-modify-balance]");
+  const potentialField = form.querySelector("[data-cancel-modify-potential]");
+
+  if (travelersInput) travelersInput.value = reservation.travelers;
+  const selectedService = () => services[serviceSelect?.value];
+  const travelers = () => Math.max(1, Number.parseInt(travelersInput?.value, 10) || 1);
+
+  const renderDepartures = () => {
+    const service = selectedService();
+    if (!departureSelect) return;
+    departureSelect.innerHTML = '<option value="">Selecciona una salida</option>';
+    departureSelect.disabled = !service;
+    if (service) departureSelect.insertAdjacentHTML("beforeend", service.departures.map((date) => `<option value="${date}">${date}</option>`).join(""));
+  };
+
+  const computeModification = () => {
+    const service = selectedService();
+    const projected = service ? service.price * travelers() : 0;
+    const discount = service ? projected * service.discount : 0;
+    const final = projected - discount;
+    const balance = Math.max(final - paidValue, 0);
+    return { service, projected, discount, final, balance };
+  };
+
+  // "Pendiente de calculo": no existe en el PDR ninguna formula o tabla parametrizada
+  // para el valor de devolucion (verificado en la fuente); solo se declara SI existe un
+  // valor a favor potencial (pagado > nuevo valor final, o cancelacion con pago > $0).
+  const updatePotentialField = () => {
+    if (!potentialField) return;
+    if (typeSelect.value === "Cancelación") {
+      potentialField.value = paidValue > 0 ? REFUND_PENDING_CALCULATION_LABEL : "No aplica: no hay pagos registrados en esta reserva.";
+      return;
+    }
+    if (typeSelect.value === "Modificación") {
+      const { service, final } = computeModification();
+      if (!service) { potentialField.value = "Selecciona el nuevo servicio para calcular el saldo resultante."; return; }
+      potentialField.value = final < paidValue ? REFUND_PENDING_CALCULATION_LABEL : "No aplica: el valor final no queda por debajo de lo ya pagado.";
+      return;
+    }
+    potentialField.value = "";
+  };
+
+  const renderModificationSummary = () => {
+    const { service, projected, discount, final, balance } = computeModification();
+    if (projectedNode) projectedNode.textContent = formatCOP(projected);
+    if (discountNode) discountNode.textContent = discount ? `-${formatCOP(discount)}` : "$0";
+    if (finalNode) finalNode.textContent = formatCOP(final);
+    if (balanceNode) balanceNode.textContent = formatCOP(balance);
+    if (capacityMessage) {
+      if (!service || lodgingSelect?.value === "none") { capacityMessage.hidden = true; capacityMessage.textContent = ""; }
+      else {
+        const hasCapacity = travelers() <= service.lodgingCapacity;
+        capacityMessage.hidden = false;
+        capacityMessage.textContent = hasCapacity ? `Hospedaje con capacidad para hasta ${service.lodgingCapacity} viajeros.` : `Capacidad insuficiente: este hospedaje admite hasta ${service.lodgingCapacity} viajeros.`;
+        capacityMessage.classList.toggle("is-error", !hasCapacity);
+      }
+    }
+    updatePotentialField();
+  };
+
+  const updateTypeVisibility = () => {
+    const isModification = typeSelect.value === "Modificación";
+    if (modifyFieldsSection) modifyFieldsSection.hidden = !isModification;
+    if (isModification) renderModificationSummary(); else updatePotentialField();
+  };
+
+  serviceSelect?.addEventListener("change", () => { renderDepartures(); renderModificationSummary(); });
+  departureSelect?.addEventListener("change", renderModificationSummary);
+  travelersInput?.addEventListener("input", renderModificationSummary);
+  lodgingSelect?.addEventListener("change", renderModificationSummary);
+  typeSelect.addEventListener("change", updateTypeVisibility);
+  updateTypeVisibility();
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const type = typeSelect.value;
+    const causal = causalInput.value.trim();
+    if (!type || !causal) {
+      feedback.textContent = "Completa el tipo y la causal de la cancelación o modificación.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    if (isInExecution && type !== "Cancelación") {
+      feedback.textContent = "Esta reserva está en ejecución: solo se permite registrar una cancelación extraordinaria por emergencia.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+
+    const registeredAt = new Date().toISOString();
+    let hasPotentialRefund = false;
+
+    if (type === "Cancelación") {
+      setOperatorReservationCancellation(code, { causal, registeredAt });
+      hasPotentialRefund = paidValue > 0;
+    } else {
+      const { service, projected, discount, final, balance } = computeModification();
+      if (!service || !departureSelect.value) {
+        feedback.textContent = "Selecciona el nuevo servicio y la nueva fecha de salida para registrar la modificación.";
+        feedback.classList.remove("is-valid");
+        return;
+      }
+      if (lodgingSelect.value !== "none" && travelers() > service.lodgingCapacity) {
+        feedback.textContent = "La capacidad del hospedaje no cubre la cantidad total de viajeros.";
+        feedback.classList.remove("is-valid");
+        return;
+      }
+      setOperatorReservationModification(code, {
+        service: service.name,
+        date: departureSelect.value,
+        travelers: travelers(),
+        companions: `${Math.max(0, travelers() - 1)} registrado(s)`,
+        projected: formatCOP(projected),
+        discount: discount ? `-${formatCOP(discount)}` : "$0",
+        final: formatCOP(final),
+        balance: formatCOP(balance),
+        causal,
+        registeredAt,
+      });
+      hasPotentialRefund = final < paidValue;
+    }
+
+    if (hasPotentialRefund) {
+      setOperatorRefundOrigin(code, { type, causal, potentialAmount: REFUND_PENDING_CALCULATION_LABEL, pendingCalculation: true, registeredAt });
+      feedback.textContent = type === "Cancelación"
+        ? "Cancelación registrada. El valor a devolver queda pendiente de cálculo según la condición comercial parametrizada; podrás gestionarlo desde el detalle de la reserva."
+        : "Modificación registrada y valores recalculados. El valor a favor queda pendiente de cálculo según la condición comercial parametrizada.";
+    } else {
+      feedback.textContent = type === "Cancelación"
+        ? "Cancelación registrada: no hay pagos registrados, no se genera solicitud de devolución."
+        : "Modificación registrada y valores recalculados.";
+    }
+    feedback.classList.add("is-valid");
+    disableAll();
+    window.setTimeout(() => {
+      window.location.href = withTheme(`admin-detalle-reserva.html?reservation=${code}`, getTheme());
+    }, 1400);
+  });
+}
+
+// Ejecucion real de servicios (RF-007, linea 447): registra lo efectivamente prestado y
+// no prestado, con causal obligatoria si no se presto (RN-EJE-005), y la diferencia entre
+// lo reservado y lo ejecutado (RN-EJE-003). Al registrarse, la reserva inicia "En ejecucion".
+const OPERATOR_RESERVATION_EXECUTIONS_KEY = "multitour-reservation-executions";
+
+function getOperatorReservationExecutions() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_RESERVATION_EXECUTIONS_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorReservationExecution(code) {
+  return getOperatorReservationExecutions()[code] || null;
+}
+
+function setOperatorReservationExecution(code, execution) {
+  const all = getOperatorReservationExecutions();
+  all[code] = execution;
+  localStorage.setItem(OPERATOR_RESERVATION_EXECUTIONS_KEY, JSON.stringify(all));
+}
+
+// Costos operacionales (RF-009, linea 469): solo pueden registrarse sobre una ejecucion
+// real ya iniciada (precondicion RF-009) y quedan siempre asociados a esa ejecucion
+// (RN-OPE-001); nunca como costo generico sin operacion relacionada.
+const OPERATOR_OPERATION_COSTS_KEY = "multitour-operation-costs";
+
+function getOperatorOperationCosts() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_OPERATION_COSTS_KEY) || "[]"); } catch { return []; }
+}
+
+function setOperatorOperationCosts(list) {
+  localStorage.setItem(OPERATOR_OPERATION_COSTS_KEY, JSON.stringify(list));
+}
+
+// Misma cadena de resolucion ya usada en el detalle de reserva (setupOperatorReservationDetail):
+// aplica modificacion, luego cancelacion (terminal) o, si no hay cancelacion, la ejecucion
+// real registrada, para que "Operación y costos" nunca muestre un estado desactualizado.
+function resolveOperatorReservationForOperation(code) {
+  const base = OPERATOR_RESERVATIONS[code];
+  if (!base) return null;
+  let reservation = { ...base, code };
+
+  const modification = getOperatorReservationModification(code);
+  if (modification) {
+    reservation = { ...reservation, service: modification.service, date: modification.date, travelers: modification.travelers, companions: modification.companions };
+  }
+
+  const cancellation = getOperatorReservationCancellation(code);
+  if (cancellation) {
+    reservation = { ...reservation, status: "Cancelada", statusClass: "is-cancelled", execution: "No ejecutada" };
+    return reservation;
+  }
+
+  const execution = getOperatorReservationExecution(code);
+  if (execution) {
+    reservation = { ...reservation, status: "En ejecución", statusClass: "is-execution", execution: "En ejecución" };
+  }
+  return reservation;
+}
+
+// Regla 1 (CORREGIR): el contador de "próximas" sale siempre de las ejecuciones
+// pendientes reales, nunca de un numero quemado.
+function getOperatorUpcomingExecutions() {
+  return Object.keys(OPERATOR_RESERVATIONS)
+    .map((code) => resolveOperatorReservationForOperation(code))
+    .filter((reservation) => reservation && reservation.execution === "Pendiente de ejecución");
+}
+
+// Regla 4: solo se listan ejecuciones realmente registradas, sin inventar datos.
+function getOperatorRegisteredExecutions() {
+  return Object.keys(OPERATOR_RESERVATIONS)
+    .map((code) => {
+      const execution = getOperatorReservationExecution(code);
+      if (!execution) return null;
+      const reservation = resolveOperatorReservationForOperation(code);
+      if (!reservation) return null;
+      return { code, reservation, execution };
+    })
+    .filter(Boolean);
+}
+
+function setupOperatorOperation() {
+  if (document.body.dataset.screen !== "operator-operations") return;
+
+  const renderUpcoming = () => {
+    const upcoming = getOperatorUpcomingExecutions();
+    const countEl = document.querySelector("[data-operation-upcoming-count]");
+    if (countEl) countEl.textContent = `${upcoming.length} próxima${upcoming.length === 1 ? "" : "s"}`;
+    const tbody = document.querySelector("[data-operation-upcoming]");
+    const emptyNote = document.querySelector("[data-operation-upcoming-empty]");
+    if (emptyNote) emptyNote.hidden = upcoming.length > 0;
+    if (tbody) {
+      tbody.innerHTML = upcoming
+        .map((reservation) => {
+          // Regla 5: mientras la reserva no cumpla la condicion de pago vigente
+          // (Confirmada), no se permite iniciar ejecucion; se mantiene "Ver pagos".
+          const canExecute = reservation.statusClass === "is-confirmed";
+          const action = canExecute
+            ? `<a href="${withTheme(`admin-registrar-ejecucion.html?reservation=${reservation.code}`, getTheme())}">Registrar ejecución</a>`
+            : `<a href="admin-pagos.html" data-route="operatorPayments">Ver pagos</a>`;
+          return `<tr><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>#${escapeHtml(reservation.code)} · ${reservation.travelers} viajeros</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td>${action}</td></tr>`;
+        })
+        .join("");
+    }
+  };
+
+  const renderExecutions = () => {
+    const executions = getOperatorRegisteredExecutions();
+    const tbody = document.querySelector("[data-operation-executions]");
+    const emptyNote = document.querySelector("[data-operation-executions-empty]");
+    const wrap = document.querySelector("[data-operation-executions-wrap]");
+    if (emptyNote) emptyNote.hidden = executions.length > 0;
+    if (wrap) wrap.hidden = executions.length === 0;
+    if (tbody) {
+      tbody.innerHTML = executions
+        .map(({ code, reservation, execution }) => {
+          const executedText = execution.served ? `${execution.executed} viajeros` : "No prestado";
+          const causalText = execution.causal || "—";
+          const detailHref = withTheme(`admin-detalle-reserva.html?reservation=${code}`, getTheme());
+          return `<tr><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${execution.reserved} viajeros</td><td>${escapeHtml(executedText)}</td><td>${escapeHtml(causalText)}</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td><a href="${detailHref}">Ver detalle</a></td></tr>`;
+        })
+        .join("");
+    }
+  };
+
+  const renderCostExecutionOptions = () => {
+    const select = document.querySelector("[data-cost-execution]");
+    if (!select) return;
+    const executions = getOperatorRegisteredExecutions();
+    select.innerHTML = '<option value="">Selecciona una ejecución registrada</option>' +
+      executions.map(({ code, reservation }) => `<option value="${escapeHtml(code)}">#${escapeHtml(code)} · ${escapeHtml(reservation.service)} · ${escapeHtml(reservation.date)}</option>`).join("");
+  };
+
+  // Regla 3 (RF-009, precondicion "Ejecucion iniciada"): mientras no exista ninguna
+  // ejecucion registrada, "Registrar costo" permanece deshabilitado con su ayuda visible.
+  const costToggle = document.querySelector("[data-cost-toggle]");
+  const costPanel = document.querySelector("[data-cost-panel]");
+  const costUnavailableNote = document.querySelector("[data-cost-unavailable]");
+  const renderCostAvailability = () => {
+    const hasExecutions = getOperatorRegisteredExecutions().length > 0;
+    if (costToggle) costToggle.disabled = !hasExecutions;
+    if (costUnavailableNote) costUnavailableNote.hidden = hasExecutions;
+    if (!hasExecutions && costPanel) costPanel.hidden = true;
+  };
+
+  renderUpcoming();
+  renderExecutions();
+  renderCostExecutionOptions();
+  renderCostAvailability();
+
+  const costForm = document.querySelector("[data-cost-form]");
+  const costFeedback = document.querySelector("[data-cost-feedback]");
+  costToggle?.addEventListener("click", () => {
+    if (costToggle.disabled) return;
+    renderCostExecutionOptions();
+    if (costPanel) costPanel.hidden = false;
+  });
+  document.querySelector("[data-cost-cancel]")?.addEventListener("click", () => {
+    if (costPanel) costPanel.hidden = true;
+  });
+  costForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const executionCode = document.querySelector("[data-cost-execution]").value;
+    const concept = document.querySelector("[data-cost-concept]").value.trim();
+    const amount = Number(document.querySelector("[data-cost-amount]").value);
+    if (!executionCode || !getOperatorReservationExecution(executionCode)) {
+      if (costFeedback) { costFeedback.textContent = "Selecciona una ejecución real ya registrada para asociar el costo."; costFeedback.classList.remove("is-valid"); }
+      return;
+    }
+    if (!concept || !amount || amount <= 0) {
+      if (costFeedback) { costFeedback.textContent = "Completa el concepto y un valor mayor a $0 para registrar el costo."; costFeedback.classList.remove("is-valid"); }
+      return;
+    }
+    const costs = getOperatorOperationCosts();
+    costs.push({ id: `costo-${Date.now()}`, reservationCode: executionCode, concept, amount, registeredAt: new Date().toISOString(), registeredBy: getOperatorRoleLabel() });
+    setOperatorOperationCosts(costs);
+    costForm.reset();
+    if (costFeedback) { costFeedback.textContent = `Costo registrado y asociado a la ejecución de la reserva #${executionCode}.`; costFeedback.classList.add("is-valid"); }
+    if (costPanel) costPanel.hidden = true;
+  });
+}
+
+// Regla 2: permite registrar servicios prestados/no prestados, causal obligatoria si no
+// se presto, la diferencia entre reservado y ejecutado, e iniciar "En ejecucion".
+function setupOperatorRegisterExecution() {
+  if (document.body.dataset.screen !== "operator-register-execution") return;
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
+  const form = document.querySelector("[data-execution-form]");
+  const feedback = document.querySelector("[data-execution-feedback]");
+  const disableAll = () => form?.querySelectorAll("input, textarea, select, button").forEach((el) => { el.disabled = true; });
+
+  const reservation = resolveOperatorReservationForOperation(code);
+  if (!reservation) {
+    if (feedback) feedback.textContent = "No se encontró la reserva seleccionada. Vuelve a Operación e ingresa nuevamente por Registrar ejecución.";
+    disableAll();
+    return;
+  }
+  // Regla 5: no se permite iniciar ejecucion mientras la reserva no cumpla la condicion
+  // de pago vigente (Confirmada).
+  if (reservation.statusClass !== "is-confirmed") {
+    if (feedback) feedback.textContent = `Esta reserva está en estado "${reservation.status}" y no cumple la condición de pago vigente para iniciar ejecución.`;
+    disableAll();
+    return;
+  }
+  if (getOperatorReservationExecution(code)) {
+    if (feedback) feedback.textContent = "Esta reserva ya tiene una ejecución registrada. Consúltala en Ejecuciones registradas.";
+    disableAll();
+    return;
+  }
+
+  form.querySelector("[data-execution-code]").value = `#${code}`;
+  form.querySelector("[data-execution-customer]").value = reservation.customer;
+  form.querySelector("[data-execution-service]").value = reservation.service;
+  form.querySelector("[data-execution-date]").value = reservation.date;
+  form.querySelector("[data-execution-reserved]").value = `${reservation.travelers} viajeros`;
+
+  const servedSelect = form.querySelector("[data-execution-served]");
+  const executedField = form.querySelector("[data-execution-executed-field]");
+  const executedInput = form.querySelector("[data-execution-executed]");
+  const causalField = form.querySelector("[data-execution-causal-field]");
+  const causalInput = form.querySelector("[data-execution-causal]");
+
+  const syncFields = () => {
+    const served = servedSelect.value;
+    executedField.hidden = served !== "si";
+    causalField.hidden = served !== "no";
+    if (served === "si" && !executedInput.value) executedInput.value = reservation.travelers;
+  };
+  executedField.hidden = true;
+  causalField.hidden = true;
+  servedSelect.addEventListener("change", syncFields);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const served = servedSelect.value;
+    if (!served) {
+      feedback.textContent = "Selecciona si el servicio se prestó o no.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    if (served === "no" && !causalInput.value.trim()) {
+      feedback.textContent = "Registra la causal obligatoria de no prestación del servicio.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    const executed = served === "si" ? Math.max(0, Number.parseInt(executedInput.value, 10) || 0) : 0;
+    setOperatorReservationExecution(code, {
+      reserved: reservation.travelers,
+      served: served === "si",
+      executed,
+      causal: served === "no" ? causalInput.value.trim() : "",
+      registeredAt: new Date().toISOString(),
+      registeredBy: getOperatorRoleLabel(),
+    });
+    feedback.textContent = "Ejecución registrada correctamente. La reserva inicia en estado \"En ejecución\".";
+    feedback.classList.add("is-valid");
+    disableAll();
+    window.setTimeout(() => {
+      window.location.href = withTheme("admin-operacion.html", getTheme());
+    }, 1400);
+  });
+}
+
+// Origen de una solicitud de devolucion (RF-015B): solo se habilita cuando la MISMA
+// reserva ya tiene causal y valor potencial a devolver registrados; nunca inventa ninguno.
+function setupOperatorManageRefund() {
+  if (document.body.dataset.screen !== "operator-manage-refund") return;
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
+  const reservation = OPERATOR_RESERVATIONS[code];
+  const feedback = document.querySelector("[data-manage-refund-feedback]");
+  const submitButton = document.querySelector("[data-manage-refund-submit]");
+  const motiveInput = document.querySelector("[data-manage-refund-motive]");
+  const noteInput = document.querySelector("[data-manage-refund-note]");
+  const disableForm = () => {
+    if (submitButton) submitButton.disabled = true;
+    if (motiveInput) motiveInput.disabled = true;
+    if (noteInput) noteInput.disabled = true;
+  };
+
+  document.querySelectorAll("[data-manage-refund-back]").forEach((link) => {
+    link.href = withTheme(`admin-detalle-reserva.html?reservation=${code}`, getTheme());
+  });
+
+  const origin = getOperatorRefundOrigin(code);
+  if (!reservation || !origin) {
+    if (feedback) feedback.textContent = "Esta reserva no tiene una cancelación o modificación con causal y valor potencial a devolver registrada.";
+    disableForm();
+    return;
+  }
+
+  document.querySelector("[data-manage-refund-code]").textContent = `#${code}`;
+  document.querySelector("[data-manage-refund-customer]").textContent = reservation.customer;
+  document.querySelector("[data-manage-refund-status]").textContent = reservation.status;
+  document.querySelector("[data-manage-refund-type]").textContent = origin.type;
+  document.querySelector("[data-manage-refund-reason]").textContent = origin.causal;
+  document.querySelector("[data-manage-refund-paid]").textContent = reservation.paid;
+  document.querySelector("[data-manage-refund-date]").textContent = new Date(origin.registeredAt).toLocaleString("es-CO");
+  const valueField = document.querySelector("[data-manage-refund-value]");
+  if (valueField) valueField.value = origin.potentialAmount;
+  if (motiveInput) motiveInput.value = origin.causal;
+
+  const existing = getOperatorRefundRequests().find((request) => request.reservationCode === code);
+  if (existing) {
+    if (feedback) feedback.textContent = "Ya existe una solicitud de devolución registrada para esta reserva. Consúltala en Solicitudes de devolución.";
+    disableForm();
+    return;
+  }
+
+  submitButton?.addEventListener("click", () => {
+    const motive = motiveInput?.value.trim() || "";
+    if (!motive) {
+      feedback.textContent = "Registra el motivo de la solicitud de devolución.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    const list = getOperatorRefundRequests();
+    list.push({
+      id: `refund-${Date.now()}`,
+      reservationCode: code,
+      customer: reservation.customer,
+      reason: motive,
+      administrativeNote: noteInput?.value.trim() || "",
+      amount: origin.potentialAmount,
+      pendingCalculation: Boolean(origin.pendingCalculation),
+      status: "Pendiente de autorización",
+      requestedAt: new Date().toISOString().slice(0, 10),
+    });
+    saveOperatorRefundRequests(list);
+    feedback.textContent = "Solicitud de devolución registrada correctamente.";
+    feedback.classList.add("is-valid");
+    disableForm();
+  });
 }
 
 function setupOperatorReservations() {
@@ -2573,7 +3915,10 @@ function setupOperatorReservations() {
         ? withTheme(`admin-gestion-pago.html?reservation=${draft.code}`, getTheme())
         : detailHref;
       const actionLabel = isPending ? "Gestionar pago" : "Ver detalle";
-      createdRow.innerHTML = `<td><a class="operator-reservation-link" href="${detailHref}">#${escapeHtml(draft.code)}</a><small>${escapeHtml(draft.date)} · ${draft.travelers} viajeros</small></td><td>${escapeHtml(draft.customer)}</td><td>${escapeHtml(draft.service)}</td><td><span class="operator-status ${escapeHtml(draft.statusClass || "is-pending")}">${escapeHtml(draft.status || "Pendiente de pago")}</span></td><td>${escapeHtml(draft.balance || "$0")}</td><td><a href="${actionHref}">${actionLabel}</a></td>`;
+      const actionCell = isPending
+        ? `<a href="${detailHref}">Ver detalle</a> · <a href="${actionHref}">${actionLabel}</a>`
+        : `<a href="${actionHref}">${actionLabel}</a>`;
+      createdRow.innerHTML = `<td><a class="operator-reservation-link" href="${detailHref}">#${escapeHtml(draft.code)}</a><small>${escapeHtml(draft.date)} · ${draft.travelers} viajeros</small></td><td>${escapeHtml(draft.customer)}</td><td>${escapeHtml(draft.service)}</td><td><span class="operator-status ${escapeHtml(draft.statusClass || "is-pending")}">${escapeHtml(draft.status || "Pendiente de pago")}</span></td><td>${escapeHtml(draft.balance || "$0")}</td><td>${actionCell}</td>`;
       createdRow.hidden = false;
     }
   } catch { /* A static reservation list remains available if session storage is unavailable. */ }
@@ -2588,6 +3933,22 @@ function setupOperatorReservations() {
       const adjusted = resolveReservationWithAdjustment(code, OPERATOR_RESERVATIONS[code]);
       const balanceCell = row.querySelector("td:nth-child(5)");
       if (balanceCell) balanceCell.innerHTML = `${escapeHtml(adjusted.balance)}<br><small>Descuento adicional aplicado</small>`;
+    }
+    // Una modificacion registrada (RF-015A, linea 383) actualiza servicio y saldo de la
+    // MISMA reserva en el listado, igual que en el detalle.
+    const modification = getOperatorReservationModification(code);
+    if (modification) {
+      const serviceCell = row.querySelector("td:nth-child(3)");
+      if (serviceCell) serviceCell.textContent = modification.service;
+      const balanceCell = row.querySelector("td:nth-child(5)");
+      if (balanceCell) balanceCell.textContent = modification.balance;
+    }
+    // Una cancelacion registrada (RF-008A/linea 972) siempre deja la reserva en "Cancelada",
+    // tenga o no dinero pagado que devolver: nunca debe seguir mostrandose en un estado
+    // anterior como "En ejecucion".
+    if (getOperatorReservationCancellation(code)) {
+      const statusEl = row.querySelector(".operator-status");
+      if (statusEl) { statusEl.textContent = "Cancelada"; statusEl.className = "operator-status is-cancelled"; }
     }
     if (mode === "additional-discount") {
       const statusClass = Array.from(row.querySelector(".operator-status")?.classList || []).find((cls) => cls.startsWith("is-"));
@@ -2649,6 +4010,25 @@ function setOperatorServiceFields(catalogId, recordKey, fields) {
   map[catalogId] = map[catalogId] || {};
   map[catalogId][recordKey] = fields;
   localStorage.setItem(OPERATOR_SERVICE_FIELDS_KEY, JSON.stringify(map));
+}
+
+// Salidas reales configuradas por servicio (RF-007/linea 452: distintas de la vigencia
+// comercial). Fuente unica reutilizada por Crear reserva: cuando el Administrador agrega o
+// elimina una salida aqui, Crear reserva lo refleja automaticamente sin duplicar la lista.
+const OPERATOR_SERVICE_DEPARTURES_KEY = "multitour-service-departures";
+
+function getOperatorServiceDeparturesMap() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_SERVICE_DEPARTURES_KEY) || "{}"); } catch { return {}; }
+}
+
+function getOperatorServiceDepartures(serviceKey) {
+  return getOperatorServiceDeparturesMap()[serviceKey] || null;
+}
+
+function setOperatorServiceDepartures(serviceKey, dates) {
+  const map = getOperatorServiceDeparturesMap();
+  map[serviceKey] = dates;
+  localStorage.setItem(OPERATOR_SERVICE_DEPARTURES_KEY, JSON.stringify(map));
 }
 
 // Espejo de los registros demo ya definidos en cada HTML de "Gestionar <catalogo>",
@@ -2755,6 +4135,40 @@ function setupOperatorCatalogs() {
     const activeCount = entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length;
     strong.textContent = `${activeCount} activo${activeCount === 1 ? "" : "s"}`;
   });
+
+  // Catálogos del Colaborador operativo: misma tabla, en modo consulta ("Ver detalle"
+  // reutiliza el mismo formulario de configuración de cada servicio, ya en solo lectura).
+  // El catálogo del Administrador no se modifica (esta rama solo corre para Colaborador).
+  if (isOperatorColaborador()) {
+    const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+    setText(
+      "[data-catalog-hero-body]",
+      "Consulta los servicios disponibles del operador, sus condiciones, vigencia y disponibilidad para apoyar la gestión de reservas.",
+    );
+    setText("[data-catalog-info-eyebrow]", "Información operativa");
+    setText("[data-catalog-info-title]", "Servicios disponibles");
+
+    const configureHrefs = {
+      "catalogo-catalog-panel": "admin-configurar-catalogo.html",
+      "hospedaje-catalog-panel": "admin-configurar-hospedaje.html",
+      "alimentacion-catalog-panel": "admin-configurar-alimentacion.html",
+    };
+    const infoTable = document.querySelector("[data-catalog-info-table]");
+    const headerRow = infoTable?.querySelector("thead tr");
+    if (headerRow) headerRow.insertAdjacentHTML("beforeend", "<th>Acción</th>");
+    infoTable?.querySelectorAll("tbody tr").forEach((row, index) => {
+      const lookup = rowCatalogLookup[index];
+      const href = lookup && configureHrefs[lookup.catalogId];
+      const cell = document.createElement("td");
+      if (href) {
+        const link = document.createElement("a");
+        link.href = withTheme(`${href}?record=${encodeURIComponent(lookup.key)}`, getTheme());
+        link.textContent = "Ver detalle";
+        cell.append(link);
+      }
+      row.append(cell);
+    });
+  }
 }
 
 function setupManagedTourCatalog() {
@@ -2800,6 +4214,554 @@ function setupManagedTourCatalog() {
   });
 }
 
+// Caja del Administrador del operador (RF-Caja, linea 767): BASE + INGRESOS -
+// PAGOS OPERACIONALES - GASTOS - DEVOLUCIONES = TOTAL. La base ($300.000), los ingresos
+// ($2.090.000) y el total ($1.840.000) son los mismos valores ya aprobados (coinciden con
+// la tarjeta "Total operativo de caja" de admin-operador.html); "Pagos operacionales" y
+// "Gastos" se separan a partir de esos mismos numeros aprobados y del unico movimiento de
+// gasto ya visible ($250.000), sin inventar ningun monto nuevo: 550.000 - 250.000 = 300.000.
+const OPERATOR_CASH_DAY_KEY = "multitour-cash-day";
+const OPERATOR_CASH_CLOSURES_KEY = "multitour-cash-closures";
+
+function getOperatorCashTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Valor de arranque en frio (solo cuando nunca existio ninguna jornada): no se reinventa
+// en cada jornada nueva, se hereda de la jornada anterior segun PDR linea 769.
+function getDefaultOperatorCashDay() {
+  return {
+    date: getOperatorCashTodayKey(),
+    status: "abierta",
+    base: 300000,
+    movements: [
+      { time: "09:20", type: "Ingreso", concept: "Pago reserva #RES-1832", amount: 1290000, responsible: "Fernanda Robayo" },
+      { time: "11:45", type: "Gasto", concept: "Compra operativa", amount: -250000, responsible: "Fernanda Robayo" },
+    ],
+  };
+}
+
+// Regla: Ingresos, Pagos operacionales y Gastos se calculan SIEMPRE a partir de los
+// movimientos reales registrados en "Registro de la jornada" (nunca como contadores
+// independientes que puedan desincronizarse). Cada valor de las tarjetas queda así
+// justificado por los movimientos existentes, sin inventar cifras ni movimientos.
+function computeOperatorCashMovementTotals(day) {
+  return day.movements.reduce(
+    (totals, movement) => {
+      if (movement.type === "Ingreso") totals.ingresos += movement.amount;
+      if (movement.type === "Pago operacional") totals.pagosOperacionales += Math.abs(movement.amount);
+      if (movement.type === "Gasto") totals.gastos += Math.abs(movement.amount);
+      return totals;
+    },
+    { ingresos: 0, pagosOperacionales: 0, gastos: 0 },
+  );
+}
+
+// Regla PDR: la Caja funciona por jornada. Cada jornada tiene su propia base,
+// movimientos y cierre. Cuando la jornada guardada ya esta cerrada, se ofrece una nueva
+// jornada separada (fecha de hoy, sin movimientos), heredando la base de la jornada
+// anterior -no su total de cierre- salvo que el Administrador registre un nuevo valor
+// (PDR linea 769). Esta nueva jornada solo se persiste cuando el Administrador realiza
+// una accion real (ajustar base o registrar un movimiento); la jornada cerrada anterior
+// ya quedo conservada integramente en el historial de cierres.
+function getOperatorCashDay() {
+  let stored;
+  try {
+    const raw = localStorage.getItem(OPERATOR_CASH_DAY_KEY);
+    stored = raw ? JSON.parse(raw) : null;
+  } catch {
+    stored = null;
+  }
+  if (!stored) return getDefaultOperatorCashDay();
+  if (stored.status === "cerrada") {
+    return { date: getOperatorCashTodayKey(), status: "abierta", base: stored.base, movements: [] };
+  }
+  return stored;
+}
+
+function setOperatorCashDay(day) {
+  localStorage.setItem(OPERATOR_CASH_DAY_KEY, JSON.stringify(day));
+}
+
+function getOperatorCashClosures() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_CASH_CLOSURES_KEY) || "[]"); } catch { return []; }
+}
+
+function setOperatorCashClosures(list) {
+  localStorage.setItem(OPERATOR_CASH_CLOSURES_KEY, JSON.stringify(list));
+}
+
+function formatSignedCOP(value) {
+  return value < 0 ? `-${formatCOP(Math.abs(value))}` : formatCOP(value);
+}
+
+// Solo se suman devoluciones EFECTIVAMENTE ejecutadas (RF-015B/linea 507). El monto real
+// de cada devolucion sigue "pendiente de parametrizacion comercial" (no existe formula
+// parametrizada aun): su aporte numerico es $0 hasta que exista un valor real calculado,
+// sin inventar ningun monto. La reserva relacionada siempre queda visible en el concepto.
+function getOperatorExecutedRefundMovements() {
+  return getOperatorRefundRequests()
+    .filter((request) => request.status === "Ejecutada")
+    .map((request) => {
+      const numericAmount = parseCOP(request.amount);
+      return {
+        time: request.executedAt ? new Date(request.executedAt).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) : "--:--",
+        type: "Devolución",
+        concept: `Devolución reserva #${request.reservationCode}`,
+        signedAmount: numericAmount > 0 ? -numericAmount : 0,
+        displayAmount: numericAmount > 0 ? formatSignedCOP(-numericAmount) : request.amount,
+        responsible: request.executedBy || "Sin responsable asignado",
+      };
+    });
+}
+
+function computeOperatorCashTotals(day) {
+  const { ingresos, pagosOperacionales, gastos } = computeOperatorCashMovementTotals(day);
+  const refundMovements = getOperatorExecutedRefundMovements();
+  const devoluciones = refundMovements.reduce((sum, item) => sum + Math.abs(item.signedAmount), 0);
+  const total = day.base + ingresos - pagosOperacionales - gastos - devoluciones;
+  return { ingresos, pagosOperacionales, gastos, devoluciones, total, refundMovements };
+}
+
+function setupOperatorCash() {
+  if (document.body.dataset.screen !== "operator-cash") return;
+
+  const render = () => {
+    const day = getOperatorCashDay();
+    const { ingresos, pagosOperacionales, gastos, devoluciones, total, refundMovements } = computeOperatorCashTotals(day);
+    const closed = day.status === "cerrada";
+
+    const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+    setText("[data-cash-day-status]", closed ? "Jornada cerrada" : "Jornada abierta");
+    setText("[data-cash-total-headline]", `${formatCOP(total)} disponibles ${closed ? "al cierre de la jornada" : "al cierre parcial"}.`);
+    setText("[data-cash-base]", formatCOP(day.base));
+    setText("[data-cash-ingresos]", formatCOP(ingresos));
+    setText("[data-cash-pagos-operacionales]", formatCOP(pagosOperacionales));
+    setText("[data-cash-gastos]", formatCOP(gastos));
+    setText("[data-cash-devoluciones]", formatCOP(devoluciones));
+
+    const tbody = document.querySelector("[data-cash-movements]");
+    if (tbody) {
+      const rows = [
+        ...day.movements.map((movement) => ({ ...movement, displayAmount: formatSignedCOP(movement.amount) })),
+        ...refundMovements,
+      ];
+      tbody.innerHTML = rows
+        .map((movement) => `<tr><td>${escapeHtml(movement.time)}</td><td>${escapeHtml(movement.type)}</td><td>${escapeHtml(movement.concept)}</td><td>${escapeHtml(movement.displayAmount)}</td><td>${escapeHtml(movement.responsible)}</td></tr>`)
+        .join("");
+    }
+
+    document.querySelector("[data-cash-movement-form]")?.querySelectorAll("input, select, button").forEach((el) => { el.disabled = closed; });
+    const adjustToggle = document.querySelector("[data-cash-adjust-toggle]");
+    if (adjustToggle) adjustToggle.disabled = closed;
+    const closeButton = document.querySelector("[data-cash-close]");
+    if (closeButton) closeButton.disabled = closed;
+    if (closed) {
+      const adjustPanel = document.querySelector("[data-cash-adjust-panel]");
+      if (adjustPanel) adjustPanel.hidden = true;
+    }
+  };
+  render();
+
+  // Regla 5 (PDR linea 767/1021): solo el Administrador del operador puede modificar la
+  // base diaria.
+  const adjustToggle = document.querySelector("[data-cash-adjust-toggle]");
+  const adjustPanel = document.querySelector("[data-cash-adjust-panel]");
+  const adjustForm = document.querySelector("[data-cash-adjust-form]");
+  const adjustInput = document.querySelector("[data-cash-adjust-input]");
+  const adjustFeedback = document.querySelector("[data-cash-adjust-feedback]");
+  adjustToggle?.addEventListener("click", () => {
+    if (adjustToggle.disabled) return;
+    const day = getOperatorCashDay();
+    if (adjustInput) adjustInput.value = day.base;
+    if (adjustPanel) adjustPanel.hidden = false;
+  });
+  document.querySelector("[data-cash-adjust-cancel]")?.addEventListener("click", () => {
+    if (adjustPanel) adjustPanel.hidden = true;
+  });
+  adjustForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const rawValue = adjustInput.value;
+    const value = Number(rawValue);
+    if (rawValue === "" || Number.isNaN(value) || value < 0) {
+      if (adjustFeedback) { adjustFeedback.textContent = "Registra una base diaria válida."; adjustFeedback.classList.remove("is-valid"); }
+      return;
+    }
+    const day = getOperatorCashDay();
+    day.base = value;
+    setOperatorCashDay(day);
+    if (adjustFeedback) { adjustFeedback.textContent = "Base diaria actualizada correctamente."; adjustFeedback.classList.add("is-valid"); }
+    if (adjustPanel) adjustPanel.hidden = true;
+    render();
+  });
+
+  // Regla 3 (PDR linea 767): todo movimiento distingue Ingreso, Pago operacional, Gasto o
+  // Devolución. Las devoluciones no se registran manualmente aqui: se agregan solo cuando
+  // quedan efectivamente ejecutadas desde el flujo de Solicitudes de devolución.
+  const movementForm = document.querySelector("[data-cash-movement-form]");
+  const movementFeedback = document.querySelector("[data-cash-feedback]");
+  movementForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const type = document.querySelector("[data-cash-movement-type]").value;
+    const concept = document.querySelector("[data-cash-movement-concept]").value.trim();
+    const amount = Number(document.querySelector("[data-cash-movement-amount]").value);
+    if (!type || !concept || !amount || amount <= 0) {
+      if (movementFeedback) { movementFeedback.textContent = "Completa tipo, concepto y un valor mayor a $0 para registrar el movimiento."; movementFeedback.classList.remove("is-valid"); }
+      return;
+    }
+    const day = getOperatorCashDay();
+    const time = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+    const signedAmount = type === "Ingreso" ? amount : -amount;
+    day.movements.push({ time, type, concept, amount: signedAmount, responsible: getOperatorRoleLabel() });
+    setOperatorCashDay(day);
+    movementForm.reset();
+    if (movementFeedback) { movementFeedback.textContent = "Movimiento registrado correctamente."; movementFeedback.classList.add("is-valid"); }
+    render();
+  });
+
+  // Regla 7 (PDR linea 767/773): cerrar caja conserva el cierre y el historico de
+  // movimientos; nunca borra informacion. El dia queda cerrado hasta una correccion
+  // posterior autorizada (regla 8, ver Historial de caja).
+  document.querySelector("[data-cash-close]")?.addEventListener("click", () => {
+    const day = getOperatorCashDay();
+    if (day.status === "cerrada") return;
+    const { ingresos, pagosOperacionales, gastos, devoluciones, total, refundMovements } = computeOperatorCashTotals(day);
+    const closures = getOperatorCashClosures();
+    closures.push({
+      id: `cierre-${Date.now()}`,
+      date: day.date || getOperatorCashTodayKey(),
+      base: day.base,
+      ingresos,
+      pagosOperacionales,
+      gastos,
+      devoluciones,
+      total,
+      movements: [...day.movements, ...refundMovements.map((m) => ({ time: m.time, type: m.type, concept: m.concept, amount: m.signedAmount, responsible: m.responsible }))],
+      closedAt: new Date().toISOString(),
+      closedBy: getOperatorRoleLabel(),
+      corrections: [],
+    });
+    setOperatorCashClosures(closures);
+    day.status = "cerrada";
+    setOperatorCashDay(day);
+    if (movementFeedback) { movementFeedback.textContent = "Caja cerrada correctamente. El cierre e histórico quedaron conservados."; movementFeedback.classList.add("is-valid"); }
+    render();
+  });
+}
+
+// Regla 8 (PDR linea 773/776): toda correccion posterior al cierre queda restringida al
+// Administrador del operador, exige justificacion obligatoria y trazabilidad, y NUNCA
+// sobrescribe los valores originales del cierre (se agrega como historial adicional).
+function setupOperatorCashHistory() {
+  if (document.body.dataset.screen !== "operator-cash-history") return;
+  const list = document.querySelector("[data-cash-history-list]");
+  const emptyNote = document.querySelector("[data-cash-history-empty]");
+  if (!list) return;
+
+  const render = () => {
+    const closures = getOperatorCashClosures().slice().reverse();
+    if (emptyNote) emptyNote.hidden = closures.length > 0;
+    list.innerHTML = closures
+      .map((closure) => {
+        const corrections = closure.corrections || [];
+        const correctionsHtml = corrections.length
+          ? `<div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Fecha</th><th>Responsable</th><th>Justificación</th></tr></thead><tbody>${corrections
+              .map((c) => `<tr><td>${escapeHtml(new Date(c.appliedAt).toLocaleString("es-CO"))}</td><td>${escapeHtml(c.appliedBy)}</td><td>${escapeHtml(c.justification)}</td></tr>`)
+              .join("")}</tbody></table></div>`
+          : `<p class="operator-copy">Sin correcciones registradas para este cierre.</p>`;
+        return `<section class="operator-panel">
+          <div class="operator-panel-head"><div><p class="operator-eyebrow">Cierre ${escapeHtml(closure.date)}</p><h2>Total: ${formatCOP(closure.total)}</h2></div><span class="operator-status is-confirmed">Cerrado</span></div>
+          <div class="operator-detail-list">
+            <div><span>Base</span><strong>${formatCOP(closure.base)}</strong></div>
+            <div><span>Ingresos</span><strong>${formatCOP(closure.ingresos)}</strong></div>
+            <div><span>Pagos operacionales</span><strong>${formatCOP(closure.pagosOperacionales)}</strong></div>
+            <div><span>Gastos</span><strong>${formatCOP(closure.gastos)}</strong></div>
+            <div><span>Devoluciones</span><strong>${formatCOP(closure.devoluciones)}</strong></div>
+            <div><span>Cerrado por</span><strong>${escapeHtml(closure.closedBy)}</strong></div>
+            <div><span>Fecha y hora de cierre</span><strong>${escapeHtml(new Date(closure.closedAt).toLocaleString("es-CO"))}</strong></div>
+          </div>
+          <p class="operator-eyebrow">Correcciones posteriores</p>
+          ${correctionsHtml}
+          ${
+            isOperatorColaborador()
+              ? ""
+              : `<form data-cash-correction-form data-closure-id="${escapeHtml(closure.id)}">
+            <div class="operator-form-grid">
+              <label class="operator-form-wide">Justificación de la corrección (obligatoria)<textarea data-cash-correction-input required placeholder="Describe la corrección operativa excepcional y su justificación"></textarea></label>
+            </div>
+            <p class="operator-form-feedback" data-cash-correction-feedback>Solo el Administrador del operador puede registrar una corrección posterior al cierre.</p>
+            <div class="operator-form-actions"><button class="operator-outline" type="submit">Registrar corrección</button></div>
+          </form>`
+          }
+        </section>`;
+      })
+      .join("");
+  };
+  render();
+
+  list.addEventListener("submit", (event) => {
+    const form = event.target.closest("[data-cash-correction-form]");
+    if (!form) return;
+    event.preventDefault();
+    const closureId = form.dataset.closureId;
+    const input = form.querySelector("[data-cash-correction-input]");
+    const feedback = form.querySelector("[data-cash-correction-feedback]");
+    const justification = input.value.trim();
+    if (!justification) {
+      feedback.textContent = "Registra la justificación obligatoria de la corrección.";
+      feedback.classList.remove("is-valid");
+      return;
+    }
+    const closures = getOperatorCashClosures();
+    const closure = closures.find((item) => item.id === closureId);
+    if (!closure) return;
+    closure.corrections = closure.corrections || [];
+    closure.corrections.push({ justification, appliedBy: "Administrador del operador", appliedAt: new Date().toISOString() });
+    setOperatorCashClosures(closures);
+    render();
+  });
+}
+
+// RF-012 (linea 507): reporte administrativo mensual, cerrado con los 8 campos obligatorios.
+// Compartido entre Caja > Consolidación mensual y Reportes para que ambas pantallas
+// muestren siempre los mismos periodos y valores, sin duplicar ni desincronizar el calculo.
+function getOperatorMonthlyConsolidation() {
+  const closures = getOperatorCashClosures();
+  if (!closures.length) return [];
+
+  const cancellations = Object.values(getOperatorReservationCancellations());
+  const costs = getOperatorOperationCosts();
+  const periods = {};
+  closures.forEach((closure) => {
+    const period = closure.date.slice(0, 7);
+    if (!periods[period]) periods[period] = { ingresos: 0, pagosOperacionales: 0, gastos: 0, devoluciones: 0, total: 0 };
+    periods[period].ingresos += closure.ingresos;
+    periods[period].pagosOperacionales += closure.pagosOperacionales;
+    periods[period].gastos += closure.gastos;
+    periods[period].devoluciones += closure.devoluciones;
+    periods[period].total += closure.total;
+  });
+
+  return Object.keys(periods)
+    .sort()
+    .reverse()
+    .map((period) => {
+      const data = periods[period];
+      const cancelacionesPeriodo = cancellations.filter((c) => c.registeredAt.slice(0, 7) === period).length;
+      const costosPeriodo = costs.filter((c) => c.registeredAt.slice(0, 7) === period).reduce((sum, c) => sum + c.amount, 0);
+      return { period, ...data, cancelaciones: cancelacionesPeriodo, costosOperacionales: costosPeriodo };
+    });
+}
+
+function setupOperatorCashMonthly() {
+  if (document.body.dataset.screen !== "operator-cash-monthly") return;
+  const list = document.querySelector("[data-cash-monthly-list]");
+  const emptyNote = document.querySelector("[data-cash-monthly-empty]");
+  if (!list) return;
+
+  const periods = getOperatorMonthlyConsolidation();
+  if (emptyNote) emptyNote.hidden = periods.length > 0;
+  if (!periods.length) { list.innerHTML = ""; return; }
+
+  list.innerHTML = periods
+    .map((data) => `<section class="operator-panel">
+        <p class="operator-eyebrow">Período reportado</p><h2>${escapeHtml(data.period)}</h2>
+        <div class="operator-detail-list">
+          <div><span>Ingresos del período</span><strong>${formatCOP(data.ingresos)}</strong></div>
+          <div><span>Pagos operacionales del período</span><strong>${formatCOP(data.pagosOperacionales)}</strong></div>
+          <div><span>Gastos del período</span><strong>${formatCOP(data.gastos)}</strong></div>
+          <div><span>Devoluciones efectivamente realizadas</span><strong>${formatCOP(data.devoluciones)}</strong></div>
+          <div><span>Total consolidado de caja del período</span><strong>${formatCOP(data.total)}</strong></div>
+          <div><span>Cancelaciones registradas en el período</span><strong>${data.cancelaciones}</strong></div>
+          <div><span>Costos operacionales registrados en el período</span><strong>${data.costosOperacionales > 0 ? formatCOP(data.costosOperacionales) : "Sin costos operacionales registrados"}</strong></div>
+        </div>
+      </section>`)
+    .join("");
+}
+
+// Fecha de referencia ("hoy") ya usada y aprobada en el encabezado del dashboard del
+// operador (admin-operador.html / Resumen: "Martes, 1 sep 2026"). Se reutiliza la misma,
+// no se inventa una fecha nueva.
+const OPERATOR_TODAY_DATE = "2026-09-01";
+
+// RF-011 (linea 493/1119, CA-011): dashboard diario con reservas creadas del dia,
+// pendientes de pago, confirmadas, canceladas y tours/servicios proximos a ejecutar.
+// Reutiliza los mismos datos ya usados en Reservas y Operación, sin inventar cifras.
+function getOperatorReportsDashboard() {
+  const reservations = Object.keys(OPERATOR_RESERVATIONS)
+    .map((code) => resolveOperatorReservationForOperation(code))
+    .filter(Boolean);
+
+  // Una reserva recien registrada via Crear reserva aun no forma parte de
+  // OPERATOR_RESERVATIONS (no existe persistencia real en este entorno local), pero SI
+  // tiene un createdAt real. Se incorpora a la MISMA lista de reservas para calcular
+  // "creadas hoy" por fecha real, nunca por la sola presencia de un registro en curso.
+  let draft = null;
+  try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
+  const allReservations = draft?.code && !OPERATOR_RESERVATIONS[draft.code] ? [...reservations, draft] : reservations;
+
+  // "Creadas hoy" (RF-011): fecha REAL de creacion (createdAt) igual a la fecha de
+  // referencia del operador. Los 6 registros base no tienen createdAt (no existe ese dato
+  // historico: no se inventa), asi que nunca cuentan como "creadas hoy".
+  const createdToday = allReservations.filter((r) => r.createdAt === OPERATOR_TODAY_DATE).length;
+
+  // "Canceladas" del dashboard diario (RF-011): unicamente cancelaciones cuya fecha de
+  // registro es HOY (no el total historico ni el total del periodo, que corresponden a
+  // "Cancelaciones" y "Cancelaciones registradas en el período" respectivamente).
+  const cancelledToday = Object.values(getOperatorReservationCancellations()).filter(
+    (c) => c.registeredAt.slice(0, 10) === OPERATOR_TODAY_DATE,
+  ).length;
+
+  return {
+    createdToday,
+    pendingPayment: reservations.filter((r) => r.statusClass === "is-pending").length,
+    confirmed: reservations.filter((r) => r.statusClass === "is-confirmed").length,
+    cancelled: cancelledToday,
+    upcomingExecutions: getOperatorUpcomingExecutions().length,
+  };
+}
+
+// RF-012 (linea 502): ventas confirmadas, ingresos del periodo, costos operacionales y
+// cancelaciones, todos derivados de Reservas, Caja y Operación/Costos reales.
+//
+// "Cancelaciones" y "Cancelaciones registradas en el período" (Reporte mensual) deben
+// salir de la MISMA fuente (el registro de cancelaciones, con fecha real de registro):
+// aqui se cuenta el total del registro sin filtrar por periodo; en el reporte mensual se
+// filtra ese mismo registro por el periodo reportado (getOperatorMonthlyConsolidation).
+function getOperatorReportsSummary() {
+  const reservations = Object.keys(OPERATOR_RESERVATIONS)
+    .map((code) => resolveOperatorReservationForOperation(code))
+    .filter(Boolean);
+  const confirmedSales = reservations
+    .filter((r) => ["is-confirmed", "is-execution", "is-finalized"].includes(r.statusClass))
+    .reduce((sum, r) => sum + parseCOP(r.final), 0);
+  const totalIngresos = getOperatorCashClosures().reduce((sum, c) => sum + c.ingresos, 0);
+  const totalCosts = getOperatorOperationCosts().reduce((sum, c) => sum + c.amount, 0);
+  const cancelledCount = Object.values(getOperatorReservationCancellations()).length;
+  return { confirmedSales, totalIngresos, totalCosts, cancelledCount };
+}
+
+// AJUSTE 2: "Exportar reporte" genera un PDF real con EXACTAMENTE los mismos datos ya
+// mostrados en pantalla (mismo dashboard/summary/periods calculados arriba), sin
+// recalcular ni inventar nada nuevo. Todos los datos pertenecen exclusivamente a este
+// operador (no existe en esta pantalla ningun dato de otro tenant/operador).
+function buildOperatorReportsLines(dashboard, summary, periods) {
+  const lines = [];
+  lines.push({ text: "Reporte operativo y económico - Multitour", size: 14, bold: true });
+  lines.push({ text: `Generado: ${new Date().toLocaleString("es-CO")}`, size: 9 });
+  lines.push({ text: "" });
+  lines.push({ text: "Resumen", size: 12, bold: true });
+  lines.push({ text: `Ventas confirmadas: ${formatCOP(summary.confirmedSales)}` });
+  lines.push({ text: `Ingresos del período: ${formatCOP(summary.totalIngresos)}` });
+  lines.push({ text: `Costos operacionales: ${formatCOP(summary.totalCosts)}` });
+  lines.push({ text: `Cancelaciones: ${summary.cancelledCount}` });
+  lines.push({ text: "" });
+  lines.push({ text: "Dashboard diario (hoy)", size: 12, bold: true });
+  lines.push({ text: `Reservas creadas hoy: ${dashboard.createdToday}` });
+  lines.push({ text: `Pendientes de pago: ${dashboard.pendingPayment}` });
+  lines.push({ text: `Confirmadas: ${dashboard.confirmed}` });
+  lines.push({ text: `Canceladas: ${dashboard.cancelled}` });
+  lines.push({ text: `Próximas a ejecutar: ${dashboard.upcomingExecutions}` });
+  lines.push({ text: "" });
+  lines.push({ text: "Reporte mensual", size: 12, bold: true });
+  if (!periods.length) {
+    lines.push({ text: "Aún no hay cierres de caja registrados para consolidar el reporte mensual." });
+  } else {
+    periods.forEach((data) => {
+      lines.push({ text: `Período reportado: ${data.period}`, bold: true });
+      lines.push({ text: `Ingresos del período: ${formatCOP(data.ingresos)}` });
+      lines.push({ text: `Pagos operacionales del período: ${formatCOP(data.pagosOperacionales)}` });
+      lines.push({ text: `Gastos del período: ${formatCOP(data.gastos)}` });
+      lines.push({ text: `Devoluciones efectivamente realizadas: ${formatCOP(data.devoluciones)}` });
+      lines.push({ text: `Total consolidado de caja del período: ${formatCOP(data.total)}` });
+      lines.push({ text: `Cancelaciones registradas en el período: ${data.cancelaciones}` });
+      lines.push({
+        text: `Costos operacionales registrados en el período: ${data.costosOperacionales > 0 ? formatCOP(data.costosOperacionales) : "Sin costos operacionales registrados"}`,
+      });
+      lines.push({ text: "" });
+    });
+  }
+  return lines;
+}
+
+// Nombre sugerido: reporte-multitour-YYYY-MM.pdf, usando el periodo mas reciente ya
+// mostrado en el Reporte mensual (o la fecha de referencia del operador si aun no hay
+// ningun cierre de caja registrado).
+function buildOperatorReportsPdfFilename(periods) {
+  const period = periods.length ? periods[0].period : OPERATOR_TODAY_DATE.slice(0, 7);
+  return `reporte-multitour-${period}.pdf`;
+}
+
+function buildOperatorReportsPdfDoc(dashboard, summary, periods) {
+  const JsPDF = window.jspdf && window.jspdf.jsPDF;
+  if (!JsPDF) return null;
+  const doc = new JsPDF();
+  const marginLeft = 14;
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let y = 18;
+  buildOperatorReportsLines(dashboard, summary, periods).forEach((line) => {
+    if (y > pageHeight - 15) {
+      doc.addPage();
+      y = 18;
+    }
+    doc.setFontSize(line.size || 10);
+    doc.setFont(undefined, line.bold ? "bold" : "normal");
+    if (line.text) doc.text(line.text, marginLeft, y);
+    y += line.size && line.size > 10 ? 8 : 6;
+  });
+  return doc;
+}
+
+function setupOperatorReports() {
+  if (document.body.dataset.screen !== "operator-reports") return;
+
+  const dashboard = getOperatorReportsDashboard();
+  const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+  setText("[data-reports-created]", String(dashboard.createdToday));
+  setText("[data-reports-pending]", String(dashboard.pendingPayment));
+  setText("[data-reports-confirmed]", String(dashboard.confirmed));
+  setText("[data-reports-cancelled-dashboard]", String(dashboard.cancelled));
+  setText("[data-reports-upcoming]", String(dashboard.upcomingExecutions));
+
+  const summary = getOperatorReportsSummary();
+  setText("[data-reports-sales]", formatCOP(summary.confirmedSales));
+  setText("[data-reports-income]", formatCOP(summary.totalIngresos));
+  setText("[data-reports-costs]", formatCOP(summary.totalCosts));
+  setText("[data-reports-cancellations]", String(summary.cancelledCount));
+
+  // RF-012 (linea 507): mismo calculo ya usado en Caja > Consolidación mensual, para que
+  // ambas pantallas muestren siempre los mismos periodos y valores.
+  const periods = getOperatorMonthlyConsolidation();
+  const monthlyList = document.querySelector("[data-reports-monthly-list]");
+  const monthlyEmpty = document.querySelector("[data-reports-monthly-empty]");
+  if (monthlyEmpty) monthlyEmpty.hidden = periods.length > 0;
+  if (monthlyList) {
+    monthlyList.innerHTML = periods
+      .map((data) => `<div>
+          <p class="operator-eyebrow">Período reportado</p><strong>${escapeHtml(data.period)}</strong>
+          <div class="operator-detail-list">
+            <div><span>Ingresos del período</span><strong>${formatCOP(data.ingresos)}</strong></div>
+            <div><span>Pagos operacionales del período</span><strong>${formatCOP(data.pagosOperacionales)}</strong></div>
+            <div><span>Gastos del período</span><strong>${formatCOP(data.gastos)}</strong></div>
+            <div><span>Devoluciones efectivamente realizadas</span><strong>${formatCOP(data.devoluciones)}</strong></div>
+            <div><span>Total consolidado de caja del período</span><strong>${formatCOP(data.total)}</strong></div>
+            <div><span>Cancelaciones registradas en el período</span><strong>${data.cancelaciones}</strong></div>
+            <div><span>Costos operacionales registrados en el período</span><strong>${data.costosOperacionales > 0 ? formatCOP(data.costosOperacionales) : "Sin costos operacionales registrados"}</strong></div>
+          </div>
+        </div>`)
+      .join("");
+  }
+
+  document.querySelector("[data-reports-export]")?.addEventListener("click", () => {
+    const doc = buildOperatorReportsPdfDoc(dashboard, summary, periods);
+    if (!doc) {
+      console.error("No fue posible generar el PDF: la librería de exportación (jsPDF) no cargó.");
+      return;
+    }
+    doc.save(buildOperatorReportsPdfFilename(periods));
+  });
+}
+
 function setupOperatorConfigureScreen() {
   const form = document.querySelector("[data-configure-form]");
   if (!form) return;
@@ -2832,6 +4794,18 @@ function setupOperatorConfigureScreen() {
     statusBadge.textContent = isActive ? "Activo" : "Inactivo";
     statusBadge.className = `operator-status ${isActive ? "is-confirmed" : "is-cancelled"}`;
   }
+  // Restriccion base (PDR linea 394/947): "Ver detalle" del Colaborador operativo
+  // reutiliza este MISMO formulario de configuracion en modo solo lectura (misma
+  // informacion del servicio), sin permitir crear servicios ni modificar tarifas,
+  // costos, capacidad ni estado activo/inactivo.
+  if (isOperatorColaborador()) {
+    form.querySelectorAll("input, select").forEach((el) => { el.disabled = true; });
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.hidden = true;
+    if (feedback) feedback.textContent = "Consulta de solo lectura: el Colaborador operativo no puede modificar este servicio.";
+    return;
+  }
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const updatedFields = {};
@@ -2879,6 +4853,7 @@ function getOperatorCatalogServiceOptions() {
 
 function setupOperatorDiscounts() {
   if (document.body.dataset.screen !== "operator-discounts") return;
+  guardOperatorAdminOnlyScreen("admin-operador.html");
   const createButton = document.querySelector(".operator-topbar .operator-primary");
   if (createButton) createButton.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-descuento.html", getTheme()); });
   const existingPromo = document.querySelector(".operator-promo");
@@ -2909,6 +4884,7 @@ function setupOperatorDiscounts() {
 
 function setupOperatorNewDiscount() {
   if (document.body.dataset.screen !== "operator-new-discount") return;
+  guardOperatorAdminOnlyScreen("admin-descuentos.html");
   const form = document.querySelector("[data-new-discount-form]");
   const serviceSelect = form?.querySelector("[data-discount-service]");
   getOperatorCatalogServiceOptions().forEach(({ key, label }) => {
@@ -2949,6 +4925,7 @@ function setupOperatorNewDiscount() {
 
 function setupOperatorEditDiscount() {
   if (document.body.dataset.screen !== "operator-edit-discount") return;
+  guardOperatorAdminOnlyScreen("admin-descuentos.html");
   const form = document.querySelector("[data-edit-discount-form]");
   const serviceSelect = form?.querySelector("[data-discount-service]");
   getOperatorCatalogServiceOptions().forEach(({ key, label }) => {
@@ -3015,6 +4992,7 @@ function setupOperatorEditDiscount() {
 
 function setupOperatorNewService() {
   if (document.body.dataset.screen !== "operator-new-service") return;
+  guardOperatorAdminOnlyScreen("admin-catalogos.html");
   const form = document.querySelector("[data-new-service-form]");
   const formGrid = form?.querySelector(".operator-form-grid");
   const priceLabel = form?.querySelector("[data-service-price]")?.closest("label");
@@ -3023,6 +5001,7 @@ function setupOperatorNewService() {
   const image = form?.querySelector("[data-service-image]");
   const imageLabel = image?.closest("label");
   const kindSelect = form?.querySelector("[data-service-kind]");
+  const typeSelect = form?.querySelector("[data-service-type]");
   const establishmentTypeSelect = form?.querySelector("[data-establishment-type]");
   const operationalFields = form?.querySelectorAll("[data-operational-field]");
   const establishmentFields = form?.querySelectorAll("[data-establishment-field]");
@@ -3040,6 +5019,40 @@ function setupOperatorNewService() {
   syncServiceKind();
   kindSelect?.addEventListener("change", syncServiceKind);
   establishmentTypeSelect?.addEventListener("change", syncServiceKind);
+
+  // Regla 1/2 (RF-007/linea 452): las salidas son fechas reales de ejecucion, distintas de
+  // la vigencia comercial. Solo aplican a "Tour o actividad", que es el unico tipo que
+  // aparece como "Servicio principal" en Crear reserva; no se inventan horarios ni campos
+  // adicionales, solo la fecha.
+  const departuresField = form?.querySelector("[data-tour-departures-field]");
+  const departureInput = form?.querySelector("[data-service-departure-input]");
+  const departureAddButton = form?.querySelector("[data-service-departure-add]");
+  const departureList = form?.querySelector("[data-service-departure-list]");
+  let departureDates = [];
+  const renderDepartureList = () => {
+    if (!departureList) return;
+    departureList.innerHTML = departureDates
+      .map((iso) => `<li>${escapeHtml(formatOperatorDate(iso))} <button class="operator-table-toggle" type="button" data-remove-departure="${escapeHtml(iso)}">Quitar</button></li>`)
+      .join("");
+  };
+  const syncTourFields = () => {
+    if (departuresField) departuresField.hidden = typeSelect?.value !== "tour";
+  };
+  syncTourFields();
+  typeSelect?.addEventListener("change", syncTourFields);
+  departureAddButton?.addEventListener("click", () => {
+    const value = departureInput?.value;
+    if (!value || departureDates.includes(value)) return;
+    departureDates = [...departureDates, value].sort();
+    if (departureInput) departureInput.value = "";
+    renderDepartureList();
+  });
+  departureList?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-remove-departure]");
+    if (!button) return;
+    departureDates = departureDates.filter((iso) => iso !== button.dataset.removeDeparture);
+    renderDepartureList();
+  });
   const preview = form?.querySelector("[data-service-preview]");
   const feedback = form?.querySelector("[data-service-feedback]");
   image?.addEventListener("change", () => {
@@ -3073,6 +5086,12 @@ function setupOperatorNewService() {
     const catalog = getOperatorCatalog();
     catalog.push(resource);
     localStorage.setItem(OPERATOR_CATALOG_STORAGE_KEY, JSON.stringify(catalog));
+    // Regla 2/6: las salidas quedan asociadas al MISMO servicio (su id) y son la unica
+    // fuente que Crear reserva consulta; sin salidas configuradas, no se guarda nada
+    // (no se inventa una salida a partir de la vigencia).
+    if (resource.type === "tour" && departureDates.length) {
+      setOperatorServiceDepartures(resource.id, departureDates.map(formatOperatorDate));
+    }
     window.location.href = withTheme("admin-catalogos.html", getTheme());
   });
 }
@@ -3095,6 +5114,7 @@ function renderClientCatalogProducts() {
 
 function setupOperatorApplyDiscount() {
   if (document.body.dataset.screen !== "operator-apply-discount") return;
+  guardOperatorAdminOnlyScreen("admin-reservas.html");
   const form = document.querySelector("[data-apply-discount-form]");
   const feedback = form?.querySelector("[data-apply-discount-feedback]");
   const code = new URLSearchParams(window.location.search).get("reservation") || "";
@@ -3156,8 +5176,52 @@ function setupOperatorReservationDetail() {
   } catch { /* The static mock can still show its default reservation data. */ }
   const code = new URLSearchParams(window.location.search).get("reservation") || "RES-1842";
   const rawBase = reservations[code] || reservations["RES-1842"];
-  const reservation = resolveReservationWithAdjustment(code, rawBase);
+  let reservation = resolveReservationWithAdjustment(code, rawBase);
   const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
+
+  // Una modificacion registrada (RF-015A, linea 383) actualiza la MISMA reserva: nuevo
+  // servicio/fecha/viajeros/hospedaje y sus valores recalculados. Los pagos ya
+  // registrados no cambian.
+  const modification = getOperatorReservationModification(code);
+  if (modification) {
+    reservation = {
+      ...reservation,
+      service: modification.service,
+      date: modification.date,
+      travelers: modification.travelers,
+      companions: modification.companions,
+      projected: modification.projected,
+      discount: modification.discount,
+      final: modification.final,
+      balance: modification.balance,
+    };
+  }
+
+  // Una cancelacion registrada (RF-008A/linea 972) siempre deja la reserva en "Cancelada",
+  // tenga o no dinero pagado que devolver: nunca debe seguir mostrandose en un estado
+  // anterior como "En ejecucion". El estado de ejecucion del servicio pasa a "No ejecutada"
+  // (mismo valor ya confirmado para reservas canceladas, ej. RES-1822): no se inventa un
+  // estado nuevo. Independiente de esto, "Gestionar devolucion" solo aparece si ademas
+  // existe refundOrigin (pagado > $0).
+  const cancellation = getOperatorReservationCancellation(code);
+  if (cancellation) {
+    reservation = { ...reservation, status: "Cancelada", statusClass: "is-cancelled", execution: "No ejecutada" };
+  }
+  const refundOrigin = getOperatorRefundOrigin(code);
+
+  // RF-015B (regla 1): cancelar NUNCA borra la reserva, solo cambia su estado; la causal
+  // debe quedar visible como historial incluso cuando no exista devolucion que gestionar
+  // (esta se muestra en el panel de devolucion cuando si existe, para no duplicarla).
+  const cancellationHistoryPanel = document.querySelector("[data-cancellation-history-panel]");
+  if (cancellationHistoryPanel) {
+    if (cancellation && !refundOrigin) {
+      setText("[data-cancellation-history-reason]", cancellation.causal);
+      setText("[data-cancellation-history-date]", new Date(cancellation.registeredAt).toLocaleString("es-CO"));
+      cancellationHistoryPanel.hidden = false;
+    } else {
+      cancellationHistoryPanel.hidden = true;
+    }
+  }
 
   setText("[data-reservation-code]", `#${code}`);
   setText("[data-reservation-service]", reservation.service);
@@ -3199,39 +5263,133 @@ function setupOperatorReservationDetail() {
       discountPanel.hidden = true;
     }
   }
+
+  // "Cancelar o modificar reserva" solo esta disponible antes de Finalizada/Cancelada
+  // (RF-008A/linea 972): esos estados ya son terminales.
+  const cancelModifyLink = document.querySelector("[data-cancel-modify-link]");
+  if (cancelModifyLink) {
+    const eligible = !["is-finalized", "is-cancelled"].includes(reservation.statusClass);
+    cancelModifyLink.hidden = !eligible;
+    if (eligible) cancelModifyLink.href = withTheme(`admin-cancelar-modificar-reserva.html?reservation=${code}`, getTheme());
+  }
+
+  // "Gestionar devolucion" solo aparece cuando la reserva ya tiene una cancelacion o
+  // modificacion registrada con causal y valor potencial a devolver (RF-015B): no se
+  // inventa causal ni monto, se usa unicamente lo que ya exista en la reserva.
+  const refundOriginPanel = document.querySelector("[data-refund-origin-panel]");
+  if (refundOriginPanel) {
+    if (refundOrigin) {
+      setText("[data-refund-origin-reason]", refundOrigin.causal);
+      setText("[data-refund-origin-amount]", refundOrigin.potentialAmount);
+      const actionLink = document.querySelector("[data-refund-origin-action]");
+      if (actionLink) actionLink.href = withTheme(`admin-gestionar-devolucion.html?reservation=${code}`, getTheme());
+      refundOriginPanel.hidden = false;
+    } else {
+      refundOriginPanel.hidden = true;
+    }
+  }
+}
+
+// El catalogo de Catálogos (OPERATOR_CATALOG_DEFAULTS) todavia no modela salidas
+// especificas, medios de pago aceptados ni inclusiones por servicio. Estos datos
+// complementarios YA aprobados para los 4 tours base se conservan aqui, ligados al MISMO
+// key/nombre ya usado en Catálogos: la identidad, tarifa, vigencia y estado activo/inactivo
+// del servicio siempre se leen en vivo desde Catálogos, nunca desde esta lista.
+const OPERATOR_KNOWN_TOUR_DETAILS = {
+  "Tour destino ejemplo - Montañas": {
+    discount: 0.2, risk: false, departures: ["15 sep 2026", "22 sep 2026", "29 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
+    inclusions: ["Alimentación incluida: plato del día", "Transporte incluido: trayecto de ida y vuelta"],
+    conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
+  },
+  "Aventura en cenotes ocultos": {
+    discount: 0, risk: false, departures: ["12 sep 2026", "19 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
+    inclusions: ["Alimentación incluida: snack ligero", "Transporte incluido: traslado al punto de salida"],
+    conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
+  },
+  "Rafting y acampada extrema": {
+    discount: 0, risk: true, departures: ["13 sep 2026", "27 sep 2026"], payments: ["Transferencia", "Abono"],
+    inclusions: ["Alimentación incluida: refrigerio de la actividad", "Transporte incluido: traslado al punto de salida"],
+    conditions: ["La actividad requiere requisitos de riesgo para cada viajero.", "La modificación o cancelación depende de las condiciones vigentes del servicio."],
+  },
+  "Recorrido cultural e histórico": {
+    discount: 0, risk: false, departures: ["16 sep 2026", "23 sep 2026", "30 sep 2026"], payments: ["Transferencia", "Efectivo"],
+    inclusions: ["Alimentación incluida: opción gastronómica del recorrido", "Transporte incluido: trayecto programado"],
+    conditions: ["La modificación o cancelación depende de las condiciones vigentes del servicio.", "Los descuentos se aplican según la configuración comercial vigente."],
+  },
+};
+const OPERATOR_GENERIC_CONDITION = "La disponibilidad y los valores se validan antes de registrar la reserva.";
+// PDR (linea 633): modalidades de pago soportadas en Fase 1 para el tenant.
+const OPERATOR_DEFAULT_PAYMENT_METHODS = ["Transferencia", "Efectivo", "Abono"];
+
+// Regla 1/2/3/6: el catalogo de "Servicio principal" se construye en vivo desde el MISMO
+// catalogo ya usado en Catálogos (solo activos y vigentes, incluyendo actualizaciones de
+// datos), sin listas independientes ni servicios hardcodeados.
+// Regla 1/2/5: la vigencia (rango inicio-fin) del catalogo NO es una salida reservable.
+// Sin salidas especificas configuradas para el servicio, no se inventa ninguna fecha: si
+// inicio y fin coinciden, esa unica fecha SI es una salida real; si son distintos, es un
+// rango de vigencia sin salida puntual definida y no se muestra ninguna.
+function resolveOperatorVigenciaDepartures(start, end) {
+  if (!start) return [];
+  if (!end || end === start) return [start];
+  return [];
+}
+
+function getOperatorReservationServiceCatalog() {
+  const services = {};
+  const tourCatalogId = "catalogo-catalog-panel";
+  const lodgingRecord = OPERATOR_CATALOG_DEFAULTS[tourCatalogId] && OPERATOR_CATALOG_DEFAULTS["hospedaje-catalog-panel"]?.records[0];
+  const lodgingCapacity = lodgingRecord ? parseCOP(lodgingRecord.fields.capacity) || 2 : 2;
+
+  OPERATOR_CATALOG_DEFAULTS[tourCatalogId].records.forEach((record) => {
+    if (!resolveOperatorServiceActive(tourCatalogId, record.key, record.active)) return;
+    const fields = getOperatorServiceFields(tourCatalogId, record.key) || record.fields;
+    const details = OPERATOR_KNOWN_TOUR_DETAILS[record.key];
+    const configuredDepartures = getOperatorServiceDepartures(record.key);
+    const [validityStart, validityEnd] = (fields.validity || "").split(" - ");
+    services[record.key] = {
+      name: fields.name || record.key,
+      price: parseCOP(fields.tariff),
+      discount: details ? details.discount : 0,
+      risk: details ? details.risk : false,
+      lodgingCapacity,
+      // Regla 6: una sola fuente de salidas por servicio, con esta prioridad: salidas
+      // configuradas explicitamente > salidas ya aprobadas para los tours base > una unica
+      // fecha real cuando la vigencia es de un solo dia. Nunca se inventa una salida.
+      departures: configuredDepartures || (details ? details.departures : resolveOperatorVigenciaDepartures(validityStart, validityEnd)),
+      payments: details ? details.payments : OPERATOR_DEFAULT_PAYMENT_METHODS,
+      inclusions: details ? details.inclusions : [],
+      conditions: details ? details.conditions : [OPERATOR_GENERIC_CONDITION],
+    };
+  });
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "tour" || !resource.active) return;
+    const key = resource.id || resource.name;
+    const configuredDepartures = getOperatorServiceDepartures(key);
+    services[key] = {
+      name: resource.name,
+      price: resource.price,
+      discount: 0,
+      risk: false,
+      lodgingCapacity: resource.capacity || lodgingCapacity,
+      departures: configuredDepartures || resolveOperatorVigenciaDepartures(resource.start, resource.end),
+      payments: OPERATOR_DEFAULT_PAYMENT_METHODS,
+      inclusions: [],
+      conditions: [resource.policy || OPERATOR_GENERIC_CONDITION],
+    };
+  });
+  return services;
 }
 
 function setupOperatorReservationForm() {
   const form = document.querySelector('[data-form="operator-reservation"]');
   if (!form) return;
 
-  const services = {
-    mountains: {
-      name: "Tour destino ejemplo - Montañas", price: 1299000, discount: 0.2, risk: false, lodgingCapacity: 2,
-      departures: ["15 sep 2026", "22 sep 2026", "29 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
-      inclusions: ["Alimentación incluida: plato del día", "Transporte incluido: trayecto de ida y vuelta"],
-      conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
-    },
-    cenotes: {
-      name: "Aventura en cenotes ocultos", price: 520000, discount: 0, risk: false, lodgingCapacity: 2,
-      departures: ["12 sep 2026", "19 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
-      inclusions: ["Alimentación incluida: snack ligero", "Transporte incluido: traslado al punto de salida"],
-      conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
-    },
-    rafting: {
-      name: "Rafting y acampada extrema", price: 799000, discount: 0, risk: true, lodgingCapacity: 2,
-      departures: ["13 sep 2026", "27 sep 2026"], payments: ["Transferencia", "Abono"],
-      inclusions: ["Alimentación incluida: refrigerio de la actividad", "Transporte incluido: traslado al punto de salida"],
-      conditions: ["La actividad requiere requisitos de riesgo para cada viajero.", "La modificación o cancelación depende de las condiciones vigentes del servicio."],
-    },
-    cultural: {
-      name: "Recorrido cultural e histórico", price: 349000, discount: 0, risk: false, lodgingCapacity: 2,
-      departures: ["16 sep 2026", "23 sep 2026", "30 sep 2026"], payments: ["Transferencia", "Efectivo"],
-      inclusions: ["Alimentación incluida: opción gastronómica del recorrido", "Transporte incluido: trayecto programado"],
-      conditions: ["La modificación o cancelación depende de las condiciones vigentes del servicio.", "Los descuentos se aplican según la configuración comercial vigente."],
-    },
-  };
+  const services = getOperatorReservationServiceCatalog();
   const serviceSelect = form.querySelector("[data-reservation-service]");
+  if (serviceSelect) {
+    serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' +
+      Object.keys(services).map((key) => `<option value="${escapeHtml(key)}">${escapeHtml(services[key].name)}</option>`).join("");
+  }
   const departureSelect = form.querySelector("[data-reservation-departure]");
   const travelerInput = form.querySelector("[data-reservation-travelers]");
   const lodgingSelect = form.querySelector("[data-reservation-lodging]");
@@ -3279,7 +5437,12 @@ function setupOperatorReservationForm() {
 
   const renderServiceConfiguration = () => {
     const service = selectedService();
-    departureSelect.innerHTML = '<option value="">Selecciona una salida</option>';
+    const departurePlaceholder = !service
+      ? "Selecciona primero un servicio"
+      : service.departures.length
+        ? "Selecciona una salida"
+        : "Este servicio no tiene salidas configuradas";
+    departureSelect.innerHTML = `<option value="">${departurePlaceholder}</option>`;
     paymentSelect.innerHTML = '<option value="">Selecciona una modalidad</option>';
     departureSelect.disabled = !service;
     paymentSelect.disabled = !service;
@@ -3346,6 +5509,7 @@ function setupOperatorReservationForm() {
     const discount = projected * service.discount;
     sessionStorage.setItem("operatorReservationDraft", JSON.stringify({
       code,
+      createdAt: OPERATOR_TODAY_DATE,
       customer: form.querySelector("[data-holder-name]").value.trim(),
       email: "No registrado en esta vista",
       service: service.name,
@@ -3624,3 +5788,20 @@ setupOperatorReservationDetail();
 setupOperatorReservationForm();
 setupOperatorReservationCreated();
 setupOperatorReservationPayment();
+setupOperatorValidateSupport();
+setupOperatorPaymentFollowup();
+setupOperatorRefundRequests();
+setupOperatorRefundDetail();
+setupOperatorCancelModifyReservation();
+setupOperatorManageRefund();
+setupOperatorCash();
+setupOperatorCashHistory();
+setupOperatorCashMonthly();
+setupOperatorOperation();
+setupOperatorRegisterExecution();
+setupOperatorReports();
+setupOperatorRoleChrome();
+setupOperatorDashboardRole();
+setupOperatorCollaborators();
+setupOperatorRegisterCollaborator();
+setupOperatorCollaboratorDetail();
