@@ -62,7 +62,7 @@
             <label class="operator-form-wide" data-payment-entry>Monto recibido<input data-payment-amount type="text" inputmode="numeric" autocomplete="off" required /></label>
             <label class="operator-form-wide" data-payment-entry hidden>Soporte de transferencia<input data-payment-support type="file" accept=".pdf,.jpg,.jpeg,.png" /></label>
             <p class="operator-form-feedback operator-form-wide" data-payment-feedback>Registra el monto para actualizar el estado de pago y el saldo pendiente.</p>
-            <div class="operator-payment-completed operator-form-wide" data-payment-completed hidden><p>No existen valores pendientes por registrar para esta reserva.</p><div><span>Monto recibido</span><strong data-payment-paid>$0</strong></div></div>
+            <div class="operator-payment-completed operator-form-wide" data-payment-completed hidden><p data-payment-completed-note>No existen valores pendientes por registrar para esta reserva.</p><div><span>Total recibido</span><strong data-payment-paid>$0</strong></div><div class="operator-detail-list" data-payment-movements-list hidden></div></div>
             <div class="operator-form-actions operator-payment-actions operator-form-wide"><a class="operator-outline" data-payment-back href="admin-detalle-reserva.html?reservation=RES-1843">Volver a la reserva</a><button class="operator-primary" data-payment-submit type="submit">Registrar pago</button></div>
           </form>
           <div class="operator-form-actions operator-payment-review" data-payment-review hidden><button class="operator-outline" data-payment-reject type="button">Rechazar soporte</button><button class="operator-primary" data-payment-approve type="button">Validar soporte</button></div>

@@ -41,8 +41,11 @@
           </section>
           <section class="operator-panel">
             <p class="operator-eyebrow">02. Servicios y viajeros</p><h2>Oferta seleccionada</h2>
-            <div class="operator-form-grid"><label>Servicio principal<select data-reservation-service required><option value="">Selecciona un servicio</option></select></label><label>Salida disponible<select data-reservation-departure required disabled><option value="">Selecciona primero un servicio</option></select></label><label>Cantidad total de viajeros<input data-reservation-travelers required type="number" min="1" value="2" /></label><label>Hospedaje, si aplica<select data-reservation-lodging><option value="none">No aplica</option><option value="mirador">Ecohotel Mirador</option></select></label></div>
+            <div class="operator-form-grid"><label>Servicio principal<select data-reservation-service required><option value="">Selecciona un servicio</option></select></label><label>Fecha del servicio<input data-reservation-departure required type="date" disabled /><small data-reservation-departure-hint>Selecciona primero un servicio</small></label><label>Cantidad total de viajeros<input data-reservation-travelers required type="number" min="1" value="2" /></label><label>Hospedaje, si aplica<select data-reservation-lodging><option value="none">No aplica</option><option value="mirador">Ecohotel Mirador</option></select></label><label data-reservation-transport-field>Transporte, si aplica<select data-reservation-transport><option value="none">No aplica</option></select></label></div>
             <p class="operator-capacity-message" data-lodging-capacity aria-live="polite" hidden></p>
+            <p class="operator-capacity-message" data-transport-included-message aria-live="polite" hidden></p>
+            <div class="operator-detail-list" data-transport-detail hidden></div>
+            <p class="operator-capacity-message" data-transport-capacity aria-live="polite" hidden></p>
             <div class="operator-inclusions" data-service-inclusions hidden></div>
           </section>
           <section class="operator-panel" data-companions-section>

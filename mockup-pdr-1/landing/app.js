@@ -52,6 +52,8 @@ const THEMES = {
     titles: {
       inicio: "Home | Multitour",
       "client-dashboard": "Panel cliente | Multitour",
+      "client-reservations": "Mis reservas | Multitour",
+      "client-payments": "Mis pagos | Multitour",
       tours: "Tours | Multitour",
       lodging: "Alojamiento | Multitour",
       gastronomy: "Gastronomia | Multitour",
@@ -130,6 +132,8 @@ const THEMES = {
     titles: {
       inicio: "Home | Travesia Natural",
       "client-dashboard": "Panel cliente | Travesia Natural",
+      "client-reservations": "Mis reservas | Travesia Natural",
+      "client-payments": "Mis pagos | Travesia Natural",
       tours: "Tours | Travesia Natural",
       lodging: "Alojamiento | Travesia Natural",
       gastronomy: "Gastronomia | Travesia Natural",
@@ -393,7 +397,15 @@ function setupLoginForm(themeConfig, theme) {
       setOperatorRole(staffRole === "colaborador" ? "colaborador" : "admin");
     }
 
-    setFeedback("login", themeConfig.feedback.success, "is-success");
+    // BUG/UX corregido: el mensaje de exito estaba redactado para el ingreso de plataforma
+    // ("...para la operacion de la plataforma"), incluso cuando el perfil activo era
+    // Cliente. Ahora el texto depende del perfil realmente seleccionado.
+    const successMessage = activeRole === "platform-admin"
+      ? themeConfig.feedback.success
+      : activeRole === "staff"
+        ? "Inicio de sesion simulado (vista de referencia). Ingresando al portal del operador..."
+        : "Inicio de sesion simulado (vista de referencia). Ingresando a tu panel de cliente...";
+    setFeedback("login", successMessage, "is-success");
 
     window.setTimeout(() => {
       const nextPath = activeRole === "platform-admin" ? "admin-plataforma.html" : activeRole === "staff" ? "admin-operador.html" : "panel-cliente.html";
@@ -408,11 +420,21 @@ function setupLoginForm(themeConfig, theme) {
 // Administrador (linea 102/112/114/116/566/689).
 const OPERATOR_ROLE_KEY = "multitour-operator-role";
 
-// Restriccion base (PDR linea 114/554): el Colaborador operativo solo puede validar o
-// rechazar soportes de transferencia cuando el tenant lo habilite expresamente para ese
-// rol. Ningun tenant lo ha habilitado en este entorno local (no existe parametrizacion de
-// tenant real todavia): por defecto queda deshabilitado, no se inventa una habilitacion.
-const OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT = false;
+// BUG corregido: antes era una constante fija (siempre false), sin ninguna forma de que el
+// Administrador la habilitara. Restriccion base (PDR linea 114/554): el Colaborador
+// operativo solo puede validar o rechazar soportes de transferencia cuando el tenant lo
+// habilite expresamente; por defecto sigue deshabilitado, pero ahora es un parametro real
+// que el Administrador puede activar (Colaboradores). Mismo mecanismo/clave ya usado en el
+// Portal Angular.
+const OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT_KEY = "multitour-collaborator-can-validate-support";
+
+function getOperatorCollaboratorCanValidateSupport() {
+  try { return localStorage.getItem(OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT_KEY) === "true"; } catch { return false; }
+}
+
+function setOperatorCollaboratorCanValidateSupport(value) {
+  try { localStorage.setItem(OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT_KEY, value ? "true" : "false"); } catch { /* no-op */ }
+}
 
 function getOperatorRole() {
   try {
@@ -484,7 +506,7 @@ function setupOperatorDashboardRole() {
   // habilito al Colaborador para validar soportes; nunca habilita la accion sin permiso.
   setText(
     "[data-dashboard-pagos-label]",
-    OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT ? "Pagos y soportes por validar" : "Pagos pendientes de seguimiento",
+    getOperatorCollaboratorCanValidateSupport() ? "Pagos y soportes por validar" : "Pagos pendientes de seguimiento",
   );
   // Mismo criterio ya usado en Pagos: un soporte deja de estar pendiente cuando su
   // decision registrada (o su estado por defecto) queda en Pagado, Parcial o Rechazado.
@@ -558,6 +580,24 @@ function setupOperatorCollaborators() {
       })
       .join("");
   }
+
+  // BUG corregido: la validacion/rechazo de soportes por el Colaborador operativo era una
+  // constante fija (siempre deshabilitada, sin forma de que el Administrador la activara).
+  const supportStatus = document.querySelector("[data-collaborator-support-status]");
+  const supportToggle = document.querySelector("[data-toggle-collaborator-support]");
+  const renderSupportPermission = () => {
+    const enabled = getOperatorCollaboratorCanValidateSupport();
+    if (supportStatus) {
+      supportStatus.textContent = enabled ? "Habilitado" : "Deshabilitado";
+      supportStatus.className = `operator-status ${enabled ? "is-confirmed" : "is-cancelled"}`;
+    }
+    if (supportToggle) supportToggle.textContent = enabled ? "Deshabilitar" : "Habilitar";
+  };
+  renderSupportPermission();
+  supportToggle?.addEventListener("click", () => {
+    setOperatorCollaboratorCanValidateSupport(!getOperatorCollaboratorCanValidateSupport());
+    renderSupportPermission();
+  });
 }
 
 // PDR linea 129: nombre completo, correo electronico, contrasena inicial y confirmacion
@@ -2238,6 +2278,7 @@ function setupTourCheckout(theme) {
         status: "Pendiente pago en efectivo",
       };
       window.localStorage.setItem(storageKey, JSON.stringify(cashBooking));
+      recordClientReservation(cashBooking);
       window.localStorage.removeItem(checkoutStorageKey);
       window.location.href = withTheme("panel-cliente.html", theme);
       return;
@@ -2249,12 +2290,14 @@ function setupTourCheckout(theme) {
         status: "Pendiente pago de abono",
       };
       window.localStorage.setItem(storageKey, JSON.stringify(depositBooking));
+      recordClientReservation(depositBooking);
       window.localStorage.removeItem(checkoutStorageKey);
       window.location.href = withTheme("panel-cliente.html", theme);
       return;
     }
 
     window.localStorage.setItem(storageKey, JSON.stringify(finalBooking));
+    recordClientReservation(finalBooking);
     window.localStorage.removeItem(checkoutStorageKey);
     window.location.href = withTheme("panel-cliente.html", theme);
   });
@@ -2435,12 +2478,129 @@ function setupTourPaymentTransfer(theme) {
     };
 
     window.localStorage.setItem(storageKey, JSON.stringify(pendingBooking));
+    recordClientReservation(pendingBooking);
     window.location.href = withTheme("panel-cliente.html", theme);
   });
 }
 
+// Historial propio del Cliente (RN vocabulario de estados de reserva: Pendiente de pago /
+// Confirmada / En ejecucion / Finalizada / Cancelada). Reutiliza el MISMO mecanismo local
+// ya usado por el flujo de checkout (multitour-dashboard-booking = reserva mas reciente);
+// esto solo agrega que cada reserva completada quede tambien visible en un historial propio
+// ("Ver mis reservas"), en vez de perderse al sobrescribirse con la siguiente.
+const CLIENT_RESERVATIONS_HISTORY_KEY = "multitour-client-reservations";
+const CLIENT_RESERVATION_STATES = ["Pendiente de pago", "Confirmada", "En ejecución", "Finalizada", "Cancelada"];
+
+function normalizeClientReservationStatus(rawStatus) {
+  const exact = CLIENT_RESERVATION_STATES.find((state) => state.toLowerCase() === String(rawStatus || "").toLowerCase());
+  if (exact) return exact;
+  if (String(rawStatus || "").toLowerCase().includes("pendiente")) return "Pendiente de pago";
+  return "Confirmada";
+}
+
+function getClientReservationHistory() {
+  try { return JSON.parse(localStorage.getItem(CLIENT_RESERVATIONS_HISTORY_KEY) || "[]"); } catch { return []; }
+}
+
+function recordClientReservation(booking) {
+  if (!booking || !booking.code) return;
+  const history = getClientReservationHistory();
+  const normalized = { ...booking, status: normalizeClientReservationStatus(booking.status) };
+  const index = history.findIndex((item) => item.code === normalized.code);
+  if (index === -1) history.unshift(normalized); else history[index] = normalized;
+  localStorage.setItem(CLIENT_RESERVATIONS_HISTORY_KEY, JSON.stringify(history));
+}
+
+// Identidad visual del tenant (PDR: nombre/logo configurado por tenant, o identidad
+// predeterminada de Multitour si no existe). NO existe hoy una sesion de cliente que
+// indique a que tenant especifico pertenece: se usa el primer tenant activo configurado
+// (mecanismo local ya existente en Plataforma) como aproximacion razonable, o "Multitour"
+// si no hay ninguno. BACKEND/SESION FALTANTE — no hay forma real de saber el tenant del
+// cliente autenticado sin una sesion real.
+function resolveClientTenantName() {
+  try {
+    const tenants = getPlatformTenants();
+    const active = tenants.find((tenant) => tenant.status === "Activo");
+    return active?.name || "Multitour";
+  } catch {
+    return "Multitour";
+  }
+}
+
+function setupDashboardIdentity() {
+  const brand = document.querySelector("[data-tenant-brand]");
+  if (brand) brand.textContent = resolveClientTenantName();
+}
+
+// Descuentos vigentes (RF-005A): misma fuente real que Descuentos del Administrador
+// (getOperatorDiscounts), filtrando solo activos y dentro de vigencia hoy. Nunca una lista
+// hardcodeada independiente.
+function setupDashboardPromotions() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const container = document.querySelector(".travel-dashboard-promos");
+  if (!container) return;
+  const services = getOperatorCatalogServiceOptions();
+  const today = OPERATOR_TODAY_DATE;
+  const vigentes = getOperatorDiscounts().filter(
+    (discount) => discount.active && (!discount.start || discount.start <= today) && (!discount.end || discount.end >= today),
+  );
+  if (vigentes.length === 0) {
+    container.innerHTML = '<p class="travel-dashboard-copy">No hay descuentos vigentes en este momento.</p>';
+    return;
+  }
+  container.innerHTML = vigentes
+    .map((discount) => {
+      const label = discount.serviceLabel || services.find((service) => service.key === discount.service)?.label || discount.service;
+      const validUntil = discount.end ? `Válido hasta ${formatOperatorDate(discount.end)}` : "Vigencia activa";
+      return `<article class="travel-dashboard-promo promo-cyan"><span class="travel-dashboard-promo-tag">${discount.percentage}% de descuento</span><strong>${escapeHtml(label)}</strong><p>${escapeHtml(validUntil)}</p><a href="tours.html" data-route="tours">Ver detalle</a></article>`;
+    })
+    .join("");
+}
+
+// Experiencias destacadas (RF-004): misma fuente real que Catálogos del Administrador
+// (OPERATOR_CATALOG_DEFAULTS + getOperatorCatalog), filtrando solo tours activos y dentro
+// de su vigencia hoy. Nunca una segunda lista hardcodeada distinta al catalogo real.
+function setupDashboardRecommendations() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const container = document.querySelector(".travel-dashboard-recommendations");
+  if (!container) return;
+  const today = OPERATOR_TODAY_DATE;
+  const tourCatalogId = "catalogo-catalog-panel";
+  const withinValidity = (startText, endText) => {
+    const start = parseOperatorDate(startText);
+    const end = parseOperatorDate(endText) || start;
+    return Boolean(start) && today >= start && today <= (end || start);
+  };
+  const cards = [];
+  OPERATOR_CATALOG_DEFAULTS[tourCatalogId].records.forEach((record) => {
+    if (!resolveOperatorServiceActive(tourCatalogId, record.key, record.active)) return;
+    const fields = getOperatorServiceFields(tourCatalogId, record.key) || record.fields;
+    const [start, end] = (fields.validity || "").split(" - ");
+    if (!withinValidity(start, end)) return;
+    cards.push({ name: fields.name || record.key, tariff: fields.tariff || "Por configurar" });
+  });
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "tour" || !resolveOperatorServiceActive(tourCatalogId, resource.id, resource.active)) return;
+    if (!(today >= resource.start && today <= resource.end)) return;
+    cards.push({ name: resource.name, tariff: formatCOP(resource.price) });
+  });
+  if (cards.length === 0) {
+    container.innerHTML = '<p class="travel-dashboard-copy">No hay experiencias disponibles en este momento.</p>';
+    return;
+  }
+  container.innerHTML = cards
+    .map(
+      (card, index) => `<article class="travel-dashboard-destination-card"><div class="travel-dashboard-destination-media dashboard-media-${index % 2 === 0 ? "one" : "two"}"></div><div class="travel-dashboard-destination-body"><strong>${escapeHtml(card.name)}</strong><div class="travel-dashboard-destination-meta"><small>Desde</small><em>${escapeHtml(card.tariff)}</em></div><a href="tours.html" data-route="tours">Ver detalle</a></div></article>`,
+    )
+    .join("");
+}
+
 function setupDashboardBooking() {
   if (document.body.dataset.screen !== "client-dashboard") return;
+
+  setupDashboardIdentity();
+  setupDashboardPromotions();
+  setupDashboardRecommendations();
 
   const form = document.querySelector("[data-booking-form]");
   const clearButton = document.querySelector("[data-booking-clear]");
@@ -2481,9 +2641,26 @@ function setupDashboardBooking() {
     }
   };
 
+  // "Continuar pago" (accion rapida) solo debe aparecer cuando exista una reserva propia
+  // realmente pendiente de pago: nunca como decoracion fija sin importar el estado real.
+  const continuePaymentCard = document.querySelector('[data-action="continue-payment"]');
+  const syncContinuePayment = (booking) => {
+    if (!continuePaymentCard) return;
+    const status = booking ? normalizeClientReservationStatus(booking.status) : null;
+    const isPending = status === "Pendiente de pago";
+    continuePaymentCard.hidden = !isPending;
+    if (isPending) continuePaymentCard.setAttribute("href", `${withTheme("finalizar-reserva.html", getTheme())}&tour=${encodeURIComponent(booking.tourKey || "")}`);
+  };
+
   const renderBooking = (booking) => {
-    if (!booking) {
-      experienceNode.textContent = "Aún no tienes una reserva en curso";
+    // Una reserva ya Finalizada o Cancelada no debe mostrarse como "activa" en este
+    // resumen (aunque si sigue disponible en el historial de "Ver mis reservas").
+    const status = booking ? normalizeClientReservationStatus(booking.status) : null;
+    const isActiveBooking = Boolean(booking) && status !== "Finalizada" && status !== "Cancelada";
+    syncContinuePayment(isActiveBooking ? booking : null);
+
+    if (!isActiveBooking) {
+      experienceNode.textContent = "No tienes reservas activas";
       datesNode.textContent = "Explora el catálogo y selecciona los servicios para comenzar una nueva reserva.";
       codeNode.hidden = true;
       statusBlock.hidden = true;
@@ -2500,7 +2677,7 @@ function setupDashboardBooking() {
     statusBlock.hidden = false;
     sectionAction.hidden = false;
     bookingCard.classList.remove("is-empty");
-    statusNode.textContent = booking.status || "Pendiente de pago";
+    statusNode.textContent = status;
     travelersNode.textContent = `Viajeros: ${booking.travelers}`;
     projectedValueNode.textContent = `Valor proyectado: ${formatValue(booking.projectedValue || booking.budget)}`;
     finalValueNode.textContent = `Valor final: ${formatValue(booking.finalValue || booking.budget)}`;
@@ -2527,6 +2704,7 @@ function setupDashboardBooking() {
 
   const writeBooking = (booking) => {
     window.localStorage.setItem(storageKey, JSON.stringify(booking));
+    recordClientReservation(booking);
     renderBooking(booking);
   };
 
@@ -2567,6 +2745,89 @@ function setupDashboardBooking() {
       renderBooking(null);
     });
   }
+}
+
+const CLIENT_RESERVATION_STATUS_CLASS = {
+  "Pendiente de pago": "is-pending",
+  "Confirmada": "is-confirmed",
+  "En ejecución": "is-execution",
+  "Finalizada": "is-finalized",
+  "Cancelada": "is-cancelled",
+};
+
+// "Ver mis reservas" (histórico propio del Cliente): SOLO sus propias reservas ya
+// registradas via el checkout (recordClientReservation), nunca reservas de otro cliente ni
+// de otro tenant (mismo almacenamiento local por navegador, sin mezclar datos globales).
+function setupClientReservationsScreen() {
+  if (document.body.dataset.screen !== "client-reservations") return;
+  setupDashboardIdentity();
+  const list = document.querySelector("[data-reservations-list]");
+  const empty = document.querySelector("[data-reservations-empty]");
+  if (!list) return;
+  const history = getClientReservationHistory();
+  if (history.length === 0) {
+    list.hidden = true;
+    if (empty) empty.hidden = false;
+    return;
+  }
+  if (empty) empty.hidden = true;
+  list.hidden = false;
+  list.innerHTML = history
+    .map((item) => {
+      const status = normalizeClientReservationStatus(item.status);
+      const statusClass = CLIENT_RESERVATION_STATUS_CLASS[status] || "";
+      return `<article class="travel-dashboard-reservation-card">
+        <div class="travel-dashboard-reservation-main">
+          <div class="travel-dashboard-reservation-copy">
+            <strong>${escapeHtml(item.experience || "Reserva")}</strong>
+            <p>${escapeHtml(item.startDate || "")} - ${escapeHtml(item.endDate || "")}</p>
+            <small>Reserva: ${escapeHtml(item.code || "")}</small>
+          </div>
+          <div class="travel-dashboard-reservation-status">
+            <span class="travel-dashboard-status-badge operator-status ${statusClass}">${status}</span>
+            <small>Viajeros: ${escapeHtml(String(item.travelers || ""))}</small>
+            <div class="travel-dashboard-reservation-values"><strong>${escapeHtml(item.budget || item.finalValue || "")}</strong></div>
+          </div>
+        </div>
+      </article>`;
+    })
+    .join("");
+}
+
+// "Mis pagos" del Cliente: SOLO informacion economica de sus propias reservas, sin
+// validar/rechazar soportes ni consultar pagos de otros clientes (esas acciones son del
+// Colaborador/Administrador, nunca del Cliente).
+function setupClientPaymentsScreen() {
+  if (document.body.dataset.screen !== "client-payments") return;
+  setupDashboardIdentity();
+  const list = document.querySelector("[data-payments-list]");
+  const empty = document.querySelector("[data-payments-empty]");
+  if (!list) return;
+  const history = getClientReservationHistory();
+  if (history.length === 0) {
+    list.hidden = true;
+    if (empty) empty.hidden = false;
+    return;
+  }
+  if (empty) empty.hidden = true;
+  list.hidden = false;
+  list.innerHTML = history
+    .map((item) => {
+      const status = normalizeClientReservationStatus(item.status);
+      return `<article class="travel-dashboard-reservation-card">
+        <div class="travel-dashboard-reservation-main">
+          <div class="travel-dashboard-reservation-copy">
+            <strong>${escapeHtml(item.experience || "Reserva")}</strong>
+            <small>Reserva: ${escapeHtml(item.code || "")}</small>
+          </div>
+          <div class="travel-dashboard-reservation-status">
+            <span class="travel-dashboard-status-badge">${status}</span>
+            <div class="travel-dashboard-reservation-values"><strong>${escapeHtml(item.budget || item.finalValue || "")}</strong></div>
+          </div>
+        </div>
+      </article>`;
+    })
+    .join("");
 }
 
 function setupCompanionsForm() {
@@ -2837,6 +3098,22 @@ function setOperatorPaymentSupportState(code, state) {
   localStorage.setItem(OPERATOR_PAYMENT_SUPPORT_STATE_KEY, JSON.stringify(all));
 }
 
+// Trazabilidad de abonos (CORREGIR: la relacion economica no es consistente si un monto
+// representa el total acumulado sin desglose). Cada pago/abono realmente registrado queda
+// como un movimiento propio, append-only, nunca se reemplaza por un unico numero.
+const OPERATOR_PAYMENT_MOVEMENTS_KEY = "multitour-payment-movements";
+
+function getOperatorPaymentMovements(code) {
+  try { return (JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_MOVEMENTS_KEY) || "{}"))[code] || []; } catch { return []; }
+}
+
+function addOperatorPaymentMovement(code, amount, method) {
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_MOVEMENTS_KEY) || "{}"); } catch { all = {}; }
+  all[code] = [...(all[code] || []), { amount, method, registeredAt: new Date().toISOString() }];
+  localStorage.setItem(OPERATOR_PAYMENT_MOVEMENTS_KEY, JSON.stringify(all));
+}
+
 function getOperatorPaymentSupportLog() {
   try { return JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_SUPPORT_LOG_KEY) || "[]"); } catch { return []; }
 }
@@ -2853,6 +3130,18 @@ function setupOperatorPayments() {
   const supportState = getOperatorPaymentSupportState();
   document.querySelectorAll("[data-payment-row]").forEach((row) => {
     const code = row.dataset.paymentRow;
+    // BUG corregido: "Valor pendiente" para seguimiento (follow-up) era un monto fijo en
+    // el HTML, desconectado del saldo real de la reserva (ej. RES-1837 mostraba $800.000
+    // mientras Detalle/Gestion de pago mostraban un saldo real distinto). Ahora se deriva
+    // del MISMO saldo (misma fuente que Detalle/Operación/Reservas), solo para filas de
+    // seguimiento; las de validacion de soporte conservan su monto pendiente de validar.
+    if (row.querySelector("[data-register-followup]")) {
+      const amountCell = row.querySelector("[data-payment-row-amount]");
+      if (amountCell) {
+        const reservation = OPERATOR_RESERVATIONS[code];
+        if (reservation) amountCell.textContent = reservation.balance;
+      }
+    }
     const decision = supportState[code];
     if (!decision) return;
     const statusEl = row.querySelector("[data-payment-row-status]");
@@ -2864,8 +3153,13 @@ function setupOperatorPayments() {
     if (actionCell) actionCell.innerHTML = "";
     row.dataset.paymentPending = "false";
   });
+  // Regla (PDR linea 554): "Validar soporte" solo se ofrece cuando el tenant habilito ese
+  // flujo para el Colaborador operativo; sin ese permiso, la columna Accion nunca queda
+  // vacia y en su lugar consulta el mismo soporte en modo solo lectura (misma pantalla).
+  const collaboratorCanValidate = !isOperatorColaborador() || getOperatorCollaboratorCanValidateSupport();
   document.querySelectorAll("[data-validate-support]").forEach((button) => {
     const code = button.dataset.validateSupport;
+    if (!collaboratorCanValidate) button.textContent = "Ver soporte";
     button.addEventListener("click", () => {
       window.location.href = withTheme(`admin-validar-soporte.html?reservation=${code}`, getTheme());
     });
@@ -2879,6 +3173,18 @@ function setupOperatorPayments() {
   document.querySelector("[data-consult-refund-requests]")?.addEventListener("click", () => {
     window.location.href = withTheme("admin-solicitudes-devolucion.html", getTheme());
   });
+
+  // Regla (RF-015A/RF-015B): esta pantalla es compartida; el Colaborador operativo consulta
+  // y ejecuta lo ya autorizado, nunca decide validaciones o autorizaciones nuevas. El
+  // Administrador conserva exactamente el texto e interacciones ya aprobados.
+  if (isOperatorColaborador()) {
+    const heroBody = document.querySelector("[data-payments-hero-body]");
+    if (heroBody) heroBody.textContent = "Consulta pagos, registra seguimientos y recepciones operativas, y ejecuta devoluciones previamente autorizadas cuando corresponda.";
+    const refundTitle = document.querySelector("[data-refund-panel-title]");
+    if (refundTitle) refundTitle.textContent = "Devoluciones autorizadas";
+    const refundCopy = document.querySelector("[data-refund-panel-copy]");
+    if (refundCopy) refundCopy.textContent = "Consulta las devoluciones autorizadas por el Administrador y registra la salida de dinero cuando corresponda.";
+  }
   const counter = document.querySelector(".operator-panel-head .operator-status.is-pending");
   const panel = counter?.closest(".operator-panel");
   const pendingRows = Array.from(panel?.querySelectorAll("[data-payment-row]") || []).filter((row) => row.dataset.paymentPending !== "false");
@@ -2950,19 +3256,34 @@ function renderSupportPreview(form, filename) {
 function setupOperatorValidateSupport() {
   if (document.body.dataset.screen !== "operator-validate-support") return;
   // Restriccion base (PDR linea 114/554): el Colaborador operativo solo puede validar o
-  // rechazar soportes de transferencia cuando el tenant lo habilite expresamente.
-  if (isOperatorColaborador() && !OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT) {
-    guardOperatorAdminOnlyScreen("admin-pagos.html");
-    return;
+  // rechazar soportes de transferencia cuando el tenant lo habilite expresamente. Sin ese
+  // permiso, la MISMA pantalla se reutiliza como consulta de solo lectura: cambia titulo,
+  // encabezado y oculta motivo/Aprobar/Rechazar (no se inventa una pantalla nueva).
+  const readOnlyForRole = isOperatorColaborador() && !getOperatorCollaboratorCanValidateSupport();
+  const titleEl = document.querySelector("[data-validate-title]");
+  const headingEl = document.querySelector("[data-validate-heading]");
+  if (readOnlyForRole) {
+    if (titleEl) titleEl.textContent = "Ver soporte";
+    if (headingEl) headingEl.textContent = "Consulta del comprobante de pago";
   }
+
   const code = new URLSearchParams(window.location.search).get("reservation") || "";
   const record = OPERATOR_PAYMENT_SUPPORT_RECORDS[code];
   const reservation = OPERATOR_RESERVATIONS[code];
   const form = document.querySelector("[data-validate-support-form]");
   const feedback = document.querySelector("[data-validate-feedback]");
+  const reasonField = form?.querySelector("[data-validate-reason-field]");
+  const approveButton = form?.querySelector("[data-validate-approve]");
+  const rejectButton = form?.querySelector("[data-validate-reject]");
   // El boton "Ver soporte" queda excluido: revisar el comprobante debe seguir disponible
   // aunque el soporte ya haya sido decidido o no se encuentre la reserva.
   const disableAll = () => form?.querySelectorAll("input, textarea, button:not([data-validate-support-view])").forEach((el) => { el.disabled = true; });
+
+  if (readOnlyForRole) {
+    if (reasonField) reasonField.hidden = true;
+    if (approveButton) approveButton.hidden = true;
+    if (rejectButton) rejectButton.hidden = true;
+  }
 
   if (!record || !reservation) {
     if (feedback) feedback.textContent = "No se encontró el soporte de pago seleccionado. Vuelve a Pagos e ingresa nuevamente por Validar soporte.";
@@ -2979,6 +3300,12 @@ function setupOperatorValidateSupport() {
   form.querySelector("[data-validate-status]").value = currentStatus;
   renderSupportPreview(form, record.support);
 
+  if (readOnlyForRole) {
+    if (feedback) feedback.textContent = "Consulta de solo lectura: el Colaborador operativo no tiene permiso para validar este soporte.";
+    disableAll();
+    return;
+  }
+
   if (existingState) {
     if (feedback) {
       const decidedLabel = existingState.status === "Rechazado" ? "rechazado" : "validado";
@@ -2989,8 +3316,6 @@ function setupOperatorValidateSupport() {
   }
 
   const reasonInput = form.querySelector("[data-validate-reason]");
-  const approveButton = form.querySelector("[data-validate-approve]");
-  const rejectButton = form.querySelector("[data-validate-reject]");
 
   const decide = (action) => {
     const reason = reasonInput.value.trim();
@@ -3133,10 +3458,13 @@ function setupOperatorRefundRequests() {
   if (tbody) {
     tbody.innerHTML = list
       .map((request) => {
+        // Regla (PDR linea 566): autorizar/rechazar es exclusivo del Administrador. El
+        // Colaborador operativo nunca ve esa etiqueta como si pudiera decidir; para el mismo
+        // estado solo puede consultar (la pantalla de detalle ya oculta el panel de decision).
         const actionLabel = request.pendingCalculation
           ? "Consultar detalle"
           : request.status === "Pendiente de autorización"
-            ? "Autorizar devolución"
+            ? (isOperatorColaborador() ? "Consultar detalle" : "Autorizar devolución")
             : request.status === "Autorizada"
               ? "Registrar ejecución"
               : "Consultar detalle";
@@ -3182,7 +3510,9 @@ function setupOperatorRefundDetail() {
     setText("[data-refund-amount]", current.amount);
     setText("[data-refund-decision-note-display]", current.authorizationNote || current.rejectionReason || "No aplica");
     setText("[data-refund-owner]", current.executedBy || current.rejectedBy || current.authorizedBy || "Sin responsable asignado");
-    setText("[data-refund-date]", current.requestedAt);
+    // Regla (PDR linea 566): toda devolucion registra su fecha; una vez ejecutada, la fecha
+    // relevante es la de la ejecucion real (no la fecha original de la solicitud).
+    setText("[data-refund-date]", current.executedAt ? new Date(current.executedAt).toLocaleString("es-CO") : current.requestedAt);
     setText("[data-refund-method]", current.exitMethod || "No aplica");
     setText("[data-refund-cash-movement]", current.cashMovementRef || "No aplica");
     setText("[data-refund-status]", current.status);
@@ -3612,6 +3942,22 @@ function resolveOperatorReservationForOperation(code) {
     reservation = { ...reservation, service: modification.service, date: modification.date, travelers: modification.travelers, companions: modification.companions };
   }
 
+  // Regla: la condicion de ejecucion depende del estado economico REAL de la reserva. Si el
+  // soporte de pago ya fue decidido (Validar soporte), se refleja aqui con la MISMA regla ya
+  // aprobada en Gestion de pago (saldo en 0 -> Confirmada; saldo pendiente -> sigue Pendiente
+  // de pago), para que "Registrar ejecución" se habilite cuando corresponda.
+  const supportDecision = getOperatorPaymentSupportState()[code];
+  if (supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+    reservation = {
+      ...reservation,
+      paid: supportDecision.paid,
+      balance: supportDecision.balance,
+      payment: supportDecision.status,
+      status: supportDecision.status === "Pagado" ? "Confirmada" : "Pendiente de pago",
+      statusClass: supportDecision.status === "Pagado" ? "is-confirmed" : "is-pending",
+    };
+  }
+
   const cancellation = getOperatorReservationCancellation(code);
   if (cancellation) {
     reservation = { ...reservation, status: "Cancelada", statusClass: "is-cancelled", execution: "No ejecutada" };
@@ -3620,9 +3966,22 @@ function resolveOperatorReservationForOperation(code) {
 
   const execution = getOperatorReservationExecution(code);
   if (execution) {
-    reservation = { ...reservation, status: "En ejecución", statusClass: "is-execution", execution: "En ejecución" };
+    reservation = execution.finalized
+      ? { ...reservation, status: "Finalizada", statusClass: "is-finalized", execution: "Finalizada" }
+      : { ...reservation, status: "En ejecución", statusClass: "is-execution", execution: "En ejecución" };
   }
   return reservation;
+}
+
+// Finalizar ejecución (Seccion 16 "Reserva": transicion En ejecucion a Finalizada). No
+// modifica precio, descuentos, pagos ni saldo: solo cierra la ejecucion y su trazabilidad
+// (responsable y fecha/hora).
+function finalizeOperatorReservationExecution(code, actor) {
+  const execution = getOperatorReservationExecution(code);
+  if (!execution || execution.finalized) return null;
+  const finalized = { ...execution, finalized: true, finalizedAt: new Date().toISOString(), finalizedBy: actor };
+  setOperatorReservationExecution(code, finalized);
+  return finalized;
 }
 
 // Regla 1 (CORREGIR): el contador de "próximas" sale siempre de las ejecuciones
@@ -3662,9 +4021,11 @@ function setupOperatorOperation() {
           // Regla 5: mientras la reserva no cumpla la condicion de pago vigente
           // (Confirmada), no se permite iniciar ejecucion; se mantiene "Ver pagos".
           const canExecute = reservation.statusClass === "is-confirmed";
+          // Regla (CORREGIR): "Ver pagos" debe conservar el ID de la reserva seleccionada,
+          // abriendo su Gestion de pago real (nunca la lista generica sin contexto).
           const action = canExecute
             ? `<a href="${withTheme(`admin-registrar-ejecucion.html?reservation=${reservation.code}`, getTheme())}">Registrar ejecución</a>`
-            : `<a href="admin-pagos.html" data-route="operatorPayments">Ver pagos</a>`;
+            : `<a href="${withTheme(`admin-gestion-pago.html?reservation=${reservation.code}`, getTheme())}">Ver pagos</a>`;
           return `<tr><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>#${escapeHtml(reservation.code)} · ${reservation.travelers} viajeros</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td>${action}</td></tr>`;
         })
         .join("");
@@ -3684,7 +4045,8 @@ function setupOperatorOperation() {
           const executedText = execution.served ? `${execution.executed} viajeros` : "No prestado";
           const causalText = execution.causal || "—";
           const detailHref = withTheme(`admin-detalle-reserva.html?reservation=${code}`, getTheme());
-          return `<tr><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${execution.reserved} viajeros</td><td>${escapeHtml(executedText)}</td><td>${escapeHtml(causalText)}</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td><a href="${detailHref}">Ver detalle</a></td></tr>`;
+          const finalizeAction = execution.finalized ? "" : ` · <button type="button" class="operator-row-toggle" data-finalize-execution="${escapeHtml(code)}">Finalizar ejecución</button>`;
+          return `<tr><td>#${escapeHtml(code)}</td><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${execution.reserved} viajeros</td><td>${escapeHtml(executedText)}</td><td>${escapeHtml(causalText)}</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td>${escapeHtml(execution.registeredBy || "—")}</td><td><a href="${detailHref}">Ver detalle</a>${finalizeAction}</td></tr>`;
         })
         .join("");
     }
@@ -3714,6 +4076,20 @@ function setupOperatorOperation() {
   renderExecutions();
   renderCostExecutionOptions();
   renderCostAvailability();
+
+  // Finalizar ejecución: accesible desde "Ejecuciones registradas" para cualquier
+  // ejecucion En ejecucion. No modifica precio/descuentos/pagos/saldo, solo el estado
+  // operativo y su trazabilidad (responsable + fecha/hora).
+  document.querySelector("[data-operation-executions]")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-finalize-execution]");
+    if (!button) return;
+    const code = button.dataset.finalizeExecution;
+    finalizeOperatorReservationExecution(code, getOperatorRoleLabel());
+    renderUpcoming();
+    renderExecutions();
+    renderCostExecutionOptions();
+    renderCostAvailability();
+  });
 
   const costForm = document.querySelector("[data-cost-form]");
   const costFeedback = document.querySelector("[data-cost-feedback]");
@@ -3943,6 +4319,27 @@ function setupOperatorReservations() {
       const balanceCell = row.querySelector("td:nth-child(5)");
       if (balanceCell) balanceCell.textContent = modification.balance;
     }
+    // BUG corregido: el listado no reflejaba una decision de soporte de pago ya validada ni
+    // una ejecucion/finalizacion ya registrada, por lo que podia mostrar un estado distinto
+    // al de Operación/Detalle para la MISMA reserva (misma fuente/claves que ambas pantallas).
+    const supportDecision = getOperatorPaymentSupportState()[code];
+    if (supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+      const statusEl = row.querySelector(".operator-status");
+      const balanceCell = row.querySelector("td:nth-child(5)");
+      if (statusEl) {
+        statusEl.textContent = supportDecision.status === "Pagado" ? "Confirmada" : "Pendiente de pago";
+        statusEl.className = `operator-status ${supportDecision.status === "Pagado" ? "is-confirmed" : "is-pending"}`;
+      }
+      if (balanceCell) balanceCell.textContent = supportDecision.balance;
+    }
+    const execution = getOperatorReservationExecution(code);
+    if (execution) {
+      const statusEl = row.querySelector(".operator-status");
+      if (statusEl) {
+        if (execution.finalized) { statusEl.textContent = "Finalizada"; statusEl.className = "operator-status is-finalized"; }
+        else { statusEl.textContent = "En ejecución"; statusEl.className = "operator-status is-execution"; }
+      }
+    }
     // Una cancelacion registrada (RF-008A/linea 972) siempre deja la reserva en "Cancelada",
     // tenga o no dinero pagado que devolver: nunca debe seguir mostrandose en un estado
     // anterior como "En ejecucion".
@@ -4012,25 +4409,6 @@ function setOperatorServiceFields(catalogId, recordKey, fields) {
   localStorage.setItem(OPERATOR_SERVICE_FIELDS_KEY, JSON.stringify(map));
 }
 
-// Salidas reales configuradas por servicio (RF-007/linea 452: distintas de la vigencia
-// comercial). Fuente unica reutilizada por Crear reserva: cuando el Administrador agrega o
-// elimina una salida aqui, Crear reserva lo refleja automaticamente sin duplicar la lista.
-const OPERATOR_SERVICE_DEPARTURES_KEY = "multitour-service-departures";
-
-function getOperatorServiceDeparturesMap() {
-  try { return JSON.parse(localStorage.getItem(OPERATOR_SERVICE_DEPARTURES_KEY) || "{}"); } catch { return {}; }
-}
-
-function getOperatorServiceDepartures(serviceKey) {
-  return getOperatorServiceDeparturesMap()[serviceKey] || null;
-}
-
-function setOperatorServiceDepartures(serviceKey, dates) {
-  const map = getOperatorServiceDeparturesMap();
-  map[serviceKey] = dates;
-  localStorage.setItem(OPERATOR_SERVICE_DEPARTURES_KEY, JSON.stringify(map));
-}
-
 // Espejo de los registros demo ya definidos en cada HTML de "Gestionar <catalogo>",
 // usando como clave el mismo texto de la primera celda que ya identifica cada fila.
 const OPERATOR_MONTH_ABBR = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
@@ -4079,10 +4457,105 @@ const OPERATOR_CATALOG_DEFAULTS = {
     cardIndex: 3,
     backHref: "admin-gestionar-transporte.html",
     records: [
-      { key: "Transporte programado", active: true, fields: { name: "Transporte programado", capacity: "14", tariff: "Por configurar", cost: "Por configurar", policy: "Sin apartamiento previo", validity: "Por configurar" } },
+      // AJUSTE: sin capacidad demo hardcodeada ("14"). La capacidad es exclusivamente
+      // parametrizable por el Administrador (Configurar transporte); "Por configurar"
+      // hasta que la defina, igual que tarifa/costo/vigencia.
+      { key: "Transporte programado", active: true, fields: { name: "Transporte programado", route: "Por configurar", capacity: "Por configurar", tariff: "Por configurar", cost: "Por configurar", policy: "Sin apartamiento previo", validity: "Por configurar" } },
     ],
   },
 };
+
+// Vinculo Tour -> Transporte (Nuevo servicio, "Incluye transporte"). RN-TRA-002: la
+// tarifa por persona puede ser propia de CADA tour ("tariffOverride"), sin sobrescribir la
+// tarifa generica del recurso de Transporte para otros tours que lo usen sin su propia
+// tarifa. Mismo mecanismo/clave ya usado y aprobado en el Portal Angular.
+const OPERATOR_TOUR_TRANSPORT_LINKS_KEY = "multitour-tour-transport-links";
+
+function getOperatorTourTransportLinks() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_TOUR_TRANSPORT_LINKS_KEY) || "{}"); } catch { return {}; }
+}
+
+function setOperatorTourTransportLink(tourKey, transportKey, tariffOverride) {
+  const links = getOperatorTourTransportLinks();
+  if (transportKey) {
+    links[tourKey] = { transportKey, tariffOverride: tariffOverride > 0 ? tariffOverride : undefined };
+  } else {
+    delete links[tourKey];
+  }
+  localStorage.setItem(OPERATOR_TOUR_TRANSPORT_LINKS_KEY, JSON.stringify(links));
+}
+
+// Transportes realmente disponibles para asociar a un Tour: solo activos y vigentes,
+// igual que Gestionar transporte. Nunca se hardcodea un transporte nuevo aqui; si no hay
+// tarifa/capacidad parametrizada, se mantiene "Por configurar".
+function getOperatorActiveTransportOptions() {
+  const options = [];
+  const defaultRecord = OPERATOR_CATALOG_DEFAULTS["transporte-catalog-panel"]?.records[0];
+  if (defaultRecord && resolveOperatorServiceActive("transporte-catalog-panel", defaultRecord.key, defaultRecord.active)) {
+    const fields = getOperatorServiceFields("transporte-catalog-panel", defaultRecord.key) || defaultRecord.fields;
+    options.push({
+      key: defaultRecord.key,
+      name: fields.name || defaultRecord.key,
+      route: (fields.route || "").trim() || "Por configurar",
+      price: parseCOP(fields.tariff),
+      capacity: parseCOP(fields.capacity) || null,
+      cost: parseCOP(fields.cost),
+    });
+  }
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "transport" || !resource.active) return;
+    options.push({
+      key: resource.id,
+      name: resource.name,
+      route: (resource.route || "").trim() || "Por configurar",
+      price: resource.price,
+      capacity: resource.capacity,
+      cost: resource.cost || 0,
+    });
+  });
+  return options;
+}
+
+function getOperatorTransportOptionByKey(key) {
+  return getOperatorActiveTransportOptions().find((option) => option.key === key) || null;
+}
+
+// RN-TRA-002: si este Tour tiene tarifa propia (tariffOverride), se antepone a la tarifa
+// generica del transporte, sin modificarla para otros tours que usen el mismo recurso.
+function getOperatorTourTransport(tourKey) {
+  const link = getOperatorTourTransportLinks()[tourKey];
+  if (!link) return null;
+  const option = getOperatorTransportOptionByKey(link.transportKey);
+  if (!option) return null;
+  return link.tariffOverride != null ? { ...option, price: link.tariffOverride } : option;
+}
+
+// Actualiza los campos GLOBALES del recurso de Transporte (trayecto/capacidad/costo
+// base): valen para cualquier Tour que lo use, igual que si se editara desde Configurar
+// transporte (mismo mecanismo, reutilizado aqui para no duplicar logica). La tarifa por
+// persona NO se toca aqui: es especifica por Tour (ver setOperatorTourTransportLink).
+function updateOperatorTransportResourceConfig(transportKey, patch) {
+  const defaultRecord = OPERATOR_CATALOG_DEFAULTS["transporte-catalog-panel"]?.records[0];
+  if (defaultRecord && defaultRecord.key === transportKey) {
+    const current = getOperatorServiceFields("transporte-catalog-panel", transportKey) || defaultRecord.fields;
+    const updated = { ...current };
+    if (patch.route !== undefined) updated.route = (patch.route || "").trim() || "Por configurar";
+    if (patch.capacity !== undefined) updated.capacity = patch.capacity ? String(patch.capacity) : "Por configurar";
+    if (patch.cost !== undefined) updated.cost = patch.cost > 0 ? formatCOP(patch.cost) : "Por configurar";
+    setOperatorServiceFields("transporte-catalog-panel", transportKey, updated);
+    return;
+  }
+  const catalog = getOperatorCatalog().map((resource) => {
+    if (resource.id !== transportKey || resource.type !== "transport") return resource;
+    return {
+      ...resource,
+      route: patch.route !== undefined ? ((patch.route || "").trim() || undefined) : resource.route,
+      capacity: patch.capacity !== undefined ? patch.capacity : resource.capacity,
+      cost: patch.cost !== undefined ? patch.cost : resource.cost,
+    };
+  });
+  localStorage.setItem(OPERATOR_CATALOG_STORAGE_KEY, JSON.stringify(catalog));
+}
 
 function setupOperatorCatalogs() {
   if (document.body.dataset.screen !== "operator-catalogs") return;
@@ -4117,10 +4590,19 @@ function setupOperatorCatalogs() {
   });
   const body = document.querySelector(".operator-table tbody");
   const typeLabels = { tour: "Actividad principal", lodging: "Hospedaje", food: "Alimentación", transport: "Transporte" };
+  // Mismo catalogId ya usado por OPERATOR_CATALOG_DEFAULTS: permite que un servicio creado
+  // posteriormente por el Administrador (Nuevo servicio) cuente y muestre "Ver detalle"
+  // exactamente igual que los servicios base, sin duplicar catalogos por tipo.
+  const NEW_SERVICE_CATALOG_ID_BY_TYPE = { tour: "catalogo-catalog-panel", lodging: "hospedaje-catalog-panel", food: "alimentacion-catalog-panel", transport: "transporte-catalog-panel" };
   getOperatorCatalog().forEach((item) => {
+    const catalogId = NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type];
+    // BUG corregido: el estado de esta fila quedaba fijo en "Activo" (el valor de
+    // creacion), ignorando un Desactivar/Activar posterior sobre este MISMO recurso.
+    const active = catalogId ? resolveOperatorServiceActive(catalogId, item.id, item.active) : item.active;
     const row = document.createElement("tr");
-    row.innerHTML = `<td><strong>${escapeHtml(item.name)}</strong></td><td>${typeLabels[item.type] || "Servicio"}</td><td>${escapeHtml(item.policy)}</td><td>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</td><td><span class="operator-status is-confirmed">Activo</span></td>`;
+    row.innerHTML = `<td><strong>${escapeHtml(item.name)}</strong></td><td>${typeLabels[item.type] || "Servicio"}</td><td>${escapeHtml(item.policy)}</td><td>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</td><td>${active ? '<span class="operator-status is-confirmed">Activo</span>' : '<span class="operator-status is-cancelled">Inactivo</span>'}</td>`;
     body?.append(row);
+    rowCatalogLookup.push({ catalogId, key: item.id });
   });
   const create = document.querySelector(".operator-topbar .operator-primary");
   if (create) create.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-servicio.html", getTheme()); });
@@ -4132,7 +4614,16 @@ function setupOperatorCatalogs() {
   Object.entries(OPERATOR_CATALOG_DEFAULTS).forEach(([catalogId, entry]) => {
     const strong = catalogCards[entry.cardIndex]?.querySelector("strong");
     if (!strong) return;
-    const activeCount = entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length;
+    const baseActiveCount = entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length;
+    // Regla: el contador nunca puede excluir servicios activos reales creados
+    // posteriormente por el Administrador; se suman los del mismo tipo/catalogo.
+    // BUG corregido: leia item.active (fijo desde su creacion) en vez de
+    // resolveOperatorServiceActive, por lo que Desactivar un tour/servicio dinamico no
+    // bajaba este contador.
+    const dynamicActiveCount = getOperatorCatalog().filter(
+      (item) => NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type] === catalogId && resolveOperatorServiceActive(catalogId, item.id, item.active),
+    ).length;
+    const activeCount = baseActiveCount + dynamicActiveCount;
     strong.textContent = `${activeCount} activo${activeCount === 1 ? "" : "s"}`;
   });
 
@@ -4141,6 +4632,7 @@ function setupOperatorCatalogs() {
   // El catálogo del Administrador no se modifica (esta rama solo corre para Colaborador).
   if (isOperatorColaborador()) {
     const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+    setText("[data-catalog-topbar-eyebrow]", "Consulta operativa");
     setText(
       "[data-catalog-hero-body]",
       "Consulta los servicios disponibles del operador, sus condiciones, vigencia y disponibilidad para apoyar la gestión de reservas.",
@@ -4175,6 +4667,38 @@ function setupManagedTourCatalog() {
   const panel = document.querySelector("[data-managed-tour-catalog], [data-managed-catalog]");
   if (!panel) return;
   const catalogId = panel.id;
+  const tbody = panel.querySelector("tbody");
+
+  // BUG corregido: esta tabla solo mostraba los registros base hardcodeados en el HTML,
+  // ignorando servicios del MISMO tipo creados despues en Nuevo servicio (ej. tours nuevos
+  // que no aparecian aunque el contador de "Catálogos" ya los contara). Se agregan filas
+  // reales adicionales clonando la estructura de columnas ya aprobada de este catalogo, para
+  // que tabla y contador salgan siempre de la MISMA fuente.
+  const typeEntry = tbody && Object.entries(OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE).find(([, id]) => id === catalogId);
+  if (typeEntry) {
+    const [type] = typeEntry;
+    const templateRow = tbody.querySelector("tr");
+    getOperatorCatalog().filter((resource) => resource.type === type).forEach((resource) => {
+      const row = templateRow ? templateRow.cloneNode(true) : document.createElement("tr");
+      row.dataset.recordKey = resource.id;
+      const setCell = (attr, value) => { const cell = row.querySelector(`[${attr}]`); if (cell) cell.textContent = value; };
+      setCell("data-service-name", resource.name);
+      setCell("data-service-dish", resource.name);
+      setCell("data-service-tariff", formatCOP(resource.price));
+      setCell("data-service-validity", `${formatOperatorDate(resource.start)} - ${formatOperatorDate(resource.end)}`);
+      setCell("data-service-route", (resource.route || "").trim() || "Por configurar");
+      setCell("data-service-capacity", resource.capacity != null ? `${resource.capacity} viajero${resource.capacity === 1 ? "" : "s"}` : "Por configurar");
+      setCell("data-service-cost", resource.cost > 0 ? formatCOP(resource.cost) : "Por configurar");
+      setCell("data-service-policy", resource.policy);
+      setCell("data-service-status", "Activo");
+      const manageLink = row.querySelector("td:last-child a");
+      if (manageLink) manageLink.removeAttribute("href");
+      const toggleButton = row.querySelector("[data-toggle-service]");
+      if (toggleButton) toggleButton.dataset.toggleService = resource.active ? "deactivate" : "activate";
+      tbody.appendChild(row);
+    });
+  }
+
   document.querySelectorAll("[data-toggle-service]").forEach((button) => {
     const row = button.closest("tr");
     const actionCell = row.querySelector("td:last-child");
@@ -4183,14 +4707,17 @@ function setupManagedTourCatalog() {
     button.className = "operator-row-toggle";
     actionCell.textContent = "";
     actionCell.append(manage, button);
-    const recordKey = row.querySelector("td:first-child")?.textContent.trim() || "";
+    // Los registros base identifican su clave por el texto visible de la primera columna
+    // (ya aprobado); los dinamicos usan su id real via data-record-key (ver arriba), para no
+    // depender del nombre visible (que no es unico) como clave de estado.
+    const recordKey = row.dataset.recordKey || row.querySelector("td:first-child")?.textContent.trim() || "";
     const defaultRecord = catalogId ? OPERATOR_CATALOG_DEFAULTS[catalogId]?.records.find((r) => r.key === recordKey) : null;
     if (defaultRecord?.fields) {
       const fields = getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields;
       Object.entries(fields).forEach(([field, value]) => {
         const cell = row.querySelector(`[data-service-${field}]`);
         if (!cell) return;
-        cell.textContent = field === "capacity" ? `${value} viajero${value === "1" ? "" : "s"}` : value;
+        cell.textContent = field === "capacity" && value && value !== "Por configurar" ? `${value} viajero${value === "1" ? "" : "s"}` : value;
       });
     }
     const defaultActive = button.dataset.toggleService === "deactivate";
@@ -4222,9 +4749,22 @@ function setupManagedTourCatalog() {
 // gasto ya visible ($250.000), sin inventar ningun monto nuevo: 550.000 - 250.000 = 300.000.
 const OPERATOR_CASH_DAY_KEY = "multitour-cash-day";
 const OPERATOR_CASH_CLOSURES_KEY = "multitour-cash-closures";
+const OPERATOR_TENANT_TIMEZONE = "America/Bogota";
+
+// La jornada de caja, su cierre, historial y consolidacion deben usar SIEMPRE la fecha/hora
+// local del tenant (America/Bogota), nunca UTC ni la zona horaria de quien consulta: de lo
+// contrario el cambio de dia por huso horario desfasa la fecha de jornada respecto a la
+// fecha/hora de cierre mostrada (ej. encabezado "2026-09-03" vs "Sep 2, 2026").
+function getOperatorTenantDateKey(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: OPERATOR_TENANT_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
+function formatOperatorTenantDateTime(isoDate) {
+  return new Date(isoDate).toLocaleString("es-CO", { timeZone: OPERATOR_TENANT_TIMEZONE });
+}
 
 function getOperatorCashTodayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return getOperatorTenantDateKey();
 }
 
 // Valor de arranque en frio (solo cuando nunca existio ninguna jornada): no se reinventa
@@ -4272,9 +4812,29 @@ function getOperatorCashDay() {
   } catch {
     stored = null;
   }
+  const today = getOperatorCashTodayKey();
+
+  // Fuente unica de verdad: la jornada de HOY solo esta cerrada si ya existe un cierre real
+  // para la fecha local de hoy en getOperatorCashClosures() (ya normalizada por closedAt).
+  // No se confia en el "date"/"status" guardado aparte en la jornada en curso, que pudo
+  // quedar desactualizado por el mismo bug de huso horario ya corregido en los cierres (eso
+  // provocaba que, al cambiar de dia, la pantalla siguiera mostrando cerrada la jornada del
+  // dia anterior en lugar de abrir una jornada nueva para hoy).
+  const todaysClosure = getOperatorCashClosures().find((closure) => closure.date === today);
+  if (todaysClosure) {
+    // Las devoluciones del cierre se recalculan siempre en vivo con
+    // getOperatorExecutedRefundMovements(); se excluyen aqui para no duplicarlas.
+    const movements = todaysClosure.movements.filter((movement) => movement.type !== "Devolución");
+    return { date: today, status: "cerrada", base: todaysClosure.base, movements };
+  }
+
   if (!stored) return getDefaultOperatorCashDay();
-  if (stored.status === "cerrada") {
-    return { date: getOperatorCashTodayKey(), status: "abierta", base: stored.base, movements: [] };
+  // Regla: debe existir un unico cierre ordinario por tenant y fecha. Sin un cierre real
+  // para hoy, la jornada de hoy esta abierta. Si lo almacenado pertenece a un dia distinto
+  // o quedo marcado "cerrada" por un cierre de un dia anterior, se inicializa una jornada
+  // NUEVA para hoy, heredando la base -no el total de cierre- segun PDR linea 769.
+  if (stored.date !== today || stored.status === "cerrada") {
+    return { date: today, status: "abierta", base: stored.base, movements: [] };
   }
   return stored;
 }
@@ -4283,8 +4843,38 @@ function setOperatorCashDay(day) {
   localStorage.setItem(OPERATOR_CASH_DAY_KEY, JSON.stringify(day));
 }
 
+// Debe existir un unico cierre ordinario por tenant y fecha, y la fecha del encabezado
+// ("Cierre 2026-09-03") debe corresponder SIEMPRE a la misma fecha/hora local del tenant
+// (America/Bogota) que se muestra en el detalle del cierre. Esta es la UNICA fuente de
+// lectura de cierres (Historial, Consolidacion mensual y el propio cierre la consultan): se
+// corrige la fuente aqui mismo (no solo se filtra en pantalla), en dos pasos:
+// 1) el "date" de cada cierre se recalcula SIEMPRE a partir de su propio "closedAt" (el
+//    instante real, sin ambiguedad de huso horario) convertido a fecha local del tenant,
+//    nunca se confia en un "date" que pudo quedar mal calculado por un bug ya corregido;
+// 2) si tras normalizar la fecha llegaran a coincidir dos cierres, se conserva el
+//    ORDINARIO original (el primero) y se fusiona en el cualquier correccion que hubiera
+//    quedado registrada sobre el duplicado, sin perder trazabilidad ni reemplazar el
+//    responsable historico valido de cada correccion.
 function getOperatorCashClosures() {
-  try { return JSON.parse(localStorage.getItem(OPERATOR_CASH_CLOSURES_KEY) || "[]"); } catch { return []; }
+  let stored;
+  try { stored = JSON.parse(localStorage.getItem(OPERATOR_CASH_CLOSURES_KEY) || "[]"); } catch { stored = []; }
+  const byDate = new Map();
+  let changed = false;
+  stored.forEach((closure) => {
+    const tenantDate = closure.closedAt ? getOperatorTenantDateKey(new Date(closure.closedAt)) : closure.date;
+    if (tenantDate !== closure.date) changed = true;
+    const normalized = tenantDate === closure.date ? closure : { ...closure, date: tenantDate };
+    const existing = byDate.get(tenantDate);
+    if (!existing) {
+      byDate.set(tenantDate, { ...normalized, corrections: [...(normalized.corrections || [])] });
+      return;
+    }
+    changed = true;
+    existing.corrections = [...(existing.corrections || []), ...(normalized.corrections || [])];
+  });
+  const deduped = Array.from(byDate.values());
+  if (changed) setOperatorCashClosures(deduped);
+  return deduped;
 }
 
 function setOperatorCashClosures(list) {
@@ -4425,11 +5015,22 @@ function setupOperatorCash() {
   document.querySelector("[data-cash-close]")?.addEventListener("click", () => {
     const day = getOperatorCashDay();
     if (day.status === "cerrada") return;
-    const { ingresos, pagosOperacionales, gastos, devoluciones, total, refundMovements } = computeOperatorCashTotals(day);
+    const dayDate = day.date || getOperatorCashTodayKey();
     const closures = getOperatorCashClosures();
+    // Regla 1: debe existir un unico cierre ordinario por tenant y fecha. Si ya existe un
+    // cierre normal para esta fecha, no se crea otro duplicado: cualquier ajuste posterior
+    // se registra como correccion del mismo cierre desde Historial de caja (regla 8).
+    if (closures.some((closure) => closure.date === dayDate)) {
+      day.status = "cerrada";
+      setOperatorCashDay(day);
+      if (movementFeedback) { movementFeedback.textContent = "Ya existe un cierre registrado para esta fecha. Usa Historial de caja para registrar una corrección."; movementFeedback.classList.remove("is-valid"); }
+      render();
+      return;
+    }
+    const { ingresos, pagosOperacionales, gastos, devoluciones, total, refundMovements } = computeOperatorCashTotals(day);
     closures.push({
       id: `cierre-${Date.now()}`,
-      date: day.date || getOperatorCashTodayKey(),
+      date: dayDate,
       base: day.base,
       ingresos,
       pagosOperacionales,
@@ -4466,7 +5067,7 @@ function setupOperatorCashHistory() {
         const corrections = closure.corrections || [];
         const correctionsHtml = corrections.length
           ? `<div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Fecha</th><th>Responsable</th><th>Justificación</th></tr></thead><tbody>${corrections
-              .map((c) => `<tr><td>${escapeHtml(new Date(c.appliedAt).toLocaleString("es-CO"))}</td><td>${escapeHtml(c.appliedBy)}</td><td>${escapeHtml(c.justification)}</td></tr>`)
+              .map((c) => `<tr><td>${escapeHtml(formatOperatorTenantDateTime(c.appliedAt))}</td><td>${escapeHtml(c.appliedBy)}</td><td>${escapeHtml(c.justification)}</td></tr>`)
               .join("")}</tbody></table></div>`
           : `<p class="operator-copy">Sin correcciones registradas para este cierre.</p>`;
         return `<section class="operator-panel">
@@ -4478,7 +5079,7 @@ function setupOperatorCashHistory() {
             <div><span>Gastos</span><strong>${formatCOP(closure.gastos)}</strong></div>
             <div><span>Devoluciones</span><strong>${formatCOP(closure.devoluciones)}</strong></div>
             <div><span>Cerrado por</span><strong>${escapeHtml(closure.closedBy)}</strong></div>
-            <div><span>Fecha y hora de cierre</span><strong>${escapeHtml(new Date(closure.closedAt).toLocaleString("es-CO"))}</strong></div>
+            <div><span>Fecha y hora de cierre</span><strong>${escapeHtml(formatOperatorTenantDateTime(closure.closedAt))}</strong></div>
           </div>
           <p class="operator-eyebrow">Correcciones posteriores</p>
           ${correctionsHtml}
@@ -4516,7 +5117,7 @@ function setupOperatorCashHistory() {
     const closure = closures.find((item) => item.id === closureId);
     if (!closure) return;
     closure.corrections = closure.corrections || [];
-    closure.corrections.push({ justification, appliedBy: "Administrador del operador", appliedAt: new Date().toISOString() });
+    closure.corrections.push({ justification, appliedBy: getOperatorRoleLabel(), appliedAt: new Date().toISOString() });
     setOperatorCashClosures(closures);
     render();
   });
@@ -4526,6 +5127,9 @@ function setupOperatorCashHistory() {
 // Compartido entre Caja > Consolidación mensual y Reportes para que ambas pantallas
 // muestren siempre los mismos periodos y valores, sin duplicar ni desincronizar el calculo.
 function getOperatorMonthlyConsolidation() {
+  // Regla 3: la consolidacion mensual usa unicamente cierres diarios validos, sin duplicar
+  // una misma jornada. getOperatorCashClosures() ya garantiza un unico cierre ordinario por
+  // fecha (fuente unica, corregida de raiz), asi que aqui no se vuelve a deduplicar aparte.
   const closures = getOperatorCashClosures();
   if (!closures.length) return [];
 
@@ -4762,6 +5366,12 @@ function setupOperatorReports() {
   });
 }
 
+// Mismo catalogId ya usado por OPERATOR_CATALOG_DEFAULTS: permite ubicar un servicio creado
+// posteriormente por el Administrador (Nuevo servicio) cuando "Ver detalle" del Colaborador
+// lo abre, reutilizando este MISMO formulario de configuracion (sin pantalla nueva).
+const OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE = { tour: "catalogo-catalog-panel", lodging: "hospedaje-catalog-panel", food: "alimentacion-catalog-panel", transport: "transporte-catalog-panel" };
+const OPERATOR_NEW_SERVICE_TYPE_LABELS = { tour: "Actividad principal", lodging: "Hospedaje", food: "Alimentación", transport: "Transporte" };
+
 function setupOperatorConfigureScreen() {
   const form = document.querySelector("[data-configure-form]");
   if (!form) return;
@@ -4769,14 +5379,26 @@ function setupOperatorConfigureScreen() {
   const catalog = OPERATOR_CATALOG_DEFAULTS[catalogId];
   const recordKey = new URLSearchParams(window.location.search).get("record") || "";
   const defaultRecord = catalog?.records.find((r) => r.key === recordKey);
+  const dynamicResource = !defaultRecord
+    ? getOperatorCatalog().find((item) => item.id === recordKey && OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type] === catalogId)
+    : null;
   const feedback = form.querySelector("[data-config-feedback]");
   const backHref = catalog?.backHref || "admin-catalogos.html";
-  if (!defaultRecord) {
+  if (!defaultRecord && !dynamicResource) {
     if (feedback) feedback.textContent = "No se encontró el registro seleccionado. Vuelve al listado e ingresa nuevamente por Gestionar.";
     form.querySelectorAll("input, select, button").forEach((el) => { el.disabled = true; });
     return;
   }
-  const fields = getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields;
+  const fields = defaultRecord
+    ? (getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields)
+    : {
+        name: dynamicResource.name,
+        dish: dynamicResource.name,
+        capacity: dynamicResource.capacity != null ? String(dynamicResource.capacity) : "",
+        tariff: formatCOP(dynamicResource.price),
+        policy: dynamicResource.policy,
+        validity: `${formatOperatorDate(dynamicResource.start)} - ${formatOperatorDate(dynamicResource.end)}`,
+      };
   const [validityStart, validityEnd] = (fields.validity || "").split(" - ");
   form.querySelectorAll("[data-field]").forEach((input) => {
     const field = input.dataset.field;
@@ -4787,8 +5409,8 @@ function setupOperatorConfigureScreen() {
   const title = document.querySelector("[data-config-title]");
   if (title) title.textContent = fields.name || fields.dish || fields.restaurant || recordKey;
   const typeInput = form.querySelector("[data-config-type]");
-  if (typeInput) typeInput.value = defaultRecord.typeLabel || "";
-  const isActive = resolveOperatorServiceActive(catalogId, recordKey, defaultRecord.active);
+  if (typeInput) typeInput.value = defaultRecord ? (defaultRecord.typeLabel || "") : (OPERATOR_NEW_SERVICE_TYPE_LABELS[dynamicResource.type] || "");
+  const isActive = defaultRecord ? resolveOperatorServiceActive(catalogId, recordKey, defaultRecord.active) : dynamicResource.active;
   const statusBadge = document.querySelector("[data-config-status]");
   if (statusBadge) {
     statusBadge.textContent = isActive ? "Activo" : "Inactivo";
@@ -4997,11 +5619,22 @@ function setupOperatorNewService() {
   const formGrid = form?.querySelector(".operator-form-grid");
   const priceLabel = form?.querySelector("[data-service-price]")?.closest("label");
   if (priceLabel?.firstChild) priceLabel.firstChild.nodeValue = "Tarifa base";
-  formGrid?.insertAdjacentHTML("beforeend", '<label data-operational-field>Capacidad / cupo<input data-service-capacity type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label><label data-operational-field>Restricciones operativas<textarea data-service-restrictions placeholder="Opcional: condiciones que limitan la disponibilidad"></textarea></label>');
+  formGrid?.insertAdjacentHTML("beforeend", '<label data-operational-field>Capacidad / cupo<input data-service-capacity type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label><label data-operational-field>Restricciones operativas<textarea data-service-restrictions placeholder="Opcional: condiciones que limitan la disponibilidad"></textarea></label>'
+    + '<label data-operational-field data-transport-field hidden>Trayecto (origen - destino o descripción)<input data-service-route type="text" placeholder="Por configurar" /></label>'
+    + '<label data-operational-field data-tour-field hidden>¿Incluye transporte?<select data-tour-includes-transport><option value="no">No</option><option value="si">Sí</option></select></label>'
+    + '<label data-operational-field data-tour-field hidden>Transporte asociado<select data-tour-transport-key><option value="">Selecciona un transporte activo</option></select></label>'
+    + '<p class="operator-form-feedback operator-form-wide" data-tour-transport-empty hidden>No hay transportes activos disponibles. Crea o activa uno en Gestionar transporte antes de asociarlo a este Tour.</p>'
+    + '<p class="operator-eyebrow operator-form-wide" data-tour-transport-config hidden>CONFIGURACIÓN DEL TRANSPORTE</p>'
+    + '<p class="operator-copy operator-form-wide" data-tour-transport-config hidden>Si el transporte ya tiene datos, se precargan aquí; si no, complétalos directamente. Se guardan sobre el mismo recurso de Transporte, salvo la tarifa por persona, que queda propia de este Tour (RN-TRA-002).</p>'
+    + '<label data-tour-transport-config hidden>Trayecto<input data-tour-transport-route type="text" placeholder="Por configurar" /></label>'
+    + '<label data-tour-transport-config hidden>Tarifa por persona (para este Tour)<input data-tour-transport-tariff type="number" min="1" inputmode="numeric" placeholder="Por configurar" /></label>'
+    + '<label data-tour-transport-config hidden>Capacidad del transporte<input data-tour-transport-capacity type="number" min="1" inputmode="numeric" placeholder="Por configurar" /></label>'
+    + '<label data-tour-transport-config hidden>Costo base (interno, no se cobra al cliente)<input data-tour-transport-cost type="number" min="1" inputmode="numeric" placeholder="Por configurar" /></label>'
+    + '<div class="operator-form-wide operator-detail-list" data-tour-transport-config hidden><div><span>Capacidad del Tour</span><strong data-tour-capacity-display>Por configurar</strong></div><div><span>Capacidad del Transporte</span><strong data-transport-capacity-display>Por configurar</strong></div></div>'
+    + '<p class="operator-form-feedback operator-form-wide" data-tour-transport-config hidden>Capacidad Tour ≠ Capacidad Transporte: son independientes, ninguna se copia sobre la otra. La reserva valida ambas cuando corresponda.</p>');
   const image = form?.querySelector("[data-service-image]");
   const imageLabel = image?.closest("label");
   const kindSelect = form?.querySelector("[data-service-kind]");
-  const typeSelect = form?.querySelector("[data-service-type]");
   const establishmentTypeSelect = form?.querySelector("[data-establishment-type]");
   const operationalFields = form?.querySelectorAll("[data-operational-field]");
   const establishmentFields = form?.querySelectorAll("[data-establishment-field]");
@@ -5020,39 +5653,75 @@ function setupOperatorNewService() {
   kindSelect?.addEventListener("change", syncServiceKind);
   establishmentTypeSelect?.addEventListener("change", syncServiceKind);
 
-  // Regla 1/2 (RF-007/linea 452): las salidas son fechas reales de ejecucion, distintas de
-  // la vigencia comercial. Solo aplican a "Tour o actividad", que es el unico tipo que
-  // aparece como "Servicio principal" en Crear reserva; no se inventan horarios ni campos
-  // adicionales, solo la fecha.
-  const departuresField = form?.querySelector("[data-tour-departures-field]");
-  const departureInput = form?.querySelector("[data-service-departure-input]");
-  const departureAddButton = form?.querySelector("[data-service-departure-add]");
-  const departureList = form?.querySelector("[data-service-departure-list]");
-  let departureDates = [];
-  const renderDepartureList = () => {
-    if (!departureList) return;
-    departureList.innerHTML = departureDates
-      .map((iso) => `<li>${escapeHtml(formatOperatorDate(iso))} <button class="operator-table-toggle" type="button" data-remove-departure="${escapeHtml(iso)}">Quitar</button></li>`)
-      .join("");
+  // Tour <-> Transporte (RN-TRA-001/002): solo aplica cuando Tipo = "Tour o actividad".
+  // Mismo comportamiento ya aprobado en el Portal Angular.
+  const typeSelect = form?.querySelector("[data-service-type]");
+  const transportField = form?.querySelector("[data-transport-field]");
+  const tourFields = form?.querySelectorAll("[data-tour-field]");
+  const includesTransportSelect = form?.querySelector("[data-tour-includes-transport]");
+  const transportKeySelect = form?.querySelector("[data-tour-transport-key]");
+  const transportEmptyMsg = form?.querySelector("[data-tour-transport-empty]");
+  const transportConfigEls = form?.querySelectorAll("[data-tour-transport-config]");
+  const transportRouteInput = form?.querySelector("[data-tour-transport-route]");
+  const transportTariffInput = form?.querySelector("[data-tour-transport-tariff]");
+  const transportCapacityInput = form?.querySelector("[data-tour-transport-capacity]");
+  const transportCostInput = form?.querySelector("[data-tour-transport-cost]");
+  const tourCapacityDisplay = form?.querySelector("[data-tour-capacity-display]");
+  const transportCapacityDisplay = form?.querySelector("[data-transport-capacity-display]");
+  const tourCapacityFormInput = form?.querySelector("[data-service-capacity]");
+
+  const hideTransportConfig = () => { transportConfigEls?.forEach((el) => { el.hidden = true; }); };
+
+  const updateCapacityDisplays = () => {
+    if (tourCapacityDisplay) tourCapacityDisplay.textContent = tourCapacityFormInput?.value || "Por configurar";
+    if (transportCapacityDisplay) transportCapacityDisplay.textContent = transportCapacityInput?.value || "Por configurar";
   };
-  const syncTourFields = () => {
-    if (departuresField) departuresField.hidden = typeSelect?.value !== "tour";
+
+  const populateTransportOptions = () => {
+    const options = getOperatorActiveTransportOptions();
+    if (transportKeySelect) {
+      // Reconstruir las opciones no debe perder la seleccion actual (syncTransportPanel
+      // llama a esta funcion tambien cuando el propio selector de transporte cambia).
+      const previousValue = transportKeySelect.value;
+      transportKeySelect.innerHTML = '<option value="">Selecciona un transporte activo</option>'
+        + options.map((option) => `<option value="${escapeHtml(option.key)}">${escapeHtml(option.name)}</option>`).join("");
+      if (options.some((option) => option.key === previousValue)) transportKeySelect.value = previousValue;
+    }
+    if (transportEmptyMsg) transportEmptyMsg.hidden = options.length > 0;
+    return options;
   };
-  syncTourFields();
-  typeSelect?.addEventListener("change", syncTourFields);
-  departureAddButton?.addEventListener("click", () => {
-    const value = departureInput?.value;
-    if (!value || departureDates.includes(value)) return;
-    departureDates = [...departureDates, value].sort();
-    if (departureInput) departureInput.value = "";
-    renderDepartureList();
+
+  const syncTransportPanel = () => {
+    if (includesTransportSelect?.value !== "si") { hideTransportConfig(); return; }
+    const options = populateTransportOptions();
+    const option = options.find((o) => o.key === transportKeySelect?.value) || null;
+    if (!option) { hideTransportConfig(); return; }
+    transportConfigEls?.forEach((el) => { el.hidden = false; });
+    if (transportRouteInput) transportRouteInput.value = option.route !== "Por configurar" ? option.route : "";
+    if (transportTariffInput) transportTariffInput.value = option.price > 0 ? option.price : "";
+    if (transportCapacityInput) transportCapacityInput.value = option.capacity != null ? option.capacity : "";
+    if (transportCostInput) transportCostInput.value = option.cost > 0 ? option.cost : "";
+    updateCapacityDisplays();
+  };
+
+  const syncOperationalType = () => {
+    const type = typeSelect?.value;
+    if (transportField) transportField.hidden = type !== "transport";
+    tourFields?.forEach((field) => { field.hidden = type !== "tour"; });
+    if (type !== "tour") { if (includesTransportSelect) includesTransportSelect.value = "no"; hideTransportConfig(); }
+    else syncTransportPanel();
+  };
+
+  typeSelect?.addEventListener("change", syncOperationalType);
+  includesTransportSelect?.addEventListener("change", () => {
+    if (includesTransportSelect.value !== "si" && transportKeySelect) transportKeySelect.value = "";
+    syncTransportPanel();
   });
-  departureList?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-remove-departure]");
-    if (!button) return;
-    departureDates = departureDates.filter((iso) => iso !== button.dataset.removeDeparture);
-    renderDepartureList();
-  });
+  transportKeySelect?.addEventListener("change", syncTransportPanel);
+  tourCapacityFormInput?.addEventListener("input", updateCapacityDisplays);
+  transportCapacityInput?.addEventListener("input", updateCapacityDisplays);
+  syncOperationalType();
+
   const preview = form?.querySelector("[data-service-preview]");
   const feedback = form?.querySelector("[data-service-feedback]");
   image?.addEventListener("change", () => {
@@ -5082,15 +5751,35 @@ function setupOperatorNewService() {
       feedback.textContent = "Completa los datos, adjunta una imagen y define una vigencia válida.";
       return;
     }
-    const resource = { id: `resource-${Date.now()}`, name: form.querySelector("[data-service-name]").value.trim(), type: form.querySelector("[data-service-type]").value, price: Number(form.querySelector("[data-service-price]").value), capacity: Number(form.querySelector("[data-service-capacity]").value) || null, restrictions: form.querySelector("[data-service-restrictions]").value.trim(), start, end, policy: form.querySelector("[data-service-policy]").value, image: preview.src, active: true };
+    const type = form.querySelector("[data-service-type]").value;
+    // RN-TRA-001/002: si el Tour declara transporte incluido, debe seleccionarse un
+    // recurso de transporte real (activo); nunca se guarda una relacion vacia como "si".
+    if (type === "tour" && includesTransportSelect?.value === "si" && !transportKeySelect?.value) {
+      feedback.textContent = 'Selecciona un transporte activo para asociarlo a este Tour, o marca "No" si no incluye transporte.';
+      return;
+    }
+    const resource = { id: `resource-${Date.now()}`, name: form.querySelector("[data-service-name]").value.trim(), type, price: Number(form.querySelector("[data-service-price]").value), capacity: Number(form.querySelector("[data-service-capacity]").value) || null, restrictions: form.querySelector("[data-service-restrictions]").value.trim(), start, end, policy: form.querySelector("[data-service-policy]").value, image: preview.src, active: true };
+    // RN-TRA-001 (trayecto): solo tiene sentido para type === "transport"; no se inventa
+    // uno para el resto de tipos ni si el campo quedo vacio.
+    if (type === "transport") {
+      const routeValue = form.querySelector("[data-service-route]")?.value.trim();
+      if (routeValue) resource.route = routeValue;
+    }
     const catalog = getOperatorCatalog();
     catalog.push(resource);
     localStorage.setItem(OPERATOR_CATALOG_STORAGE_KEY, JSON.stringify(catalog));
-    // Regla 2/6: las salidas quedan asociadas al MISMO servicio (su id) y son la unica
-    // fuente que Crear reserva consulta; sin salidas configuradas, no se guarda nada
-    // (no se inventa una salida a partir de la vigencia).
-    if (resource.type === "tour" && departureDates.length) {
-      setOperatorServiceDepartures(resource.id, departureDates.map(formatOperatorDate));
+    if (type === "tour" && includesTransportSelect?.value === "si") {
+      const transportKey = transportKeySelect.value;
+      // Trayecto/capacidad/costo: configuracion global del recurso de Transporte (mismo
+      // mecanismo que Configurar transporte, reutilizado aqui para no duplicar logica).
+      updateOperatorTransportResourceConfig(transportKey, {
+        route: transportRouteInput?.value || "",
+        capacity: transportCapacityInput?.value ? Number(transportCapacityInput.value) : null,
+        cost: transportCostInput?.value ? Number(transportCostInput.value) : 0,
+      });
+      // Tarifa por persona: especifica de este Tour (RN-TRA-002).
+      const tariffOverride = transportTariffInput?.value ? Number(transportTariffInput.value) : undefined;
+      setOperatorTourTransportLink(resource.id, transportKey, tariffOverride);
     }
     window.location.href = withTheme("admin-catalogos.html", getTheme());
   });
@@ -5197,6 +5886,28 @@ function setupOperatorReservationDetail() {
     };
   }
 
+  // BUG corregido: Detalle de reserva no reflejaba una decision de soporte de pago ya
+  // validada ni una ejecucion/finalizacion ya registrada, por lo que podia mostrar un
+  // estado distinto al de Operación/Reservas para la MISMA reserva (misma fuente/claves
+  // que ambas pantallas: multitour-payment-support-state / multitour-reservation-executions).
+  const supportDecision = getOperatorPaymentSupportState()[code];
+  if (supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+    reservation = {
+      ...reservation,
+      paid: supportDecision.paid,
+      balance: supportDecision.balance,
+      payment: supportDecision.status,
+      status: supportDecision.status === "Pagado" ? "Confirmada" : "Pendiente de pago",
+      statusClass: supportDecision.status === "Pagado" ? "is-confirmed" : "is-pending",
+    };
+  }
+  const detailExecution = getOperatorReservationExecution(code);
+  if (detailExecution) {
+    reservation = detailExecution.finalized
+      ? { ...reservation, status: "Finalizada", statusClass: "is-finalized", execution: "Finalizada" }
+      : { ...reservation, status: "En ejecución", statusClass: "is-execution", execution: "En ejecución" };
+  }
+
   // Una cancelacion registrada (RF-008A/linea 972) siempre deja la reserva en "Cancelada",
   // tenga o no dinero pagado que devolver: nunca debe seguir mostrandose en un estado
   // anterior como "En ejecucion". El estado de ejecucion del servicio pasa a "No ejecutada"
@@ -5244,8 +5955,24 @@ function setupOperatorReservationDetail() {
   if (status) { status.textContent = reservation.status; status.className = `operator-status ${reservation.statusClass}`; }
   const services = document.querySelector("[data-reservation-services]");
   if (services) services.innerHTML = `<tr><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${escapeHtml(reservation.date)}</td><td>${reservation.travelers} viajeros</td><td>${escapeHtml(reservation.execution)}</td></tr>`;
+  // BUG corregido: cuando la accion de la reserva es economica (Gestionar pago/Ver pago),
+  // esta venia fija desde la reserva base y nunca se recalculaba si el pago pasaba a
+  // Pagado/saldo $0 despues (ej. al validar un soporte). Reservas cuya accion NO es
+  // economica (ej. "Ver operación") conservan su accion original sin tocarla.
   const action = document.querySelector("[data-reservation-action]");
-  if (action) { action.textContent = reservation.action; action.href = reservation.href; }
+  if (action) {
+    const isPaymentAction = /admin-(gestion-pago|pagos)\.html/.test(reservation.href || "");
+    if (isPaymentAction) {
+      const isPaymentSettled = reservation.statusClass === "is-cancelled" || (reservation.payment === "Pagado" && reservation.balance === "$0");
+      action.textContent = isPaymentSettled ? "Ver pagos" : "Gestionar pago";
+      action.href = withTheme(`admin-gestion-pago.html?reservation=${code}`, getTheme());
+      action.classList.toggle("operator-outline", isPaymentSettled);
+      action.classList.toggle("operator-primary", !isPaymentSettled);
+    } else {
+      action.textContent = reservation.action;
+      action.href = reservation.href;
+    }
+  }
 
   const adjustment = getOperatorReservationAdjustment(code);
   const discountPanel = document.querySelector("[data-additional-discount-panel]");
@@ -5290,30 +6017,37 @@ function setupOperatorReservationDetail() {
   }
 }
 
-// El catalogo de Catálogos (OPERATOR_CATALOG_DEFAULTS) todavia no modela salidas
-// especificas, medios de pago aceptados ni inclusiones por servicio. Estos datos
-// complementarios YA aprobados para los 4 tours base se conservan aqui, ligados al MISMO
-// key/nombre ya usado en Catálogos: la identidad, tarifa, vigencia y estado activo/inactivo
-// del servicio siempre se leen en vivo desde Catálogos, nunca desde esta lista.
+// El catalogo de Catálogos (OPERATOR_CATALOG_DEFAULTS) todavia no modela medios de pago
+// aceptados ni inclusiones por servicio. Estos datos complementarios YA aprobados para los 4
+// tours base se conservan aqui, ligados al MISMO key/nombre ya usado en Catálogos: la
+// identidad, tarifa, vigencia y estado activo/inactivo del servicio siempre se leen en vivo
+// desde Catálogos, nunca desde esta lista.
+// CORRECCION PDR v1.7.1: el PDR no define una parametrizacion independiente de "salidas". La
+// fecha del servicio se selecciona dentro de la vigencia de oferta (ver PDR
+// 03-product/prd.md linea 1006), por lo que este mapa ya no expone una lista propia de fechas.
+// AJUSTE (Tour <-> Transporte real): "inclusions" ya no declara un texto fijo de
+// transporte ("Transporte incluido: ..."). La informacion de transporte de cada Tour sale
+// exclusivamente de la relacion real Tour -> Transporte (getOperatorTourTransport),
+// nunca de un texto hardcodeado aqui. Mismo ajuste ya aprobado en el Portal Angular.
 const OPERATOR_KNOWN_TOUR_DETAILS = {
   "Tour destino ejemplo - Montañas": {
-    discount: 0.2, risk: false, departures: ["15 sep 2026", "22 sep 2026", "29 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
-    inclusions: ["Alimentación incluida: plato del día", "Transporte incluido: trayecto de ida y vuelta"],
+    discount: 0.2, risk: false, payments: ["Transferencia", "Efectivo", "Abono"],
+    inclusions: ["Alimentación incluida: plato del día"],
     conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
   },
   "Aventura en cenotes ocultos": {
-    discount: 0, risk: false, departures: ["12 sep 2026", "19 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
-    inclusions: ["Alimentación incluida: snack ligero", "Transporte incluido: traslado al punto de salida"],
+    discount: 0, risk: false, payments: ["Transferencia", "Efectivo", "Abono"],
+    inclusions: ["Alimentación incluida: snack ligero"],
     conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
   },
   "Rafting y acampada extrema": {
-    discount: 0, risk: true, departures: ["13 sep 2026", "27 sep 2026"], payments: ["Transferencia", "Abono"],
-    inclusions: ["Alimentación incluida: refrigerio de la actividad", "Transporte incluido: traslado al punto de salida"],
+    discount: 0, risk: true, payments: ["Transferencia", "Abono"],
+    inclusions: ["Alimentación incluida: refrigerio de la actividad"],
     conditions: ["La actividad requiere requisitos de riesgo para cada viajero.", "La modificación o cancelación depende de las condiciones vigentes del servicio."],
   },
   "Recorrido cultural e histórico": {
-    discount: 0, risk: false, departures: ["16 sep 2026", "23 sep 2026", "30 sep 2026"], payments: ["Transferencia", "Efectivo"],
-    inclusions: ["Alimentación incluida: opción gastronómica del recorrido", "Transporte incluido: trayecto programado"],
+    discount: 0, risk: false, payments: ["Transferencia", "Efectivo"],
+    inclusions: ["Alimentación incluida: opción gastronómica del recorrido"],
     conditions: ["La modificación o cancelación depende de las condiciones vigentes del servicio.", "Los descuentos se aplican según la configuración comercial vigente."],
   },
 };
@@ -5324,16 +6058,11 @@ const OPERATOR_DEFAULT_PAYMENT_METHODS = ["Transferencia", "Efectivo", "Abono"];
 // Regla 1/2/3/6: el catalogo de "Servicio principal" se construye en vivo desde el MISMO
 // catalogo ya usado en Catálogos (solo activos y vigentes, incluyendo actualizaciones de
 // datos), sin listas independientes ni servicios hardcodeados.
-// Regla 1/2/5: la vigencia (rango inicio-fin) del catalogo NO es una salida reservable.
-// Sin salidas especificas configuradas para el servicio, no se inventa ninguna fecha: si
-// inicio y fin coinciden, esa unica fecha SI es una salida real; si son distintos, es un
-// rango de vigencia sin salida puntual definida y no se muestra ninguna.
-function resolveOperatorVigenciaDepartures(start, end) {
-  if (!start) return [];
-  if (!end || end === start) return [start];
-  return [];
-}
-
+// CORRECCION PDR v1.7.1 (03-product/prd.md linea 1006): el PDR no define una
+// parametrizacion independiente de "salidas". La disponibilidad del servicio depende de que
+// este activo, dentro de su vigencia de oferta y sin restricciones operativas que lo excluyan
+// para la fecha consultada; por eso "Crear reserva" ya no lista fechas discretas, sino que
+// permite elegir cualquier fecha dentro del rango de vigencia (start/end) del servicio.
 function getOperatorReservationServiceCatalog() {
   const services = {};
   const tourCatalogId = "catalogo-catalog-panel";
@@ -5344,7 +6073,6 @@ function getOperatorReservationServiceCatalog() {
     if (!resolveOperatorServiceActive(tourCatalogId, record.key, record.active)) return;
     const fields = getOperatorServiceFields(tourCatalogId, record.key) || record.fields;
     const details = OPERATOR_KNOWN_TOUR_DETAILS[record.key];
-    const configuredDepartures = getOperatorServiceDepartures(record.key);
     const [validityStart, validityEnd] = (fields.validity || "").split(" - ");
     services[record.key] = {
       name: fields.name || record.key,
@@ -5352,29 +6080,32 @@ function getOperatorReservationServiceCatalog() {
       discount: details ? details.discount : 0,
       risk: details ? details.risk : false,
       lodgingCapacity,
-      // Regla 6: una sola fuente de salidas por servicio, con esta prioridad: salidas
-      // configuradas explicitamente > salidas ya aprobadas para los tours base > una unica
-      // fecha real cuando la vigencia es de un solo dia. Nunca se inventa una salida.
-      departures: configuredDepartures || (details ? details.departures : resolveOperatorVigenciaDepartures(validityStart, validityEnd)),
+      start: parseOperatorDate(validityStart),
+      end: parseOperatorDate(validityEnd) || parseOperatorDate(validityStart),
       payments: details ? details.payments : OPERATOR_DEFAULT_PAYMENT_METHODS,
       inclusions: details ? details.inclusions : [],
       conditions: details ? details.conditions : [OPERATOR_GENERIC_CONDITION],
+      // RN-TRA-001/002: transporte REAL asociado a este Tour (relacion configurada en
+      // Nuevo servicio), resuelto en vivo. null si el Tour no tiene transporte asociado, o
+      // si el transporte asociado ya no esta activo. Nunca se hardcodea un trayecto/tarifa.
+      associatedTransport: getOperatorTourTransport(record.key),
     };
   });
   getOperatorCatalog().forEach((resource) => {
     if (resource.type !== "tour" || !resource.active) return;
     const key = resource.id || resource.name;
-    const configuredDepartures = getOperatorServiceDepartures(key);
     services[key] = {
       name: resource.name,
       price: resource.price,
       discount: 0,
       risk: false,
       lodgingCapacity: resource.capacity || lodgingCapacity,
-      departures: configuredDepartures || resolveOperatorVigenciaDepartures(resource.start, resource.end),
+      start: resource.start,
+      end: resource.end,
       payments: OPERATOR_DEFAULT_PAYMENT_METHODS,
       inclusions: [],
       conditions: [resource.policy || OPERATOR_GENERIC_CONDITION],
+      associatedTransport: getOperatorTourTransport(resource.id),
     };
   });
   return services;
@@ -5390,9 +6121,19 @@ function setupOperatorReservationForm() {
     serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' +
       Object.keys(services).map((key) => `<option value="${escapeHtml(key)}">${escapeHtml(services[key].name)}</option>`).join("");
   }
-  const departureSelect = form.querySelector("[data-reservation-departure]");
+  const departureInput = form.querySelector("[data-reservation-departure]");
+  const departureHint = form.querySelector("[data-reservation-departure-hint]");
   const travelerInput = form.querySelector("[data-reservation-travelers]");
   const lodgingSelect = form.querySelector("[data-reservation-lodging]");
+  const transportField = form.querySelector("[data-reservation-transport-field]");
+  const transportSelect = form.querySelector("[data-reservation-transport]");
+  const transportIncludedMessage = form.querySelector("[data-transport-included-message]");
+  const transportDetail = form.querySelector("[data-transport-detail]");
+  const transportCapacityMessage = form.querySelector("[data-transport-capacity]");
+  if (transportSelect) {
+    transportSelect.innerHTML = '<option value="none">No aplica</option>'
+      + getOperatorActiveTransportOptions().map((option) => `<option value="${escapeHtml(option.key)}">${escapeHtml(option.name)} — ${escapeHtml(option.route)}</option>`).join("");
+  }
   const holderDocument = form.querySelector("[data-holder-document]");
   const companionList = form.querySelector("[data-companion-list]");
   const companionCount = form.querySelector("[data-companion-count]");
@@ -5412,6 +6153,57 @@ function setupOperatorReservationForm() {
   const normalizeDocument = (value) => value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
   const selectedService = () => services[serviceSelect.value];
   const travelers = () => Math.max(1, Number.parseInt(travelerInput.value, 10) || 1);
+
+  // CASO A/B (Tour <-> Transporte real): si el Tour tiene un transporte realmente
+  // asociado, se reconoce automaticamente (sin selector manual); si no, se ofrece el
+  // selector manual de transportes activos.
+  const serviceIncludesTransport = () => Boolean(selectedService()?.associatedTransport);
+  const selectedTransport = () => {
+    const service = selectedService();
+    if (service?.associatedTransport) return service.associatedTransport;
+    if (serviceIncludesTransport()) return null;
+    if (!transportSelect || transportSelect.value === "none") return null;
+    return getOperatorActiveTransportOptions().find((option) => option.key === transportSelect.value) || null;
+  };
+  const transportOverCapacity = () => {
+    const option = selectedTransport();
+    if (!option || option.capacity == null) return false;
+    if (!serviceIncludesTransport() && (!transportSelect || transportSelect.value === "none")) return false;
+    return travelers() > option.capacity;
+  };
+
+  const renderTransportConfiguration = () => {
+    const service = selectedService();
+    if (transportField) transportField.hidden = serviceIncludesTransport();
+    if (!service) {
+      if (transportIncludedMessage) transportIncludedMessage.hidden = true;
+      if (transportDetail) { transportDetail.hidden = true; transportDetail.innerHTML = ""; }
+      if (transportCapacityMessage) transportCapacityMessage.hidden = true;
+      return;
+    }
+    if (transportIncludedMessage) {
+      transportIncludedMessage.hidden = !serviceIncludesTransport();
+      transportIncludedMessage.textContent = "Este Tour tiene transporte asociado. No se ofrece un transporte adicional por separado ni se cobra aparte.";
+    }
+    const option = selectedTransport();
+    if (!option) {
+      if (transportDetail) { transportDetail.hidden = true; transportDetail.innerHTML = ""; }
+      if (transportCapacityMessage) transportCapacityMessage.hidden = true;
+      return;
+    }
+    if (transportDetail) {
+      transportDetail.hidden = false;
+      transportDetail.innerHTML = `<div><span>Transporte</span><strong>${escapeHtml(option.name)}</strong></div><div><span>Trayecto</span><strong>${escapeHtml(option.route)}</strong></div><div><span>Tarifa por persona</span><strong>${option.price > 0 ? formatCurrency(option.price) : "Por configurar"}</strong></div><div><span>Capacidad</span><strong>${option.capacity != null ? option.capacity + " viajeros" : "Por configurar"}</strong></div>`;
+    }
+    if (transportCapacityMessage) {
+      transportCapacityMessage.hidden = false;
+      const overCapacity = transportOverCapacity();
+      transportCapacityMessage.classList.toggle("is-error", overCapacity);
+      transportCapacityMessage.textContent = overCapacity
+        ? `Capacidad insuficiente: este transporte admite hasta ${option.capacity} viajeros.`
+        : "Tarifa por persona incluida en el valor proyectado.";
+    }
+  };
 
   const renderCompanions = () => {
     const requiredCompanions = Math.max(0, travelers() - 1);
@@ -5437,20 +6229,33 @@ function setupOperatorReservationForm() {
 
   const renderServiceConfiguration = () => {
     const service = selectedService();
-    const departurePlaceholder = !service
-      ? "Selecciona primero un servicio"
-      : service.departures.length
-        ? "Selecciona una salida"
-        : "Este servicio no tiene salidas configuradas";
-    departureSelect.innerHTML = `<option value="">${departurePlaceholder}</option>`;
+    departureInput.value = "";
+    departureInput.disabled = !service;
     paymentSelect.innerHTML = '<option value="">Selecciona una modalidad</option>';
-    departureSelect.disabled = !service;
     paymentSelect.disabled = !service;
     inclusions.hidden = !service;
-    if (!service) { inclusions.innerHTML = ""; conditions.innerHTML = "<strong>Condiciones de reserva</strong><p>Selecciona un servicio para consultar las condiciones parametrizadas.</p>"; return; }
-    departureSelect.insertAdjacentHTML("beforeend", service.departures.map((date) => `<option value="${date}">${date}</option>`).join(""));
+    if (!service) {
+      departureInput.removeAttribute("min");
+      departureInput.removeAttribute("max");
+      departureHint.textContent = "Selecciona primero un servicio";
+      inclusions.innerHTML = "";
+      conditions.innerHTML = "<strong>Condiciones de reserva</strong><p>Selecciona un servicio para consultar las condiciones parametrizadas.</p>";
+      return;
+    }
+    departureInput.min = service.start;
+    departureInput.max = service.end;
+    // CORRECCION PDR v1.7.1: la fecha del servicio se valida contra su vigencia de oferta
+    // (activo + rango de fechas + restricciones operativas), no contra una lista de salidas.
+    departureHint.textContent = service.start === service.end
+      ? `Fecha disponible: ${formatOperatorDate(service.start)}.`
+      : `Selecciona una fecha entre ${formatOperatorDate(service.start)} y ${formatOperatorDate(service.end)}.`;
     paymentSelect.insertAdjacentHTML("beforeend", service.payments.map((method) => `<option value="${method}">${method}</option>`).join(""));
-    inclusions.innerHTML = `<strong>Servicios relacionados incluidos</strong>${service.inclusions.map((item) => `<span>${item}</span>`).join("")}`;
+    // BUG/UX corregido: no mostrar el bloque "Servicios relacionados incluidos" vacio
+    // cuando el servicio (ej. un Tour nuevo) no tiene ninguna inclusion parametrizada.
+    inclusions.hidden = service.inclusions.length === 0;
+    inclusions.innerHTML = service.inclusions.length
+      ? `<strong>Servicios relacionados incluidos</strong>${service.inclusions.map((item) => `<span>${item}</span>`).join("")}`
+      : "";
     conditions.innerHTML = `<strong>Condiciones de reserva</strong><ul>${service.conditions.map((item) => `<li>${item}</li>`).join("")}</ul>`;
   };
 
@@ -5459,11 +6264,14 @@ function setupOperatorReservationForm() {
     const lodgingOverCapacity = lodgingSelect.value !== "none" && service && travelers() > service.lodgingCapacity;
     const documents = [holderDocument, ...form.querySelectorAll("[data-companion-document]")].map((input) => normalizeDocument(input.value)).filter(Boolean);
     const duplicatedDocument = documents.some((document, index) => documents.indexOf(document) !== index);
-    const serviceReady = Boolean(service && departureSelect.value);
-    const isValid = Boolean(serviceReady && form.checkValidity() && !lodgingOverCapacity && !duplicatedDocument);
+    const dateWithinValidity = Boolean(service && departureInput.value && departureInput.value >= service.start && departureInput.value <= service.end);
+    const serviceReady = Boolean(service) && dateWithinValidity;
+    const isValid = Boolean(serviceReady && form.checkValidity() && !lodgingOverCapacity && !transportOverCapacity() && !duplicatedDocument);
 
     if (!service) feedback.textContent = "Selecciona un servicio para consultar sus requisitos y valores.";
+    else if (!dateWithinValidity && departureInput.value) feedback.textContent = "La fecha seleccionada está fuera de la vigencia del servicio.";
     else if (lodgingOverCapacity) feedback.textContent = "La capacidad del hospedaje no cubre la cantidad total de viajeros.";
+    else if (transportOverCapacity()) feedback.textContent = "La capacidad del transporte no cubre la cantidad total de viajeros.";
     else if (duplicatedDocument) feedback.textContent = "El documento del titular y los acompañantes debe ser único dentro de la reserva.";
     else if (!form.checkValidity()) feedback.textContent = "Completa los campos obligatorios y registra los requisitos aplicables.";
     else feedback.textContent = "La reserva cumple las validaciones y está lista para registrarse.";
@@ -5471,10 +6279,18 @@ function setupOperatorReservationForm() {
     registerButton.disabled = !isValid;
   };
 
+  // Tarifa de transporte por persona x viajeros (RN-TRA-002), sumada al valor proyectado.
+  // El descuento del servicio (mas abajo) se calcula SOLO sobre el precio del Tour, nunca
+  // se extiende automaticamente al transporte.
+  const transportCost = () => {
+    const option = selectedTransport();
+    return option ? option.price * travelers() : 0;
+  };
+
   const renderSummary = () => {
     const service = selectedService();
-    const projected = service ? service.price * travelers() : 0;
-    const discount = service ? projected * service.discount : 0;
+    const projected = service ? service.price * travelers() + transportCost() : 0;
+    const discount = service ? service.price * travelers() * service.discount : 0;
     projectedNode.textContent = formatCurrency(projected);
     discountNode.textContent = discount ? `-${formatCurrency(discount)}` : "$0";
     finalNode.textContent = formatCurrency(projected - discount);
@@ -5486,9 +6302,10 @@ function setupOperatorReservationForm() {
   };
 
   const sync = ({ serviceChanged = false } = {}) => {
-    if (serviceChanged) renderServiceConfiguration();
+    if (serviceChanged) { renderServiceConfiguration(); if (transportSelect) transportSelect.value = "none"; }
     renderCompanions();
     renderRiskRequirements(selectedService());
+    renderTransportConfiguration();
     renderSummary();
     validate();
   };
@@ -5496,6 +6313,7 @@ function setupOperatorReservationForm() {
   serviceSelect.addEventListener("change", () => { form.querySelector("[data-conditions-accepted]").checked = false; sync({ serviceChanged: true }); });
   travelerInput.addEventListener("input", () => sync());
   lodgingSelect.addEventListener("change", () => sync());
+  transportSelect?.addEventListener("change", () => sync());
   form.addEventListener("input", () => validate());
   form.addEventListener("change", () => validate());
   form.addEventListener("submit", (event) => {
@@ -5505,15 +6323,21 @@ function setupOperatorReservationForm() {
 
     const service = selectedService();
     const code = "RES-1843";
-    const projected = service.price * travelers();
-    const discount = projected * service.discount;
+    const projected = service.price * travelers() + transportCost();
+    const discount = service.price * travelers() * service.discount;
+    const transportOption = selectedTransport();
+    const transportSelected = transportOption
+      ? serviceIncludesTransport()
+        ? `Asociado al Tour — ${transportOption.name} (${transportOption.route})`
+        : `${transportOption.name} — ${transportOption.route}`
+      : undefined;
     sessionStorage.setItem("operatorReservationDraft", JSON.stringify({
       code,
       createdAt: OPERATOR_TODAY_DATE,
       customer: form.querySelector("[data-holder-name]").value.trim(),
       email: "No registrado en esta vista",
       service: service.name,
-      date: departureSelect.value,
+      date: departureInput.value,
       travelers: travelers(),
       companions: `${Math.max(0, travelers() - 1)} registrado(s)`,
       status: "Pendiente de pago",
@@ -5528,6 +6352,7 @@ function setupOperatorReservationForm() {
       execution: "Pendiente de ejecución",
       action: "Gestionar pago",
       href: "admin-pagos.html",
+      transportSelected,
     }));
     window.location.href = withTheme(`admin-gestion-pago.html?reservation=${code}`, getTheme());
   });
@@ -5563,10 +6388,33 @@ function setupOperatorReservationPayment() {
 
   let draft = null;
   try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
-  const code = new URLSearchParams(window.location.search).get("reservation") || "RES-1843";
+  // Regla (CORREGIR): "Gestión de pago" siempre debe abrir la reserva realmente
+  // seleccionada; nunca cae en una reserva fija/por defecto cuando el codigo esta ausente
+  // o no se encuentra.
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
   const base = OPERATOR_RESERVATIONS[code];
-  const fallback = { code, customer: "Paula", method: "Efectivo", payment: "Sin pago", final: "$2.078.400", paid: "$0", balance: "$2.078.400", status: "Pendiente de pago", statusClass: "is-pending" };
-  let reservation = draft?.code === code ? draft : (base ? { ...base } : fallback);
+  let reservation = code && draft?.code === code ? draft : base ? { ...base, code } : null;
+
+  const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
+
+  if (!reservation) {
+    setText("[data-payment-reservation-code]", "Reserva no encontrada");
+    setText("[data-payment-customer]", "—");
+    const feedbackEl = document.querySelector("[data-payment-feedback]");
+    if (feedbackEl) { feedbackEl.hidden = false; feedbackEl.textContent = "No se encontró la reserva seleccionada. Vuelve a Reservas u Operación e ingresa nuevamente por Gestionar pago."; }
+    document.querySelector("[data-payment-form]")?.querySelectorAll("input, button").forEach((el) => { el.disabled = true; });
+    const submitEl = document.querySelector("[data-payment-submit]");
+    if (submitEl) submitEl.hidden = true;
+    return;
+  }
+
+  // Una reserva Cancelada (RF-008A/linea 972) conserva su informacion economica en
+  // consulta, pero no admite registrar nuevos pagos ni soportes: solo trazabilidad
+  // existente y, si corresponde, el flujo de devolucion ya disponible desde el detalle.
+  const cancellation = getOperatorReservationCancellation(code);
+  if (cancellation) {
+    reservation = { ...reservation, status: "Cancelada", statusClass: "is-cancelled" };
+  }
 
   // El % de descuento adicional se recalcula siempre sobre el valor original (OPERATOR_RESERVATIONS),
   // nunca sobre un valor ya descontado guardado en el draft, para no aplicarlo dos veces.
@@ -5578,7 +6426,6 @@ function setupOperatorReservationPayment() {
     reservation = { ...reservation, final: formatCOP(newFinal), balance: formatCOP(Math.max(newFinal - paidSoFar, 0)) };
   }
 
-  const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
   setText("[data-payment-reservation-code]", `#${reservation.code}`);
   setText("[data-payment-customer]", reservation.customer);
   setText("[data-payment-method]", reservation.method);
@@ -5616,7 +6463,10 @@ function setupOperatorReservationPayment() {
   const formatCurrency = (value) => `$${new Intl.NumberFormat("es-CO").format(value)}`;
 
   const renderEntryState = () => {
-    const isSettled = reservation.payment === "Pagado" || parseCurrency(reservation.balance) === 0;
+    // Regla (CORREGIR): una reserva Cancelada nunca admite registrar nuevo pago ni
+    // soporte, sin importar su saldo; solo consulta economica y trazabilidad existente.
+    const isCancelled = reservation.statusClass === "is-cancelled";
+    const isSettled = isCancelled || reservation.payment === "Pagado" || parseCurrency(reservation.balance) === 0;
     document.querySelectorAll("[data-payment-entry]").forEach((node) => {
       const isSupport = node.querySelector("[data-payment-support]");
       node.hidden = isSettled || Boolean(isSupport && !isTransfer);
@@ -5625,8 +6475,27 @@ function setupOperatorReservationPayment() {
     if (submit) submit.hidden = isSettled;
     if (completed) completed.hidden = !isSettled;
     if (isSettled) {
-      if (paymentHeading) paymentHeading.textContent = "Pago registrado";
+      if (paymentHeading) paymentHeading.textContent = isCancelled ? "Reserva cancelada" : "Pago registrado";
+      const completedNote = completed?.querySelector("p");
+      if (completedNote) {
+        completedNote.textContent = isCancelled
+          ? "Esta reserva está cancelada: no se pueden registrar nuevos pagos ni soportes. Se conserva la trazabilidad existente."
+          : "No existen valores pendientes por registrar para esta reserva.";
+      }
       setText("[data-payment-paid]", reservation.paid || reservation.final);
+      // Trazabilidad de abonos: se muestra el historico completo cuando hay mas de un
+      // movimiento, en vez de reemplazarlo por un unico numero sin desglose.
+      const movementsList = document.querySelector("[data-payment-movements-list]");
+      const movements = getOperatorPaymentMovements(reservation.code);
+      if (movementsList) {
+        if (movements.length > 1) {
+          movementsList.hidden = false;
+          movementsList.innerHTML = movements.map((movement, index) => `<div><span>Abono ${index + 1}</span><strong>${escapeHtml(movement.amount)}</strong></div>`).join("");
+        } else {
+          movementsList.hidden = true;
+          movementsList.innerHTML = "";
+        }
+      }
     }
     if (review) review.hidden = isSettled || !(isTransfer && reservation.payment === "En validación" && reservation.supportPending);
   };
@@ -5649,7 +6518,18 @@ function setupOperatorReservationPayment() {
   }
   renderEntryState();
 
-  const persist = () => sessionStorage.setItem("operatorReservationDraft", JSON.stringify(reservation));
+  // Regla (CORREGIR): el estado economico actualizado aqui debe reflejarse tambien en
+  // Operación (y Reportes), que leen la MISMA fuente ya usada por Validar soporte -- sin
+  // esto, confirmar el pago desde Gestión de pago no habilitaba "Registrar ejecución".
+  const persist = () => {
+    sessionStorage.setItem("operatorReservationDraft", JSON.stringify(reservation));
+    setOperatorPaymentSupportState(code, {
+      status: reservation.payment,
+      paid: reservation.paid,
+      balance: reservation.balance,
+      decidedAt: new Date().toISOString(),
+    });
+  };
   const renderPaymentState = () => {
     setText("[data-payment-status]", reservation.payment);
     setText("[data-payment-balance]", reservation.balance);
@@ -5662,7 +6542,7 @@ function setupOperatorReservationPayment() {
 
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!hasSupportedMethod) return;
+    if (!hasSupportedMethod || reservation.statusClass === "is-cancelled") return;
     const enteredAmount = parseCurrency(amount?.value);
     const balance = parseCurrency(reservation.balance);
     const currentPaid = parseCurrency(reservation.paid);
@@ -5701,6 +6581,7 @@ function setupOperatorReservationPayment() {
       feedback.textContent = paidInFull
         ? "Pago registrado. Se cumplió la condición parametrizada y la reserva quedó confirmada."
         : "Abono registrado. El pago queda parcial y se conserva el saldo pendiente.";
+      addOperatorPaymentMovement(reservation.code, formatCurrency(enteredAmount), reservation.method);
     }
 
     persist();
@@ -5712,6 +6593,7 @@ function setupOperatorReservationPayment() {
   });
 
   approve?.addEventListener("click", () => {
+    if (reservation.statusClass === "is-cancelled") return;
     const validatedAmount = Number(reservation.pendingTransferAmount || 0);
     const newPaid = parseCurrency(reservation.paid) + validatedAmount;
     const newBalance = Math.max(0, parseCurrency(reservation.final) - newPaid);
@@ -5722,6 +6604,7 @@ function setupOperatorReservationPayment() {
     reservation.statusClass = newBalance === 0 ? "is-confirmed" : "is-pending";
     delete reservation.pendingTransferAmount;
     delete reservation.supportPending;
+    if (validatedAmount > 0) addOperatorPaymentMovement(reservation.code, formatCurrency(validatedAmount), reservation.method);
     persist();
     renderPaymentState();
     review.hidden = true;
@@ -5732,6 +6615,7 @@ function setupOperatorReservationPayment() {
   });
 
   reject?.addEventListener("click", () => {
+    if (reservation.statusClass === "is-cancelled") return;
     reservation.payment = "Rechazado";
     reservation.status = "Pendiente de pago";
     reservation.statusClass = "is-pending";
@@ -5771,6 +6655,8 @@ setupTourPaymentSuccess(activeTheme);
 setupTourPaymentFailed(activeTheme);
 setupTourPaymentTransfer(activeTheme);
 setupDashboardBooking();
+setupClientReservationsScreen();
+setupClientPaymentsScreen();
 setupCompanionsForm();
 setupCatalogSearch();
 setupOperatorCatalogs();

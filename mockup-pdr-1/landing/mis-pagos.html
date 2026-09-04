@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mis pagos | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="client-payments" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <main id="contenido" class="travel-dashboard-shell">
+      <header class="travel-dashboard-header">
+        <a class="travel-dashboard-brand" href="index.html" data-route="home" data-tenant-brand>Multitour</a>
+
+        <div class="travel-dashboard-header-actions">
+          <a class="travel-dashboard-header-link" href="panel-cliente.html" data-route="clientDashboard">Volver al panel</a>
+          <a class="travel-dashboard-avatar" href="profile.html" data-route="profile" aria-label="Perfil del usuario" data-user-avatar>
+            FN
+          </a>
+        </div>
+      </header>
+
+      <section class="travel-dashboard-hero" aria-labelledby="payments-title">
+        <div class="travel-dashboard-copy">
+          <p class="travel-dashboard-eyebrow">Portal cliente</p>
+          <h1 id="payments-title">Mis pagos</h1>
+          <p>Consulta pagos, abonos, saldos y soportes de tus reservas propias. Esta consulta no permite validar ni rechazar soportes.</p>
+        </div>
+      </section>
+
+      <section class="travel-dashboard-section" aria-labelledby="payments-list">
+        <div class="travel-dashboard-section-head">
+          <h2 id="payments-list">Estado económico de mis reservas</h2>
+        </div>
+
+        <div class="travel-dashboard-reservation-grid" data-payments-list></div>
+        <p class="travel-dashboard-copy" data-payments-empty hidden>Todavía no tienes pagos ni reservas registradas.</p>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
