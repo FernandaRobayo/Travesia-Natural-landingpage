@@ -300,53 +300,123 @@ function getUserInitials(name) {
 
 function hydrateStoredUser() {
   const profile = getStoredProfile();
-  if (!profile) return;
 
-  document.querySelectorAll("[data-user-avatar], [data-user-avatar-large]").forEach((node) => {
-    node.textContent = getUserInitials(profile.name);
-  });
-
-  const greetingNode = document.querySelector("[data-user-greeting]");
-  if (greetingNode) {
-    const firstName = String(profile.name || "").trim().split(/\s+/)[0] || "Fernanda";
-    greetingNode.textContent = `Hola, ${firstName}`;
+  // Avatar/saludo del header: mismo valor de referencia ya aprobado ("FN"/"Fernanda") como
+  // fallback cuando no hay perfil real guardado en este navegador (BACKEND/SESION
+  // FALTANTE: sin autenticacion real, no hay otro nombre posible para el saludo).
+  if (profile) {
+    document.querySelectorAll("[data-user-avatar], [data-user-avatar-large]").forEach((node) => {
+      node.textContent = getUserInitials(profile.name);
+    });
+    const greetingNode = document.querySelector("[data-user-greeting]");
+    if (greetingNode) {
+      const firstName = String(profile.name || "").trim().split(/\s+/)[0] || "Fernanda";
+      greetingNode.textContent = `Hola, ${firstName}`;
+    }
   }
 
-  const profileName = document.querySelector("[data-profile-name]");
-  if (profileName) profileName.textContent = profile.name;
-
+  // Mi perfil (Datos de la cuenta / Datos personales): a diferencia del saludo, aqui NUNCA
+  // se muestra un dato de ejemplo hardcodeado. Sin perfil real guardado, se informa
+  // "No registrado" en cada campo.
   const profileNameCard = document.querySelector("[data-profile-name-card]");
-  if (profileNameCard) profileNameCard.textContent = profile.name;
+  if (profileNameCard) profileNameCard.textContent = profile?.name || "No registrado";
 
   const profileEmail = document.querySelector("[data-profile-email]");
-  if (profileEmail) profileEmail.textContent = profile.email;
+  if (profileEmail) profileEmail.textContent = profile?.email || "No registrado";
 
   const profileNameInput = document.querySelector("[data-profile-name-input]");
-  if (profileNameInput) profileNameInput.value = profile.name;
+  if (profileNameInput) profileNameInput.value = profile?.name || "";
 
   const profileEmailInput = document.querySelector("[data-profile-email-input]");
-  if (profileEmailInput) profileEmailInput.value = profile.email;
-
-  const profilePhone = document.querySelector("[data-profile-phone]");
-  const formattedPhone = [profile.countryCode, profile.phone].filter(Boolean).join(" ");
-  if (profilePhone) profilePhone.textContent = formattedPhone;
+  if (profileEmailInput) profileEmailInput.value = profile?.email || "";
 
   const profilePhoneInput = document.querySelector("[data-profile-phone-input]");
-  if (profilePhoneInput) profilePhoneInput.value = formattedPhone;
+  if (profilePhoneInput) profilePhoneInput.value = profile?.phone || "";
+}
 
-  const profileCountry = document.querySelector("[data-profile-country]");
-  if (profileCountry) profileCountry.textContent = profile.countryCode;
+// "Mi perfil" -> Resumen: reservas activas, pagos pendientes y ultima reserva, todas
+// derivadas del MISMO historial/reserva actual ya usado por panel-cliente y mis-pagos
+// (multitour-client-reservations / multitour-dashboard-booking). Nunca cantidades
+// hardcodeadas.
+function setupProfileSummary() {
+  if (document.body.dataset.screen !== "profile") return;
 
-  const profileCountryInput = document.querySelector("[data-profile-country-input]");
-  if (profileCountryInput) profileCountryInput.value = profile.countryCode;
+  const history = getClientReservationHistory();
+  const activeCount = history.filter((item) => {
+    const status = normalizeClientReservationStatus(item.status);
+    return status !== "Finalizada" && status !== "Cancelada";
+  }).length;
+  const pendingPayments = history.filter((item) => {
+    if (item.paymentStatus) return item.paymentStatus !== "Pagado";
+    return normalizeClientReservationStatus(item.status) === "Pendiente de pago";
+  }).length;
 
-  const profileUpdated = document.querySelector("[data-profile-updated]");
-  if (profileUpdated) profileUpdated.textContent = profile.savedAt;
+  const activeNode = document.querySelector("[data-profile-active-reservations]");
+  if (activeNode) activeNode.textContent = String(activeCount);
 
-  const profileSummary = document.querySelector("[data-profile-summary]");
-  if (profileSummary) {
-    profileSummary.textContent = `Cuenta creada por ${profile.name}. Aqui puedes revisar la informacion registrada en el acceso del mockup.`;
+  const pendingNode = document.querySelector("[data-profile-pending-payments]");
+  if (pendingNode) pendingNode.textContent = String(pendingPayments);
+
+  let lastBooking = null;
+  try {
+    const raw = window.localStorage.getItem("multitour-dashboard-booking");
+    lastBooking = raw ? JSON.parse(raw) : null;
+  } catch {
+    lastBooking = null;
   }
+  const lastNode = document.querySelector("[data-profile-last-reservation]");
+  if (lastNode) lastNode.textContent = lastBooking ? `${lastBooking.experience} (${lastBooking.startDate})` : "No registrado";
+}
+
+// "Mi perfil" -> Seguridad -> Editar perfil: solo nombre y telefono son editables (unicos
+// campos del modelo/PDR realmente mutables para el Cliente). Rol, tenant e identificadores
+// internos nunca se exponen como editables aqui.
+function setupProfileEdit() {
+  if (document.body.dataset.screen !== "profile") return;
+
+  const toggle = document.querySelector("[data-profile-edit-toggle]");
+  const label = document.querySelector("[data-profile-edit-label]");
+  const nameInput = document.querySelector("[data-profile-name-input]");
+  const phoneInput = document.querySelector("[data-profile-phone-input]");
+  const feedback = document.querySelector("[data-profile-feedback]");
+  if (!toggle || !nameInput || !phoneInput) return;
+
+  let editing = false;
+
+  toggle.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    if (!editing) {
+      editing = true;
+      nameInput.removeAttribute("readonly");
+      phoneInput.removeAttribute("readonly");
+      nameInput.focus();
+      if (label) label.textContent = "Guardar cambios";
+      if (feedback) {
+        feedback.textContent = "";
+        feedback.className = "feedback";
+      }
+      return;
+    }
+
+    const current = getStoredProfile() || {};
+    const updated = {
+      ...current,
+      name: nameInput.value.trim() || current.name || "",
+      phone: phoneInput.value.trim(),
+    };
+    window.localStorage.setItem("multitour-user-profile", JSON.stringify(updated));
+
+    editing = false;
+    nameInput.setAttribute("readonly", "true");
+    phoneInput.setAttribute("readonly", "true");
+    if (label) label.textContent = "Editar perfil";
+    if (feedback) {
+      feedback.textContent = "Perfil actualizado en esta simulación.";
+      feedback.className = "feedback is-success";
+    }
+    hydrateStoredUser();
+  });
 }
 
 function setupPasswordToggle() {
@@ -1135,413 +1205,115 @@ function setupTourBookingLinks(theme) {
   });
 }
 
+// BUG corregido: Gastronomía/Restaurantes mostraban tarjetas globales hardcodeadas
+// (Pujol, El Califa, Cicatriz, "Plato del día" fijo) sin relacion con el tenant actual.
+// Ahora se renderizan desde los establecimientos asociados (restaurant) y el catalogo de
+// Alimentación reales, con estado vacio explicito cuando no hay datos (nunca demo de relleno).
+function setupGastronomyCatalog() {
+  const screen = document.body.dataset.screen;
+  if (screen !== "gastronomy" && screen !== "restaurants") return;
+
+  const restaurants = getOperatorActiveAssociatedEstablishments("restaurant");
+
+  const restaurantCardMarkup = (establishment) => `
+    <div class="travel-tour-media restaurant-media-one"${establishment.image ? ` style="background-image:url('${establishment.image.replace(/'/g, "%27")}');background-size:cover;background-position:center;"` : ""}></div>
+    <div class="travel-tour-body">
+      <strong>${escapeHtml(establishment.name)}</strong>
+      <span class="travel-tour-location">Restaurante asociado</span>
+      <div class="travel-tour-meta">
+        <div></div>
+        <a class="travel-tour-detail-link" href="detalle-gastronomia.html" data-venue-link="${escapeHtml(establishment.id)}" data-source-screen="${screen}">Ver detalles</a>
+      </div>
+    </div>
+  `;
+  const restaurantCard = (establishment) =>
+    `<article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(establishment.name.toLowerCase())} restaurante">${restaurantCardMarkup(establishment)}</article>`;
+
+  if (screen === "restaurants") {
+    const restaurantGrid = document.querySelector("[data-restaurant-grid]");
+    if (restaurantGrid) {
+      restaurantGrid.innerHTML = restaurants.length
+        ? restaurants.map(restaurantCard).join("")
+        : '<p class="travel-dashboard-copy" data-restaurant-empty>No hay restaurantes asociados activos en este momento.</p>';
+    }
+    return;
+  }
+
+  // "Todos" (sin ?filter) combina Alimentación + Restaurantes asociados en UNA sola grilla
+  // (lado a lado, misma seccion); "Platos del día" (?filter=food) muestra SOLO Alimentación.
+  // Alimentación y Restaurantes son conceptos distintos (PDR v1.7.1): nunca se reclasifica
+  // un registro, solo se decide cuales se incluyen segun el filtro activo.
+  const activeFilter = new URLSearchParams(window.location.search).get("filter") === "food" ? "food" : "all";
+  document.querySelectorAll("[data-filter-tab]").forEach((tab) => {
+    tab.classList.toggle("is-active", tab.dataset.filterTab === activeFilter);
+  });
+
+  const foodOptions = getOperatorActiveFoodOptions();
+  const foodCard = (option) => `
+    <article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(option.name.toLowerCase())} plato del dia alimentacion">
+      <div class="travel-tour-media restaurant-media-three"></div>
+      <div class="travel-tour-body">
+        <strong>${escapeHtml(option.name)}</strong>
+        <span class="travel-tour-location">${option.restaurant ? `Restaurante asociado: ${escapeHtml(option.restaurant)}` : "Alimentación"}</span>
+        <div class="travel-catalog-tags"><span>Alimentación</span>${option.validity ? `<span>Vigente: ${escapeHtml(option.validity)}</span>` : ""}</div>
+        <div class="travel-tour-meta">
+          <div><small>Tarifa</small><em>${escapeHtml(option.tariff)}</em></div>
+          <a class="travel-tour-detail-link" href="#platos-del-dia">Ver detalles</a>
+        </div>
+      </div>
+    </article>
+  `;
+
+  const cards = foodOptions.map(foodCard);
+  if (activeFilter === "all") cards.push(...restaurants.map(restaurantCard));
+
+  const gastronomyGrid = document.querySelector("[data-gastronomy-grid]");
+  if (gastronomyGrid) {
+    gastronomyGrid.innerHTML = cards.length
+      ? cards.join("")
+      : `<p class="travel-dashboard-copy" data-gastronomy-empty>${activeFilter === "food" ? "No hay opciones de alimentación disponibles en este momento." : "No hay opciones disponibles en este momento."}</p>`;
+  }
+}
+
+// Mismo patron ya aprobado en setupGastronomyCatalog (Restaurantes asociados): Alojamiento
+// solo debe representar el establecimiento hotel asociado, activo, nunca habitaciones ni
+// disponibilidad inventadas.
+function setupLodgingCatalog() {
+  if (document.body.dataset.screen !== "lodging") return;
+
+  const hotels = getOperatorActiveAssociatedEstablishments("hotel");
+
+  const hotelCard = (establishment) => `
+    <article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(establishment.name.toLowerCase())} hotel">
+      <div class="travel-tour-media lodging-media-one"${establishment.image ? ` style="background-image:url('${establishment.image.replace(/'/g, "%27")}');background-size:cover;background-position:center;"` : ""}></div>
+      <div class="travel-tour-body">
+        <strong>${escapeHtml(establishment.name)}</strong>
+        <span class="travel-tour-location">Hotel asociado</span>
+        ${establishment.description ? `<p class="travel-dashboard-copy">${escapeHtml(establishment.description)}</p>` : ""}
+      </div>
+    </article>
+  `;
+
+  const hotelGrid = document.querySelector("[data-hotel-grid]");
+  if (hotelGrid) {
+    hotelGrid.innerHTML = hotels.length
+      ? hotels.map(hotelCard).join("")
+      : '<p class="travel-dashboard-copy" data-hotel-empty>No hay hoteles asociados activos en este momento.</p>';
+  }
+}
+
 function setupGastronomyDetail(theme) {
   if (document.body.dataset.screen !== "gastronomy-detail") return;
-
-  const venues = {
-    maison: {
-      detailTitle: "Restaurant Details",
-      name: "La Maison Botanica",
-      category: "Alta cocina",
-      rating: "4.8",
-      location: "Roma Norte, CDMX",
-      description:
-        "Una experiencia gastronomica sin precedentes donde la tradicion se encuentra con la vanguardia. Nuestro chef disena menus de temporada que celebran los ingredientes locales de la mas alta calidad, presentados con elegancia y servicio impecable.",
-      price: formatCOPRange(180000, 320000),
-      reviewScore: "4.8 ★★★★☆",
-      reviewCount: "Basado en 342 opiniones",
-      features: ["Cava de vinos", "Terraza", "Chef de autor"],
-      menu: [
-        {
-          title: "Crudo de res wagyu",
-          body: "Con emulsion de trufa negra, yema curada y crujiente de alcaparras.",
-          price: formatCOP(180000),
-        },
-        {
-          title: "Robalo sellado",
-          body: "Pure de coliflor ahumada, esparragos de mar y beurre blanc de citricos.",
-          price: formatCOP(232000),
-        },
-        {
-          title: "Milhojas de avellana",
-          body: "Crema diplomatca de praline, caramelo salado y helado de vainilla.",
-          price: formatCOP(96000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cafe: {
-      name: "Cafe de Origen",
-      category: "Cafeteria de especialidad",
-      rating: "4.9",
-      location: "Polanco, CDMX",
-      description:
-        "Un espacio luminoso y tranquilo para disfrutar cafe de origen, reposteria artesanal y encuentros de media tarde con una experiencia cercana y contemporanea.",
-      price: formatCOPRange(32000, 78000),
-      schedule: "7:00 am - 8:00 pm",
-      ambience: "Calido y minimalista",
-      ideal: "Desayunos, reuniones y trabajo remoto",
-      features: ["Cafe de especialidad", "Brunch", "Pet friendly"],
-      menu: [
-        {
-          title: "Flat white de la casa",
-          body: "Cafe de origen colombiano con leche texturizada y perfil achocolatado.",
-          price: formatCOP(18000),
-        },
-        {
-          title: "Toast de aguacate",
-          body: "Pan de masa madre, huevo poche y mezcla de semillas tostadas.",
-          price: formatCOP(42000),
-        },
-        {
-          title: "Cheesecake de guayaba",
-          body: "Porción artesanal con base crocante y coulis ligero.",
-          price: formatCOP(24000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    bar: {
-      name: "Barra Mistica",
-      category: "Bar de autor",
-      rating: "4.6",
-      location: "Condesa, CDMX",
-      description:
-        "Cocteleria creativa, musica en vivo y una barra protagonista para noches sociales con energia, puesta en escena y una carta disenada para compartir.",
-      price: formatCOPRange(55000, 140000),
-      schedule: "6:00 pm - 2:00 am",
-      ambience: "Vibrante y nocturno",
-      ideal: "Salidas con amigos y after office",
-      features: ["Mixologia", "Musica en vivo", "Reservas privadas"],
-      menu: [
-        {
-          title: "Coctel negroni ahumado",
-          body: "Gin botanico, vermut infusionado y toque ahumado en mesa.",
-          price: formatCOP(64000),
-        },
-        {
-          title: "Tacos de pork belly",
-          body: "Tres piezas con encurtidos, salsa de chile dulce y hierbas frescas.",
-          price: formatCOP(72000),
-        },
-        {
-          title: "Tabla de quesos y charcuteria",
-          body: "Selección para compartir con panes artesanales y frutos secos.",
-          price: formatCOP(112000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  };
-
-  Object.assign(venues.maison, {
-    reviewScore: "4.8 *****",
-  });
-
-  Object.assign(venues.cafe, {
-    detailTitle: "Cafe Details",
-    description:
-      "Un espacio luminoso y acogedor donde el cafe de origen y la reposteria artesanal protagonizan una experiencia ideal para desayunos, reuniones o una pausa tranquila en la ciudad.",
-    reviewScore: "4.9 *****",
-    reviewCount: "Basado en 218 opiniones",
-    menu: [
-      {
-        title: "Flat white de la casa",
-        body: "Cafe de origen colombiano con leche texturizada y perfil achocolatado.",
-        price: formatCOP(18000),
-      },
-      {
-        title: "Toast de aguacate",
-        body: "Pan de masa madre, huevo poche y mezcla de semillas tostadas.",
-        price: formatCOP(42000),
-      },
-      {
-        title: "Cheesecake de guayaba",
-        body: "Porcion artesanal con base crocante y coulis ligero.",
-        price: formatCOP(24000),
-      },
-    ],
-  });
-
-  Object.assign(venues.bar, {
-    detailTitle: "Bar Details",
-    description:
-      "Cocteleria creativa, musica en vivo y una barra protagonista para noches sociales con energia. La propuesta mezcla autor, atmosfera y una carta pensada para compartir.",
-    reviewScore: "4.6 ****",
-    reviewCount: "Basado en 187 opiniones",
-    menu: [
-      {
-        title: "Coctel negroni ahumado",
-        body: "Gin botanico, vermut infusionado y toque ahumado en mesa.",
-        price: formatCOP(64000),
-      },
-      {
-        title: "Tacos de pork belly",
-        body: "Tres piezas con encurtidos, salsa de chile dulce y hierbas frescas.",
-        price: formatCOP(72000),
-      },
-      {
-        title: "Tabla de quesos y charcuteria",
-        body: "Seleccion para compartir con panes artesanales y frutos secos.",
-        price: formatCOP(112000),
-      },
-    ],
-  });
-
-  Object.assign(venues, {
-    pujol: {
-      detailTitle: "Restaurant Details",
-      name: "Pujol",
-      category: "Alta cocina",
-      rating: "4.8",
-      location: "Polanco, CDMX",
-      description:
-        "Una propuesta de alta cocina mexicana contemporanea con ingredientes estacionales, tecnica precisa y una narrativa culinaria enfocada en producto, origen y experiencia.",
-      price: formatCOP(220000),
-      reviewScore: "4.8 *****",
-      reviewCount: "Basado en 426 opiniones",
-      features: ["Alta cocina", "Mexicana", "Menu degustacion"],
-      menu: [
-        {
-          title: "Mole madre",
-          body: "Preparacion insignia con recambio de temporada y acompanamientos del dia.",
-          price: formatCOP(180000),
-        },
-        {
-          title: "Pesca del pacifico",
-          body: "Coccion precisa con salsa de maiz tierno y vegetales braseados.",
-          price: formatCOP(208000),
-        },
-        {
-          title: "Postre de cacao",
-          body: "Texturas de chocolate mexicano, crema ligera y sal de vainilla.",
-          price: formatCOP(76000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    califa: {
-      detailTitle: "Restaurant Details",
-      name: "El Califa",
-      category: "Comida local",
-      rating: "4.6",
-      location: "Condesa, CDMX",
-      description:
-        "Un lugar vibrante para disfrutar tacos, brasas y cocina urbana con un ambiente relajado, servicio agil y sabores reconocibles que invitan a compartir.",
-      price: formatCOP(40000),
-      reviewScore: "4.6 ****",
-      reviewCount: "Basado en 301 opiniones",
-      features: ["Tacos", "Comida local", "Casual"],
-      menu: [
-        {
-          title: "Taco de rib eye",
-          body: "Tortilla recien hecha, carne a la brasa y salsa tatemada.",
-          price: formatCOP(44000),
-        },
-        {
-          title: "Costra especial",
-          body: "Queso dorado, carne al carbon y guacamole fresco.",
-          price: formatCOP(56000),
-        },
-        {
-          title: "Agua fresca del dia",
-          body: "Preparacion natural con fruta de temporada.",
-          price: formatCOP(20000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cicatriz: {
-      detailTitle: "Cafe Details",
-      name: "Cicatriz",
-      category: "Cafeteria",
-      rating: "4.9",
-      location: "Juarez, CDMX",
-      description:
-        "Una cafeteria casual con cocina ligera, cafe bien ejecutado y una atmosfera tranquila para encuentros creativos, desayunos y pausas largas durante el dia.",
-      price: formatCOP(38000),
-      reviewScore: "4.9 *****",
-      reviewCount: "Basado en 264 opiniones",
-      features: ["Cafeteria", "Casual", "Brunch"],
-      menu: [
-        {
-          title: "Bowl de temporada",
-          body: "Verduras asadas, grano base, aderezo de citricos y hierbas frescas.",
-          price: formatCOP(52000),
-        },
-        {
-          title: "Sandwich artesanal",
-          body: "Pan de masa madre, queso suave, vegetales y mantequilla especiada.",
-          price: formatCOP(48000),
-        },
-        {
-          title: "Latte de especialidad",
-          body: "Cafe de origen con leche texturizada y perfil balanceado.",
-          price: formatCOP(28000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    speakeasy: {
-      detailTitle: "Bar Details",
-      name: "The Speakeasy",
-      category: "Mixologia",
-      rating: "4.8",
-      location: "Roma Norte, CDMX",
-      description:
-        "Un bar de atmosfera intima con cocteleria clasica reinterpretada, musica suave y una barra protagonista pensada para encuentros de noche.",
-      price: formatCOP(68000),
-      reviewScore: "4.8 *****",
-      reviewCount: "Basado en 196 opiniones",
-      features: ["Mixologia", "Cocktail bar", "Lounge"],
-      menu: [
-        {
-          title: "Old fashioned ahumado",
-          body: "Bourbon, bitters aromaticos y toque de humo servido en mesa.",
-          price: formatCOP(60000),
-        },
-        {
-          title: "Trio de sliders",
-          body: "Mini burgers de la casa con cebolla caramelizada y encurtidos.",
-          price: formatCOP(68000),
-        },
-        {
-          title: "Tabla de charcuteria",
-          body: "Quesos maduros, embutidos artesanales y pan tostado.",
-          price: formatCOP(84000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    rooftop: {
-      detailTitle: "Bar Details",
-      name: "Rooftop Lounge",
-      category: "Terraza",
-      rating: "4.6",
-      location: "Polanco, CDMX",
-      description:
-        "Terraza elevada con vista urbana, cocteleria refrescante y una experiencia social pensada para atardeceres y noches largas.",
-      price: formatCOP(95000),
-      reviewScore: "4.6 ****",
-      reviewCount: "Basado en 241 opiniones",
-      features: ["Rooftop", "Vista panoramica", "DJ set"],
-      menu: [
-        {
-          title: "Spritz citrico",
-          body: "Espumoso, licor de naranja y notas herbales sobre hielo.",
-          price: formatCOP(56000),
-        },
-        {
-          title: "Tostadas de atun",
-          body: "Atun marinado, aguacate y chile suave en base crujiente.",
-          price: formatCOP(72000),
-        },
-        {
-          title: "Tabla mediterranea",
-          body: "Hummus, aceitunas, queso suave y pan pita caliente.",
-          price: formatCOP(88000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    lupulo: {
-      detailTitle: "Bar Details",
-      name: "Lupulo Club",
-      category: "Craft beer",
-      rating: "4.7",
-      location: "Juarez, CDMX",
-      description:
-        "Espacio relajado enfocado en cerveza artesanal, taps rotativos y cocina de acompanamiento en un ambiente casual y conversable.",
-      price: formatCOP(49000),
-      reviewScore: "4.7 *****",
-      reviewCount: "Basado en 154 opiniones",
-      features: ["Craft beer", "Tap room", "Casual"],
-      menu: [
-        {
-          title: "Flight de la casa",
-          body: "Cuatro estilos de cerveza artesanal seleccionados por temporada.",
-          price: formatCOP(48000),
-        },
-        {
-          title: "Pretzel caliente",
-          body: "Acompanado de mostaza especiada y dip de queso.",
-          price: formatCOP(36000),
-        },
-        {
-          title: "Fish and chips",
-          body: "Filete crocante con papas doradas y salsa tartara.",
-          price: formatCOP(64000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1436076863939-06870fe779c2?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    "luna-cafe": {
-      detailTitle: "Cafe Details",
-      name: "Luna Cafe",
-      category: "Brunch",
-      rating: "4.7",
-      location: "Roma Sur, CDMX",
-      description:
-        "Una cafeteria luminosa con desayunos extendidos, reposteria artesanal y cafe de especialidad pensada para reuniones tranquilas y jornadas flexibles.",
-      price: formatCOP(36000),
-      reviewScore: "4.7 *****",
-      reviewCount: "Basado en 188 opiniones",
-      features: ["Brunch", "Especialidad", "Pasteleria"],
-      menu: [
-        {
-          title: "Toast de ricotta",
-          body: "Pan artesanal con ricotta batida, frutas frescas y miel suave.",
-          price: formatCOP(44000),
-        },
-        {
-          title: "Cold brew citrico",
-          body: "Cafe infusionado en frio con notas de naranja y azucar ligera.",
-          price: formatCOP(24000),
-        },
-        {
-          title: "Rol de canela",
-          body: "Horneado del dia con glaseado tenue y mantequilla especiada.",
-          price: formatCOP(20000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  });
 
   const params = new URLSearchParams(window.location.search);
   const venueKey = params.get("venue");
   const sourceKey = params.get("source") || "gastronomy";
-  const venue = venues[venueKey] || venues.maison;
+  // BUG corregido: esta pantalla mostraba un establecimiento fijo (o "La Maison Botanica"
+  // como fallback) con menu/calificacion/resenas inventados. Ahora busca el establecimiento
+  // asociado REAL por id; si no existe o ya no esta activo, se informa en vez de inventar uno.
+  const establishment = getOperatorActiveAssociatedEstablishments("restaurant").find(
+    (item) => item.id === venueKey,
+  );
   const themeConfig = THEMES[theme];
   const sourceMap = {
     gastronomy: {
@@ -1555,214 +1327,102 @@ function setupGastronomyDetail(theme) {
   };
   const sourceConfig = sourceMap[sourceKey] || sourceMap.gastronomy;
 
-  document.title = `${venue.name} | ${themeConfig.titlePrefix}`;
-
   const backLink = document.querySelector(".travel-tours-back");
-  if (backLink) {
-    backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
-  }
+  if (backLink) backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
 
   const backLabel = document.querySelector("[data-detail-back-label]");
-  if (backLabel) {
-    backLabel.textContent = sourceConfig.label;
+  if (backLabel) backLabel.textContent = sourceConfig.label;
+
+  if (!establishment) {
+    document.title = `Establecimiento no disponible | ${themeConfig.titlePrefix}`;
+    const intro = document.querySelector(".travel-detail-intro");
+    if (intro) intro.innerHTML = '<div class="travel-detail-copy"><h1>Establecimiento no disponible</h1><div class="travel-detail-description">Este establecimiento ya no está activo o no existe.</div></div>';
+    document.querySelector(".travel-detail-gallery")?.remove();
+    document.querySelectorAll(".travel-detail-section").forEach((section) => section.remove());
+    document.querySelector(".travel-detail-sticky-bar")?.remove();
+    return;
   }
 
+  const categoryLabel = "Restaurante asociado";
+  document.title = `${establishment.name} | ${themeConfig.titlePrefix}`;
+
+  const fieldValues = {
+    detailTitle: categoryLabel,
+    name: establishment.name,
+    category: categoryLabel,
+    description: establishment.description || "Sin información adicional registrada.",
+  };
   document.querySelectorAll("[data-venue-field]").forEach((node) => {
     const key = node.dataset.venueField;
-    if (venue[key]) node.textContent = venue[key];
+    if (fieldValues[key] !== undefined) node.textContent = fieldValues[key];
   });
 
-  const featureNode = document.querySelector("[data-venue-features]");
-  if (featureNode) {
-    featureNode.innerHTML = venue.features
-      .map((feature) => `<span>${feature}</span>`)
-      .join("");
-  }
+  // No hay rating/reseñas/menu/precio en el modelo de establecimiento asociado: se retiran
+  // esos bloques en vez de inventar valores (ver detalle-gastronomia.html).
+  document.querySelector("[data-venue-field=\"rating\"]")?.remove();
+  document.querySelector(".travel-detail-location-row")?.remove();
+  document.querySelector("[data-venue-features]")?.closest(".travel-detail-section")?.remove();
+  document.querySelector("[data-venue-menu]")?.closest(".travel-detail-section")?.remove();
+  document.querySelector(".travel-detail-review-card")?.closest(".travel-detail-section")?.remove();
 
-  const menuNode = document.querySelector("[data-venue-menu]");
-  if (menuNode) {
-    menuNode.innerHTML = venue.menu
-      .map(
-        (item) => `
-          <article class="travel-detail-menu-item">
-            <div>
-              <strong>${item.title}</strong>
-              <p>${item.body}</p>
+  const heroNode = document.querySelector('[data-venue-image="hero"]');
+  if (heroNode) {
+    heroNode.style.gridColumn = "1 / -1";
+    if (establishment.image) heroNode.style.backgroundImage = `url("${establishment.image.replace(/"/g, "%22")}")`;
+  }
+}
+
+// BUG corregido: "Explorar/Tours" mostraba 4 tarjetas globales hardcodeadas (con
+// "3 dias/2 noches" y otras caracteristicas turisticas inventadas) sin relacion con el
+// catalogo real ni con su estado activo/vigente. Ahora se renderiza desde el catalogo REAL
+// de Tours (mismo usado en Detalle del tour / Reservar), con estado vacio explicito cuando
+// no hay datos.
+function setupToursCatalog() {
+  if (document.body.dataset.screen !== "tours") return;
+  const services = getOperatorActiveTourServices();
+  const tours = Object.values(services);
+  const mediaClasses = ["tour-media-one", "tour-media-two", "tour-media-three", "tour-media-four"];
+
+  const card = (tour, index) => {
+    const finalPrice = tour.price * (1 - tour.discount);
+    const mediaClass = mediaClasses[index % mediaClasses.length];
+    return `
+      <article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(tour.name.toLowerCase())}">
+        <div class="travel-tour-media ${mediaClass}">
+          ${tour.discount ? `<span class="travel-tour-discount-tag">${Math.round(tour.discount * 100)}% de descuento</span>` : ""}
+          ${tour.image ? `<img class="gastronomy-card-image" src="${tour.image.replace(/"/g, "%22")}" alt="Imagen de ${escapeHtml(tour.name)}" />` : ""}
+        </div>
+        <div class="travel-tour-body">
+          <strong>${escapeHtml(tour.name)}</strong>
+          <div class="travel-tour-meta">
+            <div class="travel-tour-price">
+              ${tour.discount ? `<small class="travel-tour-price-before">Antes: <del>${formatCOP(tour.price)}</del></small>` : ""}
+              <small>Desde</small>
+              <em>${formatCOP(finalPrice)}</em>
             </div>
-            <span>${item.price}</span>
-          </article>
-        `,
-      )
-      .join("");
-  }
+            <a class="travel-tour-detail-link" href="detalle-tour.html" data-tour-link="${escapeHtml(tour.key)}" data-source-screen="tours">Ver detalle</a>
+          </div>
+        </div>
+      </article>
+    `;
+  };
 
-  document.querySelectorAll("[data-venue-image]").forEach((node) => {
-    const key = node.dataset.venueImage;
-    if (venue[key]) node.style.backgroundImage = venue[key];
-  });
+  const grid = document.querySelector("[data-tours-grid]");
+  if (grid) {
+    grid.innerHTML = tours.length
+      ? tours.map(card).join("")
+      : '<p class="travel-dashboard-copy" data-tours-empty>No hay tours disponibles en este momento.</p>';
+  }
 }
 
 function setupTourDetail(theme) {
   if (document.body.dataset.screen !== "tour-detail") return;
 
-  const tours = {
-    mountains: {
-      detailTitle: "Detalle del tour",
-      name: "Tour destino ejemplo - Montañas",
-      category: "Naturaleza y trekking",
-      location: "Sierra alta, ruta panorámica",
-      description:
-        "Una salida inmersiva para descubrir paisajes abiertos, caminar con guía local y combinar aventura, descanso y momentos de contemplación en una ruta pensada para viajeros activos.",
-      price: 1039200,
-      originalPrice: 1299000,
-      discountLabel: "20% de descuento",
-      availability: "Selecciona una salida disponible para reservar.",
-      departures: [
-        { date: "15 sep 2026", status: "Disponible", tone: "available" },
-        { date: "22 sep 2026", status: "Pocos cupos", tone: "limited" },
-        { date: "29 sep 2026", status: "Disponible", tone: "available" },
-      ],
-      features: ["Guía local", "Traslados", "Snacks", "Paradas panorámicas"],
-      itinerary: [
-        {
-          title: "Dia 1 · Llegada y activacion",
-          body: "Recepción, briefing inicial y recorrido de reconocimiento con vista al valle.",
-          price: "Tarde",
-        },
-        {
-          title: "Dia 2 · Ruta principal",
-          body: "Caminata guiada por senderos de montaña con descansos y puntos fotográficos.",
-          price: "Día completo",
-        },
-        {
-          title: "Dia 3 · Cierre flexible",
-          body: "Mañana libre, recomendaciones del guía y retorno programado.",
-          price: "Mañana",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cenotes: {
-      detailTitle: "Detalle del tour",
-      name: "Aventura en cenotes ocultos",
-      category: "Naturaleza y agua",
-      location: "Ruta selvática, península",
-      description:
-        "Experiencia de un día para explorar cenotes poco concurridos, nadar en aguas cristalinas y vivir un recorrido fresco, guiado y seguro.",
-      price: 520000,
-      availability: "Selecciona una salida disponible para reservar.",
-      departures: [
-        { date: "12 sep 2026", status: "Disponible", tone: "available" },
-        { date: "19 sep 2026", status: "Disponible", tone: "available" },
-        { date: "26 sep 2026", status: "Sin cupo", tone: "unavailable" },
-      ],
-      features: ["Guía experto", "Equipo básico", "Entrada incluida", "Snack ligero"],
-      itinerary: [
-        {
-          title: "Salida temprana",
-          body: "Encuentro con el grupo, traslado y contexto de seguridad antes del ingreso.",
-          price: "8:00 am",
-        },
-        {
-          title: "Circuito de cenotes",
-          body: "Recorrido por dos o tres puntos naturales con tiempo para nadar y descansar.",
-          price: "Mediodía",
-        },
-        {
-          title: "Regreso",
-          body: "Cierre de experiencia con hidratación y retorno al punto de salida.",
-          price: "4:00 pm",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cultural: {
-      detailTitle: "Detalle del tour",
-      name: "Recorrido cultural e histórico",
-      category: "Ciudad y patrimonio",
-      location: "Centro histórico",
-      description:
-        "Una experiencia breve para conocer hitos patrimoniales, relatos locales y rincones emblematicos con una narrativa clara y cercana.",
-      price: 349000,
-      availability: "Selecciona una salida disponible para reservar.",
-      departures: [
-        { date: "16 sep 2026", status: "Disponible", tone: "available" },
-        { date: "23 sep 2026", status: "Disponible", tone: "available" },
-        { date: "30 sep 2026", status: "Disponible", tone: "available" },
-      ],
-      features: ["Guía cultural", "Paradas clave", "Acceso peatonal", "Tiempo libre"],
-      itinerary: [
-        {
-          title: "Inicio en plaza central",
-          body: "Presentación del recorrido y contexto histórico general de la zona.",
-          price: "10:00 am",
-        },
-        {
-          title: "Recorrido guiado",
-          body: "Visita a calles icónicas, fachadas relevantes y puntos de interpretación.",
-          price: "Medio día",
-        },
-        {
-          title: "Cierre recomendado",
-          body: "Sugerencias para continuar explorando por cuenta propia o almorzar cerca.",
-          price: "1:00 pm",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    rafting: {
-      detailTitle: "Detalle del tour",
-      name: "Rafting y acampada extrema",
-      category: "Aventura y río",
-      location: "Cañón del Río Bravo",
-      description:
-        "Plan de dos días para viajeros que buscan adrenalina, río, campamento y una operación guiada con enfoque en seguridad y experiencia outdoor.",
-      price: 799000,
-      availability: "Selecciona una salida disponible para reservar.",
-      isRisk: true,
-      departures: [
-        { date: "13 sep 2026", status: "Pocos cupos", tone: "limited" },
-        { date: "20 sep 2026", status: "Sin cupo", tone: "unavailable" },
-        { date: "27 sep 2026", status: "Disponible", tone: "available" },
-      ],
-      features: ["Rafting guiado", "Campamento", "Equipo técnico", "Cena al aire libre"],
-      itinerary: [
-        {
-          title: "Dia 1 · Ingreso y descenso",
-          body: "Registro, equipamiento, charla de seguridad y primer tramo de rafting.",
-          price: "Dia 1",
-        },
-        {
-          title: "Noche de campamento",
-          body: "Montaje de campamento, cena compartida y descanso junto al río.",
-          price: "Noche",
-        },
-        {
-          title: "Dia 2 · Segundo tramo y salida",
-          body: "Continuación del recorrido, cierre del circuito y retorno al punto base.",
-          price: "Dia 2",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  };
-
   const params = new URLSearchParams(window.location.search);
   const tourKey = params.get("tour");
   const sourceKey = params.get("source") || "tours";
-  const tour = tours[tourKey] || tours.mountains;
+  const services = getOperatorActiveTourServices();
+  const tour = (tourKey && services[tourKey]) || null;
   const themeConfig = THEMES[theme];
   const sourceMap = {
     tours: {
@@ -1776,187 +1436,128 @@ function setupTourDetail(theme) {
   };
   const sourceConfig = sourceMap[sourceKey] || sourceMap.tours;
 
-  document.title = `${tour.name} | ${themeConfig.titlePrefix}`;
-
   const backLink = document.querySelector(".travel-tours-back");
-  if (backLink) {
-    backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
-  }
+  if (backLink) backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
 
   const backLabel = document.querySelector("[data-tour-back-label]");
-  if (backLabel) {
-    backLabel.textContent = sourceConfig.label;
+  if (backLabel) backLabel.textContent = sourceConfig.label;
+
+  // BUG corregido: esta pantalla mostraba SIEMPRE un tour fijo (con itinerario, "lo que
+  // incluye" y "salidas disponibles" inventados) sin validar si el tour realmente existe,
+  // esta activo y vigente. Ahora se resuelve desde el catalogo REAL (activo + vigente); si
+  // no existe, se informa en vez de mostrar un tour de relleno.
+  if (!tour) {
+    document.title = `Tour no disponible | ${themeConfig.titlePrefix}`;
+    const intro = document.querySelector(".travel-detail-intro");
+    if (intro) intro.innerHTML = '<div class="travel-detail-copy"><h1>Tour no disponible</h1><div class="travel-detail-description">Este tour ya no está activo, vigente, o no existe.</div></div>';
+    document.querySelector(".travel-detail-main")?.querySelectorAll(".travel-detail-section, [data-tour-risk-note]").forEach((node) => node.remove());
+    document.querySelector(".travel-detail-summary-card")?.remove();
+    return;
   }
+
+  document.title = `${tour.name} | ${themeConfig.titlePrefix}`;
 
   document.querySelectorAll("[data-tour-field]").forEach((node) => {
     const key = node.dataset.tourField;
-    if (tour[key]) node.textContent = tour[key];
+    if (key === "detailTitle") node.textContent = "Detalle del tour";
+    if (key === "name") node.textContent = tour.name;
   });
 
   const priceFinalNode = document.querySelector("[data-tour-price-final]");
   const priceBeforeNode = document.querySelector("[data-tour-price-before]");
   const discountNode = document.querySelector("[data-tour-discount]");
-  if (priceFinalNode) priceFinalNode.textContent = `Desde: ${formatCOP(tour.price)}`;
+  const finalPrice = tour.price * (1 - tour.discount);
+  if (priceFinalNode) priceFinalNode.textContent = `Desde: ${formatCOP(finalPrice)}`;
   if (priceBeforeNode) {
-    priceBeforeNode.textContent = `Antes: ${formatCOP(tour.originalPrice)}`;
-    priceBeforeNode.hidden = !tour.originalPrice;
+    priceBeforeNode.textContent = `Antes: ${formatCOP(tour.price)}`;
+    priceBeforeNode.hidden = !tour.discount;
   }
   if (discountNode) {
-    discountNode.textContent = tour.discountLabel || "";
-    discountNode.hidden = !tour.discountLabel;
+    discountNode.textContent = tour.discount ? `${Math.round(tour.discount * 100)}% de descuento` : "";
+    discountNode.hidden = !tour.discount;
   }
 
-  const featureNode = document.querySelector("[data-tour-features]");
-  if (featureNode) {
-    const features = tour.features || [];
-    featureNode.closest(".travel-detail-section").hidden = !features.length;
-    featureNode.innerHTML = features
-      .map((feature) => `<span>${feature}</span>`)
-      .join("");
-  }
+  // Vigencia, capacidad y restricciones como bloques informativos (PDR v1.7.1): mismos
+  // valores ya usados en el paso de reserva (create-reservation / reservar-tour), solo con
+  // mejor jerarquia visual aqui. Capacidad/restricciones solo se muestran cuando el dato
+  // realmente existe (no todo tour dinamico las tiene, y los 4 tours base del catalogo no
+  // las modelan): nunca se inventa un valor de relleno.
+  const validityCard = `<div class="travel-detail-info-card"><span>Vigencia</span><strong>${formatOperatorDate(tour.start)} - ${formatOperatorDate(tour.end)}</strong></div>`;
+  const capacityCard = tour.capacity != null
+    ? `<div class="travel-detail-info-card"><span>Capacidad</span><strong>Hasta ${tour.capacity} viajeros</strong></div>`
+    : "";
+  const restrictionsCard = tour.restrictions
+    ? `<div class="travel-detail-info-card"><span>Restricciones</span><strong>${escapeHtml(tour.restrictions)}</strong></div>`
+    : "";
 
-  const itineraryNode = document.querySelector("[data-tour-itinerary]");
-  if (itineraryNode) {
-    const itinerary = tour.itinerary || [];
-    itineraryNode.closest(".travel-detail-section").hidden = !itinerary.length;
-    itineraryNode.innerHTML = itinerary
-      .map(
-        (item) => `
-          <article class="travel-detail-menu-item">
-            <div>
-              <strong>${item.title}</strong>
-              <p>${item.body}</p>
-            </div>
-            <span>${item.price}</span>
-          </article>
-        `,
-      )
-      .join("");
-  }
+  const infoGrid = document.querySelector("[data-tour-info-grid]");
+  if (infoGrid) infoGrid.innerHTML = validityCard + capacityCard + restrictionsCard;
 
-  const departuresNode = document.querySelector("[data-tour-departures]");
-  const bookingButton = document.querySelector("[data-tour-booking-button]");
-  const availabilityNode = document.querySelector('[data-tour-field="availability"]');
-  let selectedDeparture = null;
+  const summaryInfo = document.querySelector("[data-tour-summary-info]");
+  if (summaryInfo) summaryInfo.innerHTML = validityCard + capacityCard;
 
-  const syncBookingButton = () => {
-    if (!bookingButton) return;
-    bookingButton.disabled = !selectedDeparture;
-    bookingButton.textContent = selectedDeparture ? "Reservar tour" : "Selecciona una salida";
-    if (availabilityNode) {
-      availabilityNode.textContent = selectedDeparture
-        ? `Salida seleccionada: ${selectedDeparture}. Puedes continuar con la reserva.`
-        : tour.availability;
+  // Servicio relacionado real: solo Transporte (RN-TRA-001/002), cuando el Administrador
+  // realmente lo asocio a este Tour. Hospedaje y Alimentacion no tienen una relacion real
+  // por Tour en el catalogo actual: no se inventan aqui (se ofrecen aparte, solo cuando
+  // aplica, en el paso de reserva).
+  const relatedSection = document.querySelector("[data-tour-related-section]");
+  const relatedTags = document.querySelector("[data-tour-related]");
+  if (relatedSection && relatedTags) {
+    if (tour.associatedTransport) {
+      relatedSection.hidden = false;
+      relatedTags.innerHTML = `<span>Transporte incluido: ${escapeHtml(tour.associatedTransport.name)} (${escapeHtml(tour.associatedTransport.route)})</span>`;
+    } else {
+      relatedSection.hidden = true;
+      relatedTags.innerHTML = "";
     }
-  };
+  }
 
-  if (departuresNode) {
-    departuresNode.innerHTML = (tour.departures || [])
-      .map(
-        (departure) => {
-          const isUnavailable = departure.tone === "unavailable";
-          return `
-          <button
-            type="button"
-            class="travel-detail-departure is-${departure.tone}"
-            data-tour-departure="${departure.date}"
-            aria-pressed="false"
-            ${isUnavailable ? "disabled" : ""}
-          >
-            <strong>${departure.date}</strong>
-            <span>${departure.status}</span>
-          </button>
-        `;
-        },
-      )
-      .join("");
+  // Modalidades de pago realmente habilitadas para este tour (Fase 1: Transferencia,
+  // Efectivo, Abono, segun corresponda). Solo mejora de presentacion, misma lista real ya
+  // usada en el paso de reserva.
+  const paymentsNode = document.querySelector("[data-tour-payments]");
+  if (paymentsNode) paymentsNode.innerHTML = (tour.payments || []).map((method) => `<span>${escapeHtml(method)}</span>`).join("");
 
-    departuresNode.querySelectorAll("[data-tour-departure]").forEach((departureButton) => {
-      departureButton.addEventListener("click", () => {
-        const departureDate = departureButton.dataset.tourDeparture;
-        selectedDeparture = selectedDeparture === departureDate ? null : departureDate;
-        departuresNode.querySelectorAll("[data-tour-departure]").forEach((node) => {
-          node.classList.toggle("is-selected", selectedDeparture === node.dataset.tourDeparture);
-          node.setAttribute("aria-pressed", String(selectedDeparture === node.dataset.tourDeparture));
-        });
-        syncBookingButton();
-      });
+  // Condiciones de reserva reales del tour, en un bloque destacado.
+  const conditionsNode = document.querySelector("[data-tour-conditions]");
+  if (conditionsNode) conditionsNode.innerHTML = (tour.conditions || []).map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
+
+  const availabilityNode = document.querySelector('[data-tour-field="availability"]');
+  if (availabilityNode) availabilityNode.textContent = `Vigente del ${formatOperatorDate(tour.start)} al ${formatOperatorDate(tour.end)}.`;
+
+  const bookingButton = document.querySelector("[data-tour-booking-button]");
+  if (bookingButton) {
+    bookingButton.disabled = false;
+    bookingButton.textContent = "Reservar tour";
+    bookingButton.addEventListener("click", () => {
+      window.location.href = `${withTheme("reservar-tour.html", theme)}&tour=${encodeURIComponent(tour.key)}&source=${encodeURIComponent(sourceKey)}`;
     });
   }
 
-  syncBookingButton();
-  bookingButton?.addEventListener("click", () => {
-    if (!selectedDeparture) return;
-    window.location.href = `${withTheme("reservar-tour.html", theme)}&tour=${encodeURIComponent(tourKey || "mountains")}&source=tour-detail&departure=${encodeURIComponent(selectedDeparture)}`;
-  });
-
   const riskNote = document.querySelector("[data-tour-risk-note]");
-  if (riskNote) riskNote.hidden = !tour.isRisk;
+  if (riskNote) riskNote.hidden = !tour.risk;
 
-  document.querySelectorAll("[data-tour-image]").forEach((node) => {
-    const key = node.dataset.tourImage;
-    if (tour[key]) node.style.backgroundImage = tour[key];
-  });
+  // No hay imagenes comerciales de stock reales por Tour: solo un recurso creado
+  // dinamicamente en "Nuevo servicio" puede traer una imagen real cargada por el
+  // Administrador. Si no existe, no se reserva espacio para ninguna imagen (evita el
+  // espacio vacio que dejaba la galeria anterior en tours sin imagen real).
+  const summaryImage = document.querySelector("[data-tour-summary-image]");
+  if (summaryImage) {
+    if (tour.image) {
+      summaryImage.hidden = false;
+      summaryImage.style.backgroundImage = `url("${tour.image.replace(/"/g, "%22")}")`;
+    } else {
+      summaryImage.hidden = true;
+    }
+  }
 }
 
 function setupTourBooking(theme) {
   if (document.body.dataset.screen !== "tour-booking") return;
 
-  const tours = {
-    mountains: {
-      name: "Tour destino ejemplo - montañas",
-      category: "Naturaleza y trekking",
-      unitProjectedValue: 1299000,
-      discountRate: 0.2,
-      conditions: [],
-      departures: [
-        { date: "2026-09-15", label: "15 sep 2026", capacity: 10 },
-        { date: "2026-09-22", label: "22 sep 2026", capacity: 2 },
-        { date: "2026-09-29", label: "29 sep 2026", capacity: 8 },
-      ],
-    },
-    cenotes: {
-      name: "Aventura en cenotes ocultos",
-      category: "Naturaleza y agua",
-      unitProjectedValue: 520000,
-      discountRate: 0,
-      conditions: [],
-      departures: [
-        { date: "2026-09-12", label: "12 sep 2026", capacity: 8 },
-        { date: "2026-09-19", label: "19 sep 2026", capacity: 8 },
-        { date: "2026-09-26", label: "26 sep 2026", capacity: 0 },
-      ],
-    },
-    cultural: {
-      name: "Recorrido cultural e histórico",
-      category: "Ciudad y patrimonio",
-      unitProjectedValue: 349000,
-      discountRate: 0,
-      conditions: [],
-      departures: [
-        { date: "2026-09-16", label: "16 sep 2026", capacity: 14 },
-        { date: "2026-09-23", label: "23 sep 2026", capacity: 14 },
-        { date: "2026-09-30", label: "30 sep 2026", capacity: 14 },
-      ],
-    },
-    rafting: {
-      name: "Rafting y acampada extrema",
-      category: "Aventura y río",
-      unitProjectedValue: 799000,
-      discountRate: 0,
-      conditions: [],
-      departures: [
-        { date: "2026-09-13", label: "13 sep 2026", capacity: 2 },
-        { date: "2026-09-20", label: "20 sep 2026", capacity: 0 },
-        { date: "2026-09-27", label: "27 sep 2026", capacity: 6 },
-      ],
-    },
-  };
-
   const params = new URLSearchParams(window.location.search);
-  const tourKey = params.get("tour") || "mountains";
-  const selectedDeparture = params.get("departure");
-  const tour = tours[tourKey] || tours.mountains;
+  const tourKey = params.get("tour") || "";
+  const tour = getOperatorActiveTourService(tourKey);
   const backLink = document.querySelector("[data-tour-booking-back]");
   const bookingName = document.querySelector("[data-booking-tour-name]");
   const bookingCategory = document.querySelector("[data-booking-tour-category]");
@@ -1974,32 +1575,52 @@ function setupTourBooking(theme) {
   const daysContainer = document.querySelector("[data-booking-days]");
   const monthNavButtons = document.querySelectorAll("[data-booking-month-nav]");
   const checkoutStorageKey = "multitour-tour-checkout";
-  const monthFormatter = new Intl.DateTimeFormat("es-CO", {
-    month: "long",
-    year: "numeric",
-  });
-  const monthFromDateKey = (dateKey) => new Date(`${dateKey}T12:00:00`);
-  const dateKeyFromDate = (date) => date.toISOString().slice(0, 10);
-  const availableMonths = Array.from(
-    new Set(tour.departures.map((departure) => departure.date.slice(0, 7))),
-  ).map((monthKey) => monthFromDateKey(`${monthKey}-01`));
-  const selectedFromDetail = tour.departures.find(
-    (departure) => departure.label === selectedDeparture && departure.capacity > 0,
-  );
-  let selectedDate = (selectedFromDetail || tour.departures.find((departure) => departure.capacity > 0))?.date;
-  let monthIndex = Math.max(
-    0,
-    availableMonths.findIndex((month) => dateKeyFromDate(month) === selectedDate?.slice(0, 7) + "-01"),
-  );
-  let travelers = 2;
 
   if (backLink) {
     backLink.setAttribute("href", `${withTheme("detalle-tour.html", theme)}&tour=${encodeURIComponent(tourKey)}&source=tours`);
   }
 
+  if (!tour) {
+    if (bookingName) bookingName.textContent = "Tour no disponible";
+    if (bookingCategory) bookingCategory.textContent = "Este tour ya no está activo, vigente, o no existe.";
+    document.querySelector(".travel-booking-calendar")?.closest(".travel-booking-card")?.remove();
+    document.querySelectorAll("[data-counter]").forEach((counter) => counter.closest(".travel-booking-card")?.remove());
+    if (continueButton) continueButton.disabled = true;
+    return;
+  }
+
+  const monthFormatter = new Intl.DateTimeFormat("es-CO", { month: "long", year: "numeric" });
+  const monthFromDateKey = (dateKey) => new Date(`${dateKey}T12:00:00`);
+  const dateKeyFromDate = (date) => date.toISOString().slice(0, 10);
+
+  // PDR v1.7.1: el rango seleccionable es EXCLUSIVAMENTE la vigencia real del servicio
+  // (vigenciaDesde <= fecha <= vigenciaHasta, ambas inclusive), nunca una lista de salidas
+  // programadas aparte. La capacidad aplica a la CANTIDAD DE VIAJEROS, no a un cupo por
+  // fecha especifica (ese concepto no esta modelado en el catalogo real).
+  const startMonthKey = tour.start.slice(0, 7);
+  const endMonthKey = tour.end.slice(0, 7);
+  const availableMonths = [];
+  let cursor = monthFromDateKey(`${startMonthKey}-01`);
+  const endCursor = monthFromDateKey(`${endMonthKey}-01`);
+  while (dateKeyFromDate(cursor).slice(0, 7) <= dateKeyFromDate(endCursor).slice(0, 7)) {
+    availableMonths.push(cursor);
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+  }
+
+  let selectedDate = tour.start;
+  let monthIndex = 0;
+  let travelers = 1;
+
+  // Cupo maximo reservable: el del servicio (cuando esta parametrizado) y, si tiene
+  // transporte asociado, tambien el de ese transporte — el MENOR de ambos aplica (ej. Tour
+  // permite 60 y transporte permite 50 => maximo 50).
+  const maxByService = tour.capacity != null ? tour.capacity : Infinity;
+  const maxByTransport = tour.associatedTransport?.capacity != null ? tour.associatedTransport.capacity : Infinity;
+  const maxTravelers = Math.min(maxByService, maxByTransport);
+
   if (bookingName) bookingName.textContent = tour.name;
-  if (bookingCategory) bookingCategory.textContent = tour.category;
-  if (bookingPrice) bookingPrice.textContent = `Desde ${formatCOP(tour.unitProjectedValue * (1 - tour.discountRate))}`;
+  if (bookingCategory) bookingCategory.textContent = `Vigente del ${formatOperatorDate(tour.start)} al ${formatOperatorDate(tour.end)}.`;
+  if (bookingPrice) bookingPrice.textContent = `Desde ${formatCOP(tour.price * (1 - tour.discount))}`;
   if (conditionsList) {
     const conditions = tour.conditions || [];
     conditionsList.innerHTML = conditions.map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
@@ -2008,24 +1629,26 @@ function setupTourBooking(theme) {
   }
 
   const renderSummary = () => {
-    const departure = tour.departures.find((item) => item.date === selectedDate);
-    const projectedValue = tour.unitProjectedValue * travelers;
-    const discountValue = Math.round(projectedValue * tour.discountRate);
+    const withinValidity = Boolean(selectedDate && selectedDate >= tour.start && selectedDate <= tour.end);
+    const projectedValue = tour.price * travelers;
+    const discountValue = Math.round(projectedValue * tour.discount);
     const finalValue = projectedValue - discountValue;
-    const hasCapacity = Boolean(departure && travelers <= departure.capacity);
+    const hasCapacity = Number.isFinite(maxTravelers) ? travelers <= maxTravelers : true;
 
     if (projectedValueNode) projectedValueNode.textContent = formatCOP(projectedValue);
     if (discountBlock) discountBlock.hidden = discountValue === 0;
     if (discountValueNode) discountValueNode.textContent = `- ${formatCOP(discountValue)}`;
     if (finalValueNode) finalValueNode.textContent = formatCOP(finalValue);
-    if (bookingSelection) bookingSelection.textContent = `${departure?.label || "Sin salida seleccionada"} - ${travelers} viajeros`;
+    if (bookingSelection) bookingSelection.textContent = `${selectedDate ? formatOperatorDate(selectedDate) : "Sin fecha seleccionada"} - ${travelers} ${travelers === 1 ? "viajero" : "viajeros"}`;
     if (capacityMessage) {
-      capacityMessage.textContent = hasCapacity
-        ? "Disponibilidad validada para la cantidad de viajeros seleccionada."
-        : "La cantidad seleccionada supera la disponibilidad de esta salida.";
-      capacityMessage.classList.toggle("is-error", !hasCapacity);
+      capacityMessage.textContent = !withinValidity
+        ? "Selecciona una fecha dentro de la vigencia del servicio."
+        : hasCapacity
+          ? "Disponibilidad validada para la cantidad de viajeros seleccionada."
+          : `La cantidad seleccionada supera la capacidad disponible (${maxTravelers} viajeros).`;
+      capacityMessage.classList.toggle("is-error", !withinValidity || !hasCapacity);
     }
-    if (continueButton) continueButton.disabled = !hasCapacity;
+    if (continueButton) continueButton.disabled = !withinValidity || !hasCapacity;
   };
 
   const renderCalendar = () => {
@@ -2036,10 +1659,7 @@ function setupTourBooking(theme) {
     const totalDays = new Date(year, month + 1, 0).getDate();
     const label = monthFormatter.format(activeMonth);
 
-    if (monthLabel) {
-      monthLabel.textContent = label.charAt(0).toUpperCase() + label.slice(1);
-    }
-
+    if (monthLabel) monthLabel.textContent = label.charAt(0).toUpperCase() + label.slice(1);
     if (!daysContainer) return;
     daysContainer.innerHTML = "";
 
@@ -2050,24 +1670,19 @@ function setupTourBooking(theme) {
     }
 
     for (let day = 1; day <= totalDays; day += 1) {
-      const button = document.createElement("button");
       const date = new Date(year, month, day, 12);
       const dateKey = dateKeyFromDate(date);
-      const departure = tour.departures.find((item) => item.date === dateKey);
+      const withinValidity = dateKey >= tour.start && dateKey <= tour.end;
+      const button = document.createElement("button");
       button.type = "button";
       button.className = "travel-booking-day";
       button.dataset.dateKey = dateKey;
       button.textContent = String(day);
-      button.disabled = !departure || departure.capacity === 0;
-      button.setAttribute(
-        "aria-label",
-        departure ? `${departure.label}: ${departure.capacity ? "disponible" : "sin cupo"}` : `${day}: sin salida disponible`,
-      );
-      if (departure?.capacity === 0) button.classList.add("is-unavailable");
-      if (dateKey === selectedDate) {
-        button.classList.add("is-active");
-      }
-      if (departure && departure.capacity > 0) {
+      button.disabled = !withinValidity;
+      button.setAttribute("aria-label", withinValidity ? `${dateKey}: dentro de la vigencia` : `${dateKey}: fuera de la vigencia del servicio`);
+      if (!withinValidity) button.classList.add("is-unavailable");
+      if (dateKey === selectedDate) button.classList.add("is-active");
+      if (withinValidity) {
         button.addEventListener("click", () => {
           selectedDate = dateKey;
           renderCalendar();
@@ -2096,6 +1711,7 @@ function setupTourBooking(theme) {
   document.querySelectorAll("[data-counter]").forEach((counter) => {
     const valueNode = counter.querySelector("[data-counter-value]");
     const type = counter.dataset.counter;
+    valueNode.textContent = String(travelers);
 
     counter.querySelectorAll("[data-counter-action]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -2111,15 +1727,17 @@ function setupTourBooking(theme) {
 
   if (continueButton) {
     continueButton.addEventListener("click", () => {
-      const departure = tour.departures.find((item) => item.date === selectedDate);
-      if (!departure || travelers > departure.capacity) return;
-      const projectedValue = tour.unitProjectedValue * travelers;
-      const discountValue = Math.round(projectedValue * tour.discountRate);
+      const withinValidity = selectedDate >= tour.start && selectedDate <= tour.end;
+      const hasCapacity = Number.isFinite(maxTravelers) ? travelers <= maxTravelers : true;
+      if (!withinValidity || !hasCapacity) return;
+      const projectedValue = tour.price * travelers;
+      const discountValue = Math.round(projectedValue * tour.discount);
       const finalValue = projectedValue - discountValue;
       const booking = {
         experience: tour.name,
-        startDate: departure.label,
-        endDate: departure.label,
+        startDate: formatOperatorDate(selectedDate),
+        endDate: formatOperatorDate(selectedDate),
+        isoDate: selectedDate,
         travelers: String(travelers),
         budget: formatCOP(finalValue),
         projectedValue,
@@ -2129,7 +1747,10 @@ function setupTourBooking(theme) {
         savedAt: new Date().toLocaleDateString("es-CO"),
         unitPrice: finalValue / travelers,
         tourKey,
-        category: tour.category,
+        risk: tour.risk,
+        payments: tour.payments,
+        conditions: tour.conditions,
+        transportSelected: tour.associatedTransport ? `${tour.associatedTransport.name} — ${tour.associatedTransport.route}` : "",
       };
       window.localStorage.setItem(checkoutStorageKey, JSON.stringify(booking));
       window.location.href = `${withTheme("finalizar-reserva.html", theme)}&tour=${encodeURIComponent(tourKey)}`;
@@ -2143,34 +1764,11 @@ function setupTourBooking(theme) {
 function setupTourCheckout(theme) {
   if (document.body.dataset.screen !== "tour-checkout") return;
 
-  const tours = {
-    mountains: {
-      name: "Tour destino ejemplo - montañas",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cenotes: {
-      name: "Aventura en cenotes ocultos",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cultural: {
-      name: "Recorrido cultural e histórico",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    rafting: {
-      name: "Rafting y acampada extrema",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  };
-
   const storageKey = "multitour-dashboard-booking";
   const checkoutStorageKey = "multitour-tour-checkout";
   const successStorageKey = "multitour-payment-success";
   const params = new URLSearchParams(window.location.search);
-  const fallbackTourKey = params.get("tour") || "mountains";
+  const fallbackTourKey = params.get("tour") || "";
   let booking = null;
 
   try {
@@ -2181,10 +1779,7 @@ function setupTourCheckout(theme) {
   }
 
   const tourKey = booking?.tourKey || fallbackTourKey;
-  const tour = tours[tourKey] || tours.mountains;
-  const subtotal = Number(booking?.unitPrice || 1299000) * Number(booking?.travelers || 2);
-  const taxes = Math.round(subtotal * 0.08);
-  const total = subtotal + taxes;
+  const tour = getOperatorActiveTourService(tourKey);
 
   const backLink = document.querySelector("[data-tour-checkout-back]");
   if (backLink) {
@@ -2194,89 +1789,257 @@ function setupTourCheckout(theme) {
     );
   }
 
-  const imageNode = document.querySelector("[data-checkout-image]");
-  if (imageNode) imageNode.style.backgroundImage = tour.image;
-
-  const nameNode = document.querySelector("[data-checkout-tour-name]");
-  if (nameNode) nameNode.textContent = booking?.experience || tour.name;
-
-  const dateNode = document.querySelector("[data-checkout-date]");
-  if (dateNode) dateNode.textContent = booking?.startDate || "15 sep 2026";
-
-  const guestsNode = document.querySelector("[data-checkout-guests]");
-  if (guestsNode) {
-    const guestCount = Number(booking?.travelers || 2);
-    guestsNode.textContent = `${guestCount} ${guestCount === 1 ? "viajero" : "viajeros"}`;
+  // BUG corregido: sin un borrador real de reserva (ej. acceso directo a esta URL), esta
+  // pantalla simulaba una reserva de relleno (2 viajeros, 15 sep 2026, etc.). Ahora se
+  // informa en vez de inventar datos.
+  if (!booking) {
+    const content = document.querySelector(".travel-checkout-content");
+    if (content) content.innerHTML = '<p class="travel-dashboard-copy">No hay una reserva en curso. Vuelve a Explorar para seleccionar un tour.</p>';
+    document.querySelector(".travel-booking-sticky-bar")?.remove();
+    return;
   }
 
+  const travelers = Number(booking.travelers || 1);
+  const projectedValue = Number(booking.projectedValue || 0);
+  const discountValue = Number(booking.discountValue || 0);
+  const finalValue = Number(booking.finalValue ?? projectedValue - discountValue);
+
+  const imageNode = document.querySelector("[data-checkout-image]");
+  if (imageNode && tour?.image) imageNode.style.backgroundImage = `url("${tour.image.replace(/"/g, "%22")}")`;
+
+  const nameNode = document.querySelector("[data-checkout-tour-name]");
+  if (nameNode) nameNode.textContent = booking.experience;
+
+  const dateNode = document.querySelector("[data-checkout-date]");
+  if (dateNode) dateNode.textContent = booking.startDate;
+
+  const guestsNode = document.querySelector("[data-checkout-guests]");
+  if (guestsNode) guestsNode.textContent = `${travelers} ${travelers === 1 ? "viajero" : "viajeros"}`;
+
   const subtotalLabelNode = document.querySelector("[data-checkout-subtotal-label]");
-  if (subtotalLabelNode) subtotalLabelNode.textContent = `Precio base x${booking?.travelers || 2}`;
+  if (subtotalLabelNode) subtotalLabelNode.textContent = `Precio base x${travelers}`;
 
   const subtotalNode = document.querySelector("[data-checkout-subtotal]");
-  if (subtotalNode) subtotalNode.textContent = formatCOP(subtotal);
+  if (subtotalNode) subtotalNode.textContent = formatCOP(projectedValue);
 
-  const taxesNode = document.querySelector("[data-checkout-taxes]");
-  if (taxesNode) taxesNode.textContent = formatCOP(taxes);
+  // PDR v1.7.1: sin "Impuestos y seguro" (no hay parametrizacion respaldada para ese
+  // cargo); el resumen usa unicamente valor proyectado, descuentos aplicables y valor final.
+  const discountRow = document.querySelector("[data-checkout-discount-row]");
+  const discountNode = document.querySelector("[data-checkout-discount]");
+  if (discountRow) discountRow.hidden = discountValue === 0;
+  if (discountNode) discountNode.textContent = `-${formatCOP(discountValue)}`;
 
   const totalNode = document.querySelector("[data-checkout-total]");
-  if (totalNode) totalNode.textContent = formatCOP(total);
+  if (totalNode) totalNode.textContent = formatCOP(finalValue);
 
   const totalStickyNode = document.querySelector("[data-checkout-total-sticky]");
-  if (totalStickyNode) totalStickyNode.textContent = formatCOP(total);
+  if (totalStickyNode) totalStickyNode.textContent = formatCOP(finalValue);
 
   const selectionNode = document.querySelector("[data-checkout-selection]");
-  if (selectionNode) selectionNode.textContent = `${booking?.startDate || "15 sep 2026"} - ${booking?.travelers || 2} viajeros`;
+  if (selectionNode) selectionNode.textContent = `${booking.startDate} - ${travelers} ${travelers === 1 ? "viajero" : "viajeros"}`;
 
   const codeNode = document.querySelector("[data-checkout-code]");
-  if (codeNode) codeNode.textContent = booking?.code || "Borrador";
+  if (codeNode) codeNode.textContent = booking.code || "Borrador";
 
+  // Titular: se prellena el nombre con el mismo perfil local ya usado para el saludo del
+  // panel cliente (multitour-user-profile), sin inventar un mecanismo de sesion nuevo.
+  const holderNameInput = document.querySelector("[data-checkout-holder-name]");
+  if (holderNameInput) {
+    try {
+      const profile = JSON.parse(localStorage.getItem("multitour-user-profile") || "null");
+      if (profile?.name) holderNameInput.value = profile.name;
+    } catch {
+      /* sin perfil guardado: se deja vacio para que el cliente lo complete */
+    }
+  }
+  const holderDocumentInput = document.querySelector("[data-checkout-holder-document]");
+
+  // Viajeros (PDR: total viajeros = titular + acompañantes). Mismos campos minimos ya
+  // respaldados por el modelo/PDR (nombre, documento, fecha de nacimiento), iguales a los
+  // que ya usa el Portal (create-reservation.component.ts).
+  const companionsCount = Math.max(0, travelers - 1);
+  const companionsCountNode = document.querySelector("[data-checkout-companions-count]");
+  if (companionsCountNode) {
+    companionsCountNode.textContent =
+      companionsCount === 0
+        ? "No requiere acompañantes"
+        : `${companionsCount} acompañante${companionsCount === 1 ? "" : "s"} requerido${companionsCount === 1 ? "" : "s"}`;
+  }
+  const companionsContainer = document.querySelector("[data-checkout-companions]");
+  if (companionsContainer) {
+    companionsContainer.innerHTML = Array.from(
+      { length: companionsCount },
+      (_, index) => `
+        <article class="travel-companion-card">
+          <div class="travel-checkout-section-title"><h2>Acompañante ${index + 1}</h2></div>
+          <div class="travel-companion-grid">
+            <label>Nombre completo<input type="text" required data-companion-name="${index}" placeholder="Nombre completo" /></label>
+            <label>Documento de identidad<input type="text" required data-companion-document="${index}" placeholder="Documento" /></label>
+            <label>Fecha de nacimiento<input type="date" required data-companion-birthdate="${index}" /></label>
+          </div>
+        </article>
+      `,
+    ).join("");
+  }
+
+  // Requisitos de actividad de riesgo (RN-597): solo si el servicio esta marcado como
+  // actividad de riesgo, para el titular y cada acompañante. Nunca se aplica a servicios
+  // que no sean de riesgo.
+  const riskSection = document.querySelector("[data-checkout-risk-section]");
+  const riskFieldsContainer = document.querySelector("[data-checkout-risk-fields]");
+  if (riskSection) riskSection.hidden = !booking.risk;
+  if (booking.risk && riskFieldsContainer) {
+    const people = ["Titular", ...Array.from({ length: companionsCount }, (_, index) => `Acompañante ${index + 1}`)];
+    riskFieldsContainer.innerHTML = people
+      .map(
+        (label, index) => `
+          <article class="travel-companion-card">
+            <div class="travel-checkout-section-title"><h2>${label}</h2></div>
+            <div class="travel-companion-grid">
+              <label>Tipo de sangre<input type="text" required data-risk-blood="${index}" placeholder="Ej. O+" /></label>
+              <label>Contacto de emergencia<input type="text" required data-risk-emergency="${index}" placeholder="Nombre y teléfono" /></label>
+            </div>
+            <label>Restricciones físicas o movilidad reducida<textarea required data-risk-restrictions="${index}" placeholder="Indica restricciones o escribe Ninguna."></textarea></label>
+            <label class="travel-checkout-consent"><input type="checkbox" required data-risk-consent="${index}" /> Consentimiento informado o exoneración registrado.</label>
+          </article>
+        `,
+      )
+      .join("");
+  }
+
+  // Condiciones de reserva: las mismas condiciones reales del tour ya resueltas en el paso
+  // anterior (nunca un texto generico distinto al parametrizado).
+  const conditionsListNode = document.querySelector("[data-checkout-conditions-list]");
+  if (conditionsListNode) {
+    conditionsListNode.innerHTML = (booking.conditions || []).map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
+  }
+
+  // Metodo de pago: solo las modalidades realmente habilitadas para este tour (Fase 1:
+  // Transferencia, Efectivo, Abono), nunca todas por defecto.
+  const allowedPayments = new Set(booking.payments || DEFAULT_TOUR_PAYMENT_METHODS);
+  const depositFields = document.querySelector("[data-checkout-deposit-fields]");
   document.querySelectorAll("[data-payment-option]").forEach((option) => {
     const input = option.querySelector('input[type="radio"]');
+    option.hidden = !allowedPayments.has(option.dataset.paymentValue);
     if (!input) return;
-
-    const syncState = () => {
-      option.classList.toggle("is-active", input.checked);
-    };
-
+    const syncState = () => option.classList.toggle("is-active", input.checked);
     input.addEventListener("change", () => {
-      document.querySelectorAll("[data-payment-option]").forEach((node) => {
-        node.classList.remove("is-active");
-      });
+      document.querySelectorAll("[data-payment-option]").forEach((node) => node.classList.remove("is-active"));
       syncState();
+      if (depositFields) {
+        depositFields.hidden = input.value !== "deposit";
+        const hint = depositFields.querySelector("[data-checkout-deposit-hint]");
+        if (hint) hint.textContent = `El saldo pendiente se calcula sobre el valor final: ${formatCOP(finalValue)}.`;
+      }
     });
-
     syncState();
   });
+  const firstAllowedInput = document.querySelector("[data-payment-option]:not([hidden]) input[type='radio']");
+  if (firstAllowedInput) {
+    firstAllowedInput.checked = true;
+    firstAllowedInput.dispatchEvent(new Event("change"));
+  }
 
+  const feedbackNode = document.querySelector("[data-checkout-feedback]");
   const payButton = document.querySelector("[data-checkout-pay]");
   if (!payButton) return;
 
+  const normalizeDoc = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+
   payButton.addEventListener("click", () => {
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "bank";
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "";
+    const conditionsAccepted = Boolean(document.querySelector("[data-checkout-conditions-accept]")?.checked);
+    const holderName = holderNameInput?.value.trim() || "";
+    const holderDocument = holderDocumentInput?.value.trim() || "";
+
+    const companions = Array.from({ length: companionsCount }, (_, index) => ({
+      name: document.querySelector(`[data-companion-name="${index}"]`)?.value.trim() || "",
+      document: document.querySelector(`[data-companion-document="${index}"]`)?.value.trim() || "",
+      birthDate: document.querySelector(`[data-companion-birthdate="${index}"]`)?.value || "",
+    }));
+
+    if (!holderName || !holderDocument) {
+      if (feedbackNode) feedbackNode.textContent = "Completa el nombre y documento del titular.";
+      return;
+    }
+    if (companions.some((companion) => !companion.name || !companion.document || !companion.birthDate)) {
+      if (feedbackNode) feedbackNode.textContent = "Completa los datos de todos los acompañantes.";
+      return;
+    }
+    const allDocs = [holderDocument, ...companions.map((companion) => companion.document)].map(normalizeDoc).filter(Boolean);
+    if (allDocs.some((doc, index) => allDocs.indexOf(doc) !== index)) {
+      if (feedbackNode) feedbackNode.textContent = "El documento del titular y los acompañantes debe ser único dentro de la reserva.";
+      return;
+    }
+    if (booking.risk) {
+      const peopleCount = 1 + companionsCount;
+      for (let index = 0; index < peopleCount; index += 1) {
+        const blood = document.querySelector(`[data-risk-blood="${index}"]`)?.value.trim();
+        const emergency = document.querySelector(`[data-risk-emergency="${index}"]`)?.value.trim();
+        const restrictions = document.querySelector(`[data-risk-restrictions="${index}"]`)?.value.trim();
+        const consent = document.querySelector(`[data-risk-consent="${index}"]`)?.checked;
+        if (!blood || !emergency || !restrictions || !consent) {
+          if (feedbackNode) feedbackNode.textContent = "Completa los requisitos de actividad de riesgo para cada viajero.";
+          return;
+        }
+      }
+    }
+    if (!conditionsAccepted) {
+      if (feedbackNode) feedbackNode.textContent = "Debes aceptar las condiciones aplicables para continuar.";
+      return;
+    }
+    if (!selectedMethod) {
+      if (feedbackNode) feedbackNode.textContent = "Selecciona una modalidad de pago.";
+      return;
+    }
+
+    let depositAmount = 0;
+    if (selectedMethod === "deposit") {
+      depositAmount = Number(document.querySelector("[data-checkout-deposit-amount]")?.value || 0);
+      if (!depositAmount || depositAmount <= 0 || depositAmount > finalValue) {
+        if (feedbackNode) feedbackNode.textContent = "Ingresa un monto de abono válido (mayor a cero y hasta el valor final).";
+        return;
+      }
+    }
+
     const finalBooking = {
-      experience: booking?.experience || tour.name,
-      startDate: booking?.startDate || "15 sep 2026",
-      endDate: booking?.endDate || booking?.startDate || "15 sep 2026",
-      travelers: booking?.travelers || "2",
-      budget: formatCOP(total),
-      code: booking?.code || `#RES-${Date.now().toString().slice(-6)}`,
+      experience: booking.experience,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      travelers: String(travelers),
+      budget: formatCOP(finalValue),
+      projectedValue: formatCOP(projectedValue),
+      discountValue: discountValue ? `-${formatCOP(discountValue)}` : "$0",
+      finalValue: formatCOP(finalValue),
+      code: booking.code || `#RES-${Date.now().toString().slice(-6)}`,
       savedAt: new Date().toLocaleDateString("es-CO"),
-      status: "Confirmada",
       tourKey,
+      holderDocument,
+      companions,
+      transportSelected: booking.transportSelected || "",
+      method: selectedMethod === "bank" ? "Transferencia" : selectedMethod === "cash" ? "Efectivo" : "Abono",
     };
 
+    // PDR v1.7.1 (lineas 628-630): ninguna modalidad confirma la reserva automaticamente al
+    // crearla. Transferencia requiere soporte + validacion operativa; Efectivo requiere
+    // condicion parametrizada o dinero recibido; Abono requiere el abono minimo
+    // parametrizado. Sin esas condiciones cumplidas aqui, la reserva queda Pendiente de pago.
     if (selectedMethod === "bank") {
-      window.localStorage.setItem(successStorageKey, JSON.stringify(finalBooking));
+      const pendingBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago" };
+      window.localStorage.setItem(successStorageKey, JSON.stringify(pendingBooking));
+      window.localStorage.setItem(storageKey, JSON.stringify(pendingBooking));
+      recordClientReservation(pendingBooking);
       window.localStorage.removeItem(checkoutStorageKey);
       window.location.href = `${withTheme("pago-transferencia.html", theme)}&tour=${encodeURIComponent(tourKey)}`;
       return;
     }
 
     if (selectedMethod === "cash") {
-      const cashBooking = {
-        ...finalBooking,
-        status: "Pendiente pago en efectivo",
-      };
+      const cashBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago" };
       window.localStorage.setItem(storageKey, JSON.stringify(cashBooking));
       recordClientReservation(cashBooking);
       window.localStorage.removeItem(checkoutStorageKey);
@@ -2284,20 +2047,16 @@ function setupTourCheckout(theme) {
       return;
     }
 
-    if (selectedMethod === "deposit") {
-      const depositBooking = {
-        ...finalBooking,
-        status: "Pendiente pago de abono",
-      };
-      window.localStorage.setItem(storageKey, JSON.stringify(depositBooking));
-      recordClientReservation(depositBooking);
-      window.localStorage.removeItem(checkoutStorageKey);
-      window.location.href = withTheme("panel-cliente.html", theme);
-      return;
-    }
-
-    window.localStorage.setItem(storageKey, JSON.stringify(finalBooking));
-    recordClientReservation(finalBooking);
+    const depositBooking = {
+      ...finalBooking,
+      status: "Pendiente de pago",
+      paymentStatus: "Parcial",
+      paid: formatCOP(depositAmount),
+      balance: formatCOP(finalValue - depositAmount),
+      paymentHistory: [{ amount: depositAmount, date: new Date().toISOString() }],
+    };
+    window.localStorage.setItem(storageKey, JSON.stringify(depositBooking));
+    recordClientReservation(depositBooking);
     window.localStorage.removeItem(checkoutStorageKey);
     window.location.href = withTheme("panel-cliente.html", theme);
   });
@@ -2436,7 +2195,7 @@ function setupTourPaymentTransfer(theme) {
   const successStorageKey = "multitour-payment-success";
   const storageKey = "multitour-dashboard-booking";
   const params = new URLSearchParams(window.location.search);
-  const fallbackTourKey = params.get("tour") || "mountains";
+  const fallbackTourKey = params.get("tour") || "";
   let booking = null;
 
   try {
@@ -2447,11 +2206,6 @@ function setupTourPaymentTransfer(theme) {
   }
 
   const tourKey = booking?.tourKey || fallbackTourKey;
-  const totalNode = document.querySelector("[data-transfer-total]");
-  if (totalNode) totalNode.textContent = booking?.budget || formatCOP(2806000);
-
-  const codeNode = document.querySelector("[data-transfer-code]");
-  if (codeNode) codeNode.textContent = booking?.code || "#RES-000000";
 
   const backLink = document.querySelector("[data-transfer-back]");
   if (backLink) {
@@ -2461,20 +2215,43 @@ function setupTourPaymentTransfer(theme) {
     );
   }
 
+  if (!booking) {
+    const content = document.querySelector(".travel-checkout-content");
+    if (content) content.innerHTML = '<p class="travel-dashboard-copy">No hay una reserva pendiente de transferencia. Vuelve a Explorar para crear una reserva.</p>';
+    return;
+  }
+
+  const totalNode = document.querySelector("[data-transfer-total]");
+  if (totalNode) totalNode.textContent = booking.budget;
+
+  const codeNode = document.querySelector("[data-transfer-code]");
+  if (codeNode) codeNode.textContent = booking.code || "#RES-000000";
+
+  // Datos bancarios: unica fuente configurada (TENANT_BANK_ACCOUNT), nunca texto fijo
+  // repetido en el HTML.
+  const bankNode = document.querySelector("[data-transfer-bank]");
+  if (bankNode) bankNode.textContent = TENANT_BANK_ACCOUNT.bank;
+  const accountTypeNode = document.querySelector("[data-transfer-account-type]");
+  if (accountTypeNode) accountTypeNode.textContent = TENANT_BANK_ACCOUNT.accountType;
+  const accountNumberNode = document.querySelector("[data-transfer-account-number]");
+  if (accountNumberNode) accountNumberNode.textContent = TENANT_BANK_ACCOUNT.accountNumber;
+  const holderNode = document.querySelector("[data-transfer-holder]");
+  if (holderNode) holderNode.textContent = TENANT_BANK_ACCOUNT.holder;
+  const taxIdNode = document.querySelector("[data-transfer-tax-id]");
+  if (taxIdNode) taxIdNode.textContent = TENANT_BANK_ACCOUNT.taxId;
+
   const uploadButton = document.querySelector("[data-transfer-upload]");
   if (!uploadButton) return;
 
+  // BUG corregido: subir el comprobante NO confirma el pago automaticamente (PDR linea 628:
+  // requiere ademas validacion operativa de recepcion). La reserva queda registrada con
+  // estado economico "En validación" hasta esa validacion.
   uploadButton.addEventListener("click", () => {
     const pendingBooking = {
-      experience: booking?.experience || "Reserva pendiente",
-      startDate: booking?.startDate || "15 sep 2026",
-      endDate: booking?.endDate || booking?.startDate || "15 sep 2026",
-      travelers: booking?.travelers || "2",
-      budget: booking?.budget || formatCOP(2806000),
-      code: booking?.code || `#RES-${Date.now().toString().slice(-6)}`,
+      ...booking,
       savedAt: new Date().toLocaleDateString("es-CO"),
-      status: "Pendiente por validar",
-      tourKey,
+      status: "Pendiente de pago",
+      paymentStatus: "En validación",
     };
 
     window.localStorage.setItem(storageKey, JSON.stringify(pendingBooking));
@@ -2511,25 +2288,29 @@ function recordClientReservation(booking) {
   localStorage.setItem(CLIENT_RESERVATIONS_HISTORY_KEY, JSON.stringify(history));
 }
 
-// Identidad visual del tenant (PDR: nombre/logo configurado por tenant, o identidad
-// predeterminada de Multitour si no existe). NO existe hoy una sesion de cliente que
-// indique a que tenant especifico pertenece: se usa el primer tenant activo configurado
-// (mecanismo local ya existente en Plataforma) como aproximacion razonable, o "Multitour"
-// si no hay ninguno. BACKEND/SESION FALTANTE — no hay forma real de saber el tenant del
-// cliente autenticado sin una sesion real.
+// BUG corregido: esta pantalla es la PLANTILLA GENERICA multitenant (no la de un tenant
+// especifico). Antes se resolvia "el primer tenant Activo configurado", lo que en la
+// practica mostraba el nombre de CUALQUIER tenant creado en Plataforma (ej. uno de prueba),
+// como si fuera la identidad real del cliente autenticado. No existe hoy una sesion de
+// cliente que indique a que tenant pertenece, asi que mostrar un tenant "adivinado" es tan
+// incorrecto como hardcodear uno fijo. Se mantiene el placeholder literal hasta que exista
+// una sesion real de Cliente que resuelva su tenant e identidad visual configurada.
 function resolveClientTenantName() {
-  try {
-    const tenants = getPlatformTenants();
-    const active = tenants.find((tenant) => tenant.status === "Activo");
-    return active?.name || "Multitour";
-  } catch {
-    return "Multitour";
-  }
+  return "[Tu Marca]";
 }
 
 function setupDashboardIdentity() {
   const brand = document.querySelector("[data-tenant-brand]");
   if (brand) brand.textContent = resolveClientTenantName();
+}
+
+// BUG/UX corregido: la accion rapida "Gastronomía" afirmaba "Explora opciones
+// gastronómicas disponibles" aunque el catalogo de Alimentación tuviera 0 activos. Ahora
+// se oculta cuando no hay ningun servicio de Alimentación activo, usando la MISMA fuente
+// ya usada por el contador de "Catálogos" del Administrador (nunca datos demo inventados).
+function setupDashboardQuickActions() {
+  const gastronomyCard = document.querySelector('[data-action="gastronomy"]');
+  if (gastronomyCard) gastronomyCard.hidden = getOperatorCatalogActiveCount("alimentacion-catalog-panel") === 0;
 }
 
 // Descuentos vigentes (RF-005A): misma fuente real que Descuentos del Administrador
@@ -2601,6 +2382,7 @@ function setupDashboardBooking() {
   setupDashboardIdentity();
   setupDashboardPromotions();
   setupDashboardRecommendations();
+  setupDashboardQuickActions();
 
   const form = document.querySelector("[data-booking-form]");
   const clearButton = document.querySelector("[data-booking-clear]");
@@ -2936,19 +2718,19 @@ function setupCompanionsForm() {
 }
 
 function setupCatalogSearch() {
-  const supportedScreens = new Set(["tours", "gastronomy", "restaurants", "bars", "cafes"]);
+  const supportedScreens = new Set(["tours", "gastronomy", "restaurants", "lodging", "bars", "cafes"]);
   const screen = document.body.dataset.screen;
   if (!supportedScreens.has(screen)) return;
 
   const searchInput = document.querySelector("[data-catalog-search]");
   const searchButton = document.querySelector("[data-catalog-search-button]");
-  const grid =
-    document.querySelector(".travel-restaurant-grid") ||
-    document.querySelector(".travel-tours-grid");
+  // Gastronomía ("Todos") ahora combina dos grids independientes (platos del día +
+  // restaurantes asociados): se buscan tarjetas en TODOS los grids presentes, no solo el primero.
+  const grids = Array.from(document.querySelectorAll(".travel-restaurant-grid, .travel-tours-grid"));
 
-  if (!searchInput || !grid) return;
+  if (!searchInput || !grids.length) return;
 
-  const cards = Array.from(grid.querySelectorAll("[data-search-card], .travel-tour-card"));
+  const cards = grids.flatMap((grid) => Array.from(grid.querySelectorAll("[data-search-card], .travel-tour-card")));
   if (!cards.length) return;
 
   const emptyState = document.createElement("div");
@@ -2965,7 +2747,7 @@ function setupCatalogSearch() {
     <p>${emptyHint}</p>
     <button type="button">Limpiar búsqueda</button>
   `;
-  grid.insertAdjacentElement("afterend", emptyState);
+  grids[grids.length - 1].insertAdjacentElement("afterend", emptyState);
   const clearButton = emptyState.querySelector("button");
 
   const normalize = (value) =>
@@ -3128,19 +2910,28 @@ function appendOperatorPaymentSupportLog(entry) {
 function setupOperatorPayments() {
   if (document.body.dataset.screen !== "operator-payments") return;
   const supportState = getOperatorPaymentSupportState();
+  let draft = null;
+  try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
   document.querySelectorAll("[data-payment-row]").forEach((row) => {
     const code = row.dataset.paymentRow;
-    // BUG corregido: "Valor pendiente" para seguimiento (follow-up) era un monto fijo en
-    // el HTML, desconectado del saldo real de la reserva (ej. RES-1837 mostraba $800.000
-    // mientras Detalle/Gestion de pago mostraban un saldo real distinto). Ahora se deriva
-    // del MISMO saldo (misma fuente que Detalle/Operación/Reservas), solo para filas de
-    // seguimiento; las de validacion de soporte conservan su monto pendiente de validar.
+    // BUG corregido: "Valor pendiente" para seguimiento (follow-up) leia la reserva base
+    // sin aplicar la decision de soporte de pago ya validada (ej. RES-1837 seguia
+    // mostrando $800.000/"Saldo pendiente" aunque ya estuviera Pagada). Ahora se resuelve
+    // con la MISMA fuente que Detalle/Gestion de pago, y si ya quedo liquidada (saldo $0,
+    // Pagado), la fila deja de aparecer como pago pendiente.
     if (row.querySelector("[data-register-followup]")) {
-      const amountCell = row.querySelector("[data-payment-row-amount]");
-      if (amountCell) {
-        const reservation = OPERATOR_RESERVATIONS[code];
-        if (reservation) amountCell.textContent = reservation.balance;
+      const base = OPERATOR_RESERVATIONS[code];
+      let reservation = code && draft?.code === code ? draft : base ? { ...base, code } : null;
+      const decision = supportState[code];
+      if (reservation && decision && (decision.status === "Pagado" || decision.status === "Parcial")) {
+        reservation = { ...reservation, paid: decision.paid, balance: decision.balance, payment: decision.status };
       }
+      if (reservation && reservation.payment === "Pagado" && reservation.balance === "$0") {
+        row.hidden = true;
+        return;
+      }
+      const amountCell = row.querySelector("[data-payment-row-amount]");
+      if (amountCell && reservation) amountCell.textContent = reservation.balance;
     }
     const decision = supportState[code];
     if (!decision) return;
@@ -3363,29 +3154,53 @@ function setupOperatorPaymentFollowup() {
   if (document.body.dataset.screen !== "operator-payment-followup") return;
   const code = new URLSearchParams(window.location.search).get("reservation") || "";
   const record = OPERATOR_PAYMENT_SUPPORT_RECORDS[code];
-  const reservation = OPERATOR_RESERVATIONS[code];
+  // BUG corregido: leia la reserva base sin resolver su estado economico REAL (soporte de
+  // pago validado / draft de Gestion de pago), la MISMA fuente ya usada en Detalle de
+  // reserva. Sin esto, una reserva ya liquidada seguia mostrando el saldo/estado viejo.
+  let draft = null;
+  try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
+  const base = OPERATOR_RESERVATIONS[code];
+  let reservation = code && draft?.code === code ? draft : base ? { ...base, code } : null;
+  const supportDecision = reservation ? getOperatorPaymentSupportState()[code] : null;
+  if (reservation && supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+    reservation = { ...reservation, paid: supportDecision.paid, balance: supportDecision.balance, payment: supportDecision.status };
+  }
   const form = document.querySelector("[data-followup-form]");
   const feedback = document.querySelector("[data-followup-feedback]");
 
-  if (!record || !reservation) {
+  if (!reservation) {
     if (feedback) feedback.textContent = "No se encontró el pago seleccionado. Vuelve a Pagos e ingresa nuevamente por Registrar seguimiento.";
     form?.querySelectorAll("input, textarea, button").forEach((el) => { el.disabled = true; });
     return;
   }
 
+  // Regla (CORREGIR): saldo $0 y Pagado = ya no es un pago pendiente; solo se consulta el
+  // historial existente, no se admite una nueva nota de seguimiento de "pago pendiente".
+  const isSettled = reservation.payment === "Pagado" && reservation.balance === "$0";
+
   form.querySelector("[data-followup-code]").value = `#${code}`;
-  form.querySelector("[data-followup-customer]").value = record.customer;
-  form.querySelector("[data-followup-method]").value = record.method;
-  form.querySelector("[data-followup-amount]").value = record.amount;
+  form.querySelector("[data-followup-customer]").value = reservation.customer || record?.customer || "";
+  form.querySelector("[data-followup-method]").value = reservation.method || record?.method || "";
+  form.querySelector("[data-followup-amount]").value = reservation.paid || "";
   form.querySelector("[data-followup-balance]").value = reservation.balance;
-  form.querySelector("[data-followup-status]").value = record.status;
+  form.querySelector("[data-followup-status]").value = reservation.payment || record?.status || "";
   // No existe hoy parametrizacion de tiempos (Configurar pagos) confirmada en el PDR ni en el
   // catalogo actual: se informa explicitamente en vez de inventar un plazo o vigencia.
   form.querySelector("[data-followup-deadline]").value = "Sin parametrización de plazo definida para esta modalidad.";
 
   const noteInput = form.querySelector("[data-followup-note]");
+  const noteField = noteInput?.closest("[data-followup-entry]") || noteInput?.closest("label");
+  const deadlineField = form.querySelector("[data-followup-deadline]")?.closest("label");
+  const submitButton = form.querySelector('button[type="submit"]');
   const historyBody = document.querySelector("[data-followup-history]");
   const emptyNote = document.querySelector("[data-followup-empty]");
+
+  if (isSettled) {
+    if (feedback) feedback.textContent = "Esta reserva ya está pagada: solo puedes consultar el historial de seguimientos existente.";
+    if (noteField) noteField.hidden = true;
+    if (deadlineField) deadlineField.hidden = true;
+    if (submitButton) submitButton.hidden = true;
+  }
 
   const renderHistory = () => {
     const entries = getOperatorPaymentFollowupsForCode(code);
@@ -3398,6 +3213,8 @@ function setupOperatorPaymentFollowup() {
   };
   renderHistory();
 
+  if (isSettled) return;
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const note = noteInput.value.trim();
@@ -3407,9 +3224,11 @@ function setupOperatorPaymentFollowup() {
       return;
     }
     const now = new Date();
+    // BUG corregido: el actor quedaba fijo en "Administrador del operador" sin importar
+    // quien ejecuto realmente la accion; ahora usa el rol autenticado real.
     appendOperatorPaymentFollowup(code, {
       note,
-      actor: "Administrador del operador",
+      actor: getOperatorRoleLabel(),
       date: now.toISOString().slice(0, 10),
       time: now.toTimeString().slice(0, 5),
     });
@@ -4392,6 +4211,18 @@ function resolveOperatorServiceActive(catalogId, recordKey, defaultActive) {
   return stored ? stored === "active" : defaultActive;
 }
 
+// Mismo conteo ya usado por el contador de "Catálogos" del Administrador (base + dinamicos
+// reales, ambos resueltos con resolveOperatorServiceActive): se reutiliza aqui para el
+// Panel Cliente en vez de inventar un algoritmo o fuente distinta.
+function getOperatorCatalogActiveCount(catalogId) {
+  const entry = OPERATOR_CATALOG_DEFAULTS[catalogId];
+  const baseActiveCount = entry ? entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length : 0;
+  const dynamicActiveCount = getOperatorCatalog().filter(
+    (item) => OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type] === catalogId && resolveOperatorServiceActive(catalogId, item.id, item.active),
+  ).length;
+  return baseActiveCount + dynamicActiveCount;
+}
+
 const OPERATOR_SERVICE_FIELDS_KEY = "multitour-service-fields";
 
 function getOperatorServiceFieldsMap() {
@@ -4530,6 +4361,126 @@ function getOperatorTourTransport(tourKey) {
   return link.tariffOverride != null ? { ...option, price: link.tariffOverride } : option;
 }
 
+// PDR v1.7.1 (flujo de reserva del Cliente): catalogo REAL de Tours (activo + vigente).
+// El PDR no modela una lista independiente de "salidas": la disponibilidad de fecha depende
+// exclusivamente de la vigencia (start/end) ya parametrizada del servicio, nunca de fechas
+// programadas aparte. El enriquecimiento (descuento, riesgo, medios de pago, condiciones)
+// reutiliza EXACTAMENTE los mismos datos ya aprobados para estos 4 tours en el Portal
+// (create-reservation.component.ts: KNOWN_TOUR_DETAILS), sin inventar una politica distinta
+// entre Landing y Portal. No incluye itinerario, caracteristicas turisticas ni "inclusiones"
+// de alimentacion: esos datos no estan realmente modelados por tour en el catalogo.
+const KNOWN_TOUR_DETAILS = {
+  "Tour destino ejemplo - Montañas": {
+    discount: 0.2,
+    risk: false,
+    payments: ["Transferencia", "Efectivo", "Abono"],
+    conditions: [
+      "La modificación o cancelación depende de las condiciones vigentes del tour.",
+      "La disponibilidad y los valores se validan antes de registrar la reserva.",
+    ],
+  },
+  "Aventura en cenotes ocultos": {
+    discount: 0,
+    risk: false,
+    payments: ["Transferencia", "Efectivo", "Abono"],
+    conditions: [
+      "La modificación o cancelación depende de las condiciones vigentes del tour.",
+      "La disponibilidad y los valores se validan antes de registrar la reserva.",
+    ],
+  },
+  "Rafting y acampada extrema": {
+    discount: 0,
+    risk: true,
+    payments: ["Transferencia", "Abono"],
+    conditions: [
+      "La actividad requiere requisitos de riesgo para cada viajero.",
+      "La modificación o cancelación depende de las condiciones vigentes del servicio.",
+    ],
+  },
+  "Recorrido cultural e histórico": {
+    discount: 0,
+    risk: false,
+    payments: ["Transferencia", "Efectivo"],
+    conditions: [
+      "La modificación o cancelación depende de las condiciones vigentes del servicio.",
+      "Los descuentos se aplican según la configuración comercial vigente.",
+    ],
+  },
+};
+const GENERIC_TOUR_CONDITION = "La disponibilidad y los valores se validan antes de registrar la reserva.";
+const DEFAULT_TOUR_PAYMENT_METHODS = ["Transferencia", "Efectivo", "Abono"];
+const TOUR_CATALOG_ID = "catalogo-catalog-panel";
+const TOUR_LODGING_CATALOG_ID = "hospedaje-catalog-panel";
+
+function getOperatorActiveTourServices() {
+  const result = {};
+  const lodgingRecord = OPERATOR_CATALOG_DEFAULTS[TOUR_LODGING_CATALOG_ID]?.records[0];
+  const lodgingCapacity = (lodgingRecord && parseCOP(lodgingRecord.fields.capacity)) || 2;
+
+  OPERATOR_CATALOG_DEFAULTS[TOUR_CATALOG_ID].records.forEach((record) => {
+    if (!resolveOperatorServiceActive(TOUR_CATALOG_ID, record.key, record.active)) return;
+    const fields = getOperatorServiceFields(TOUR_CATALOG_ID, record.key) || record.fields;
+    const [startText, endText] = (fields.validity || "").split(" - ");
+    const start = parseOperatorDate(startText);
+    if (!start) return;
+    const details = KNOWN_TOUR_DETAILS[record.key];
+    result[record.key] = {
+      key: record.key,
+      name: fields.name || record.key,
+      price: parseCOP(fields.tariff),
+      discount: details?.discount ?? 0,
+      risk: details?.risk ?? false,
+      capacity: null,
+      restrictions: "",
+      lodgingCapacity,
+      start,
+      end: parseOperatorDate(endText) || start,
+      payments: details?.payments ?? DEFAULT_TOUR_PAYMENT_METHODS,
+      conditions: details?.conditions ?? [GENERIC_TOUR_CONDITION],
+      associatedTransport: getOperatorTourTransport(record.key),
+      image: "",
+    };
+  });
+
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "tour" || !resource.active) return;
+    result[resource.id] = {
+      key: resource.id,
+      name: resource.name,
+      price: resource.price,
+      discount: 0,
+      risk: false,
+      capacity: resource.capacity,
+      restrictions: resource.restrictions || "",
+      lodgingCapacity: resource.capacity ?? lodgingCapacity,
+      start: resource.start,
+      end: resource.end,
+      payments: DEFAULT_TOUR_PAYMENT_METHODS,
+      conditions: [resource.policy || GENERIC_TOUR_CONDITION],
+      associatedTransport: getOperatorTourTransport(resource.id),
+      image: resource.image || "",
+    };
+  });
+
+  return result;
+}
+
+function getOperatorActiveTourService(key) {
+  return getOperatorActiveTourServices()[key] || null;
+}
+
+// Datos bancarios para instrucciones de transferencia: no existe hoy una pantalla de
+// configuracion de datos bancarios por operador, asi que se centraliza AQUI (una sola
+// fuente para toda la pantalla de transferencia) en vez de dejarlos repetidos como texto
+// fijo en el HTML. Mismo valor de referencia ya usado, ahora como dato configurable.
+const TENANT_BANK_ACCOUNT = {
+  bank: "Banco de Occidente",
+  accountType: "Corriente",
+  accountNumber: "1234-5678-9012-3456",
+  holder: "Multitour Operaciones S.A.S.",
+  taxId: "900.123.456-7",
+};
+
 // Actualiza los campos GLOBALES del recurso de Transporte (trayecto/capacidad/costo
 // base): valen para cualquier Tour que lo use, igual que si se editara desde Configurar
 // transporte (mismo mecanismo, reutilizado aqui para no duplicar logica). La tarifa por
@@ -4606,7 +4557,7 @@ function setupOperatorCatalogs() {
   });
   const create = document.querySelector(".operator-topbar .operator-primary");
   if (create) create.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-servicio.html", getTheme()); });
-  const actions = ["admin-gestionar-catalogo.html", "admin-gestionar-hospedaje.html", "admin-gestionar-alimentacion.html", "admin-gestionar-transporte.html"];
+  const actions = ["admin-gestionar-catalogo.html", "admin-gestionar-hospedaje.html", "admin-gestionar-alimentacion.html", "admin-gestionar-transporte.html", "admin-gestionar-restaurantes.html"];
   document.querySelectorAll(".operator-catalog-grid button").forEach((button, index) => {
     if (actions[index]) button.addEventListener("click", () => { window.location.href = withTheme(actions[index], getTheme()); });
   });
@@ -4626,6 +4577,11 @@ function setupOperatorCatalogs() {
     const activeCount = baseActiveCount + dynamicActiveCount;
     strong.textContent = `${activeCount} activo${activeCount === 1 ? "" : "s"}`;
   });
+  const restaurantsCountEl = document.querySelector("[data-restaurants-count]");
+  if (restaurantsCountEl) {
+    const restaurantsActiveCount = getOperatorActiveAssociatedEstablishments("restaurant").length;
+    restaurantsCountEl.textContent = `${restaurantsActiveCount} activo${restaurantsActiveCount === 1 ? "" : "s"}`;
+  }
 
   // Catálogos del Colaborador operativo: misma tabla, en modo consulta ("Ver detalle"
   // reutiliza el mismo formulario de configuración de cada servicio, ya en solo lectura).
@@ -5455,9 +5411,101 @@ function getOperatorCatalog() {
 // Los establecimientos asociados (hoteles/restaurantes externos promocionados)
 // se guardan aparte del catalogo reservable: no son un servicio de la operacion turistica.
 const OPERATOR_ASSOCIATED_ESTABLISHMENTS_KEY = "multitour-associated-establishments";
+const OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID = "associated-establishments";
 
 function getOperatorAssociatedEstablishments() {
   try { return JSON.parse(localStorage.getItem(OPERATOR_ASSOCIATED_ESTABLISHMENTS_KEY) || "[]"); } catch { return []; }
+}
+
+// BUG corregido: Gastronomía Cliente mostraba restaurantes globales hardcodeados (Pujol,
+// El Califa, Cicatriz) en vez de los establecimientos realmente registrados por el
+// Administrador del tenant. El estado activo/inactivo reutiliza el MISMO mapa generico ya
+// usado por el resto de catalogos (resolveOperatorServiceActive), sin crear un mecanismo
+// paralelo; por defecto un establecimiento recien registrado queda Activo.
+function getOperatorActiveAssociatedEstablishments(kind) {
+  return getOperatorAssociatedEstablishments().filter(
+    (establishment) =>
+      establishment.kind === kind &&
+      resolveOperatorServiceActive(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, establishment.id, true),
+  );
+}
+
+// Gestión mínima de Restaurantes asociados (Administrador → Catálogos → Restaurantes
+// asociados): antes solo existía el formulario de creación ("Nuevo servicio" →
+// "Establecimiento asociado"), sin ninguna pantalla para consultarlos ni activar/inactivar
+// los ya creados. Reutiliza el MISMO registro/estado ya usado por Gastronomía Cliente
+// (getOperatorAssociatedEstablishments + resolveOperatorServiceActive); nunca borra un
+// registro, solo cambia su estado (histórico conservado).
+function setupOperatorManageRestaurants() {
+  if (document.body.dataset.screen !== "operator-manage-restaurants") return;
+  const tbody = document.querySelector("[data-restaurants-body]");
+  if (!tbody) return;
+  const isAdmin = !isOperatorColaborador();
+  const render = () => {
+    const restaurants = getOperatorAssociatedEstablishments().filter((item) => item.kind === "restaurant");
+    if (!restaurants.length) {
+      tbody.innerHTML = '<tr><td colspan="4">Aún no se han registrado restaurantes asociados. Usa "Nuevo servicio" → "Establecimiento asociado" → "Restaurante asociado" para crear uno.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = restaurants
+      .map((restaurant) => {
+        const active = resolveOperatorServiceActive(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, restaurant.id, true);
+        const actionCell = isAdmin
+          ? `<button class="operator-row-toggle" type="button" data-toggle-restaurant="${escapeHtml(restaurant.id)}">${active ? "Desactivar" : "Activar"}</button>`
+          : "";
+        return `<tr><td><strong>${escapeHtml(restaurant.name)}</strong></td><td>${escapeHtml(restaurant.description || "Sin información adicional registrada.")}</td><td><span class="operator-status ${active ? "is-confirmed" : "is-cancelled"}">${active ? "Activo" : "Inactivo"}</span></td><td>${actionCell}</td></tr>`;
+      })
+      .join("");
+    tbody.querySelectorAll("[data-toggle-restaurant]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const id = button.dataset.toggleRestaurant;
+        const active = resolveOperatorServiceActive(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, id, true);
+        setOperatorServiceStatus(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, id, !active);
+        render();
+      });
+    });
+  };
+  render();
+}
+
+// BUG corregido: "Platos del día" mostraba una tarjeta fija ("Plato del día"/"Según menú
+// vigente") sin relacion con el catalogo real de Alimentación. Reutiliza exactamente el
+// mismo filtro activo+vigente ya aprobado en setupDashboardRecommendations (Panel Cliente),
+// sin inventar un ranking ni una fuente distinta.
+function getOperatorActiveFoodOptions() {
+  const catalogId = "alimentacion-catalog-panel";
+  const today = OPERATOR_TODAY_DATE;
+  const withinValidity = (startText, endText) => {
+    const start = parseOperatorDate(startText);
+    const end = parseOperatorDate(endText) || start;
+    return Boolean(start) && today >= start && today <= (end || start);
+  };
+  const options = [];
+  OPERATOR_CATALOG_DEFAULTS[catalogId].records.forEach((record) => {
+    if (!resolveOperatorServiceActive(catalogId, record.key, record.active)) return;
+    const fields = getOperatorServiceFields(catalogId, record.key) || record.fields;
+    const [start, end] = (fields.validity || "").split(" - ");
+    if (!withinValidity(start, end)) return;
+    options.push({
+      key: record.key,
+      name: fields.dish || record.key,
+      restaurant: fields.restaurant && fields.restaurant !== "Por configurar" ? fields.restaurant : "",
+      tariff: fields.tariff || "Por configurar",
+      validity: fields.validity || "",
+    });
+  });
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "food" || !resolveOperatorServiceActive(catalogId, resource.id, resource.active)) return;
+    if (!(today >= resource.start && today <= resource.end)) return;
+    options.push({
+      key: resource.id,
+      name: resource.name,
+      restaurant: resource.restaurant || "",
+      tariff: formatCOP(resource.price),
+      validity: `${formatOperatorDate(resource.start)} - ${formatOperatorDate(resource.end)}`,
+    });
+  });
+  return options;
 }
 
 const OPERATOR_DISCOUNTS_STORAGE_KEY = "multitour-discounts";
@@ -6637,6 +6685,8 @@ const activeThemeConfig = THEMES[activeTheme];
 
 applyTheme();
 hydrateStoredUser();
+setupProfileSummary();
+setupProfileEdit();
 setupPasswordToggle();
 setupRoleSwitch();
 setupLoginForm(activeThemeConfig, activeTheme);
@@ -6644,6 +6694,9 @@ setupSignupForm(activeTheme);
 setupRecoverForm(activeTheme);
 setupResetForm(activeTheme);
 setupPlatformScreens(activeTheme);
+setupGastronomyCatalog();
+setupLodgingCatalog();
+setupToursCatalog();
 setupVenueLinks(activeTheme);
 setupTourLinks(activeTheme);
 setupTourBookingLinks(activeTheme);
@@ -6661,6 +6714,7 @@ setupCompanionsForm();
 setupCatalogSearch();
 setupOperatorCatalogs();
 setupManagedTourCatalog();
+setupOperatorManageRestaurants();
 setupOperatorConfigureScreen();
 setupOperatorNewService();
 setupOperatorDiscounts();

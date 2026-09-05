@@ -37,71 +37,64 @@
         <p class="travel-detail-screen-title" data-tour-field="detailTitle">Detalle del tour</p>
       </section>
 
-      <section class="travel-detail-gallery" aria-label="Galeria del tour">
-        <div class="travel-detail-gallery-main" data-tour-image="hero"></div>
-        <div class="travel-detail-gallery-side" data-tour-image="side"></div>
-      </section>
-
-      <section class="travel-detail-intro">
-        <div class="travel-detail-copy">
-          <div class="travel-detail-copy-head">
-            <div>
-              <h1 data-tour-field="name">Tour destino ejemplo - Montañas</h1>
-              <p data-tour-field="category">Naturaleza y trekking</p>
+      <div class="travel-detail-layout">
+        <div class="travel-detail-main">
+          <section class="travel-detail-intro">
+            <div class="travel-detail-copy">
+              <div class="travel-detail-copy-head">
+                <div>
+                  <h1 data-tour-field="name">Tour</h1>
+                </div>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div class="travel-detail-location-row">
-            <span class="travel-detail-location" data-tour-field="location">Sierra alta, ruta panorámica</span>
-          </div>
+          <section class="travel-detail-section">
+            <h2>Vigencia, capacidad y restricciones</h2>
+            <div class="travel-detail-info-grid" data-tour-info-grid></div>
+          </section>
 
-          <div class="travel-detail-description" data-tour-field="description">
-            Una salida inmersiva para descubrir paisajes abiertos, caminar con guía local y combinar aventura, descanso y momentos de contemplación en una ruta pensada para viajeros activos.
-          </div>
+          <aside class="travel-detail-risk-note" data-tour-risk-note hidden>
+            Esta actividad requiere información y consentimientos adicionales para completar la reserva.
+          </aside>
+
+          <section class="travel-detail-section" data-tour-related-section hidden>
+            <h2>Servicios relacionados</h2>
+            <div class="travel-catalog-tags" data-tour-related></div>
+          </section>
+
+          <section class="travel-detail-section">
+            <h2>Modalidades de pago</h2>
+            <div class="travel-catalog-tags" data-tour-payments></div>
+          </section>
+
+          <section class="travel-detail-section travel-detail-conditions-card">
+            <h2>Condiciones de reserva</h2>
+            <ul data-tour-conditions></ul>
+          </section>
         </div>
-      </section>
 
-      <section class="travel-detail-section">
-        <h2>Lo que incluye</h2>
-        <div class="travel-detail-pill-row" data-tour-features></div>
-      </section>
+        <aside class="travel-detail-summary-card">
+          <div class="travel-detail-summary-media" data-tour-summary-image hidden></div>
 
-      <section class="travel-detail-section">
-        <div class="travel-detail-menu-head">
-          <h2>Itinerario sugerido</h2>
+          <span class="travel-detail-sticky-eyebrow">Resumen comercial</span>
+
           <div class="travel-detail-price" data-tour-price>
             <span class="travel-detail-discount-tag" data-tour-discount hidden></span>
             <small data-tour-price-before hidden></small>
-            <strong data-tour-price-final>Desde $1.039.200</strong>
+            <strong data-tour-price-final>Desde $0</strong>
           </div>
-        </div>
-        <div class="travel-detail-menu-list" data-tour-itinerary></div>
-      </section>
 
-      <section class="travel-detail-section">
-        <h2>Salidas disponibles</h2>
-        <div class="travel-detail-departures" data-tour-departures></div>
-      </section>
-    </main>
+          <div class="travel-detail-info-grid" data-tour-summary-info></div>
 
-    <aside class="travel-detail-risk-note" data-tour-risk-note hidden>
-      Esta actividad requiere información y consentimientos adicionales para completar la reserva.
-    </aside>
+          <p data-tour-field="availability" aria-live="polite">Consultando disponibilidad...</p>
 
-    <aside class="travel-detail-sticky-bar" aria-label="Acción de reserva">
-      <div class="travel-detail-sticky-status">
-        <span class="travel-detail-sticky-eyebrow">Disponibilidad</span>
-        <p data-tour-field="availability" aria-live="polite">Salidas disponibles este mes</p>
+          <button type="button" class="travel-detail-book-button" data-tour-booking-button disabled>
+            Cargando...
+          </button>
+        </aside>
       </div>
-      <button
-        type="button"
-        class="travel-detail-book-button"
-        data-tour-booking-button
-        disabled
-      >
-        Selecciona una salida
-      </button>
-    </aside>
+    </main>
 
     <script src="app.js"></script>
   </body>

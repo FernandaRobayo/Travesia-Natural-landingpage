@@ -35,79 +35,12 @@
         </a>
 
         <div class="travel-tours-search-row">
-          <input type="search" placeholder="Buscar hospedajes o destinos..." />
+          <input type="search" placeholder="Buscar hospedajes o destinos..." data-catalog-search />
+          <button type="button" data-catalog-search-button>Buscar</button>
         </div>
       </section>
 
-      <section class="travel-tours-grid" aria-label="Listado de alojamientos disponibles">
-        <article class="travel-tour-card">
-          <div class="travel-tour-media lodging-media-one">
-            <span class="travel-tour-rating">&#9733; 4.8</span>
-          </div>
-          <div class="travel-tour-body">
-            <span class="travel-tour-duration">2 noches</span>
-            <strong>Eco lodge de montana</strong>
-            <div class="travel-tour-meta">
-              <div>
-                <small>Desde</small>
-                <em>$580.000</em>
-              </div>
-              <button type="button">Ver detalle</button>
-            </div>
-          </div>
-        </article>
-
-        <article class="travel-tour-card">
-          <div class="travel-tour-media lodging-media-two">
-            <span class="travel-tour-rating">&#9733; 4.9</span>
-          </div>
-          <div class="travel-tour-body">
-            <span class="travel-tour-duration">3 noches</span>
-            <strong>Cabanas junto al bosque</strong>
-            <div class="travel-tour-meta">
-              <div>
-                <small>Desde</small>
-                <em>$760.000</em>
-              </div>
-              <button type="button">Ver detalle</button>
-            </div>
-          </div>
-        </article>
-
-        <article class="travel-tour-card">
-          <div class="travel-tour-media lodging-media-three">
-            <span class="travel-tour-rating">&#9733; 4.7</span>
-          </div>
-          <div class="travel-tour-body">
-            <span class="travel-tour-duration">1 noche</span>
-            <strong>Hotel boutique centro historico</strong>
-            <div class="travel-tour-meta">
-              <div>
-                <small>Desde</small>
-                <em>$440.000</em>
-              </div>
-              <button type="button">Ver detalle</button>
-            </div>
-          </div>
-        </article>
-
-        <article class="travel-tour-card">
-          <div class="travel-tour-media lodging-media-four">
-            <span class="travel-tour-rating">&#9733; 5.0</span>
-          </div>
-          <div class="travel-tour-body">
-            <span class="travel-tour-duration">4 noches</span>
-            <strong>Resort natural con spa</strong>
-            <div class="travel-tour-meta">
-              <div>
-                <small>Desde</small>
-                <em>$1.040.000</em>
-              </div>
-              <button type="button">Ver detalle</button>
-            </div>
-          </div>
-        </article>
-      </section>
+      <section class="travel-tours-grid" aria-label="Hoteles asociados disponibles" data-hotel-grid></section>
     </main>
 
     <script src="app.js"></script>
