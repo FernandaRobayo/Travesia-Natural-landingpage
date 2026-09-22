@@ -7,118 +7,149 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="crear-cuenta.css?v=20260918-1" />
   </head>
   <body data-screen="signup" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
-    <main id="contenido" class="travel-login-shell">
-      <header class="travel-login-header travel-login-header-centered">
-        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
-      </header>
-
-      <section class="travel-login-stage">
-        <div class="travel-login-card travel-signup-card">
-          <div class="travel-login-copy travel-signup-copy">
-            <h1>Crear Cuenta</h1>
-            <p>Unete a la plataforma y crea tu acceso para comenzar.</p>
+    <main id="contenido" class="mth-signup-shell">
+      <aside class="mth-signup-visual">
+        <div class="mth-signup-visual-sticky">
+          <img
+            class="mth-signup-visual-img"
+            src="https://images.unsplash.com/photo-1759150954328-8b0b005ade84?auto=format&fit=crop&w=1200&q=80"
+            alt="Cordillera iluminada por la luz dorada del atardecer, vista desde un sendero de montaña"
+          />
+          <div class="mth-signup-visual-content">
+            <a class="mth-signup-visual-brand" href="index.html" data-route="home">Multi Tour</a>
+            <h2 class="mth-signup-visual-title">Crea tu cuenta y empieza a planear tu proxima experiencia.</h2>
           </div>
+        </div>
+      </aside>
 
-          <form class="travel-login-form travel-signup-form" data-form="signup" novalidate>
-            <div class="travel-signup-name-group">
-              <div class="travel-login-field">
-                <label for="signup-first-name">Nombre</label>
-                <input
-                  id="signup-first-name"
-                  name="first_name"
-                  type="text"
-                  autocomplete="given-name"
-                  placeholder="Ej. Juan"
-                />
+      <section class="mth-signup-panel">
+        <header class="mth-signup-header">
+          <a class="mth-signup-brand" href="index.html" data-route="home">Multi Tour</a>
+          <a class="mth-signup-back" href="index.html" data-route="home">Volver al inicio</a>
+        </header>
+
+        <div class="mth-signup-stage">
+          <div class="mth-signup-card">
+            <div class="mth-signup-copy">
+              <span class="mth-signup-eyebrow">Multi Tour</span>
+              <h1 class="mth-signup-title">Crear Cuenta</h1>
+              <p class="mth-signup-subtitle">Unete a la plataforma y crea tu acceso para comenzar.</p>
+            </div>
+
+            <form class="mth-signup-form" data-form="signup" novalidate>
+              <div class="mth-signup-section">
+                <p class="mth-signup-section-title">Datos personales</p>
+                <div class="mth-signup-grid-2">
+                  <div class="mth-signup-field">
+                    <label for="signup-first-name">Nombre</label>
+                    <input
+                      class="mth-signup-input"
+                      id="signup-first-name"
+                      name="first_name"
+                      type="text"
+                      autocomplete="given-name"
+                      placeholder="Ej. Juan"
+                    />
+                  </div>
+
+                  <div class="mth-signup-field">
+                    <label for="signup-last-name">Apellido</label>
+                    <input
+                      class="mth-signup-input"
+                      id="signup-last-name"
+                      name="last_name"
+                      type="text"
+                      autocomplete="family-name"
+                      placeholder="Ej. Perez"
+                    />
+                  </div>
+
+                  <div class="mth-signup-field mth-signup-wide">
+                    <label for="signup-email">Correo Electronico</label>
+                    <input
+                      class="mth-signup-input"
+                      id="signup-email"
+                      name="email"
+                      type="email"
+                      autocomplete="email"
+                      placeholder="correo@ejemplo.com"
+                    />
+                  </div>
+
+                  <div class="mth-signup-field mth-signup-wide">
+                    <label for="signup-phone">Numero de telefono <span class="mth-signup-optional">(Opcional)</span></label>
+                    <input
+                      class="mth-signup-input"
+                      id="signup-phone"
+                      name="phone"
+                      type="tel"
+                      autocomplete="tel"
+                      placeholder="300 000 0000"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div class="travel-login-field">
-                <label for="signup-last-name">Apellido</label>
-                <input
-                  id="signup-last-name"
-                  name="last_name"
-                  type="text"
-                  autocomplete="family-name"
-                  placeholder="Ej. Perez"
-                />
+              <div class="mth-signup-section">
+                <p class="mth-signup-section-title">Seguridad</p>
+                <div class="mth-signup-grid-2">
+                  <div class="mth-signup-field">
+                    <label for="signup-password">Contrasena</label>
+                    <div class="mth-signup-password-wrap">
+                      <input
+                        class="mth-signup-input"
+                        id="signup-password"
+                        name="password"
+                        type="password"
+                        autocomplete="new-password"
+                        placeholder="..........."
+                      />
+                      <button class="mth-signup-visibility" type="button" data-toggle="#signup-password">Ver</button>
+                    </div>
+                  </div>
+
+                  <div class="mth-signup-field">
+                    <label for="signup-confirm">Confirmar Contrasena</label>
+                    <div class="mth-signup-password-wrap">
+                      <input
+                        class="mth-signup-input"
+                        id="signup-confirm"
+                        name="confirm_password"
+                        type="password"
+                        autocomplete="new-password"
+                        placeholder="..........."
+                      />
+                      <button class="mth-signup-visibility" type="button" data-toggle="#signup-confirm">Ver</button>
+                    </div>
+                  </div>
+
+                  <div class="mth-signup-rules mth-signup-wide" aria-label="Requisitos de la contrasena">
+                    <p>La contrasena debe contener:</p>
+                    <ul><li>Minimo 8 caracteres</li><li>Al menos una letra mayuscula</li><li>Al menos una letra minuscula</li><li>Al menos un numero</li><li>Al menos un caracter especial</li></ul>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="travel-login-field">
-              <label for="signup-email">Correo Electronico</label>
-              <input
-                id="signup-email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="correo@ejemplo.com"
-              />
-            </div>
+              <p class="feedback" data-feedback="signup" aria-live="polite"></p>
 
-            <div class="travel-login-field">
-              <label for="signup-phone">Numero de telefono <span class="travel-field-optional">(Opcional)</span></label>
-              <input
-                id="signup-phone"
-                name="phone"
-                type="tel"
-                autocomplete="tel"
-                placeholder="300 000 0000"
-              />
-            </div>
+              <button class="mth-signup-submit" type="submit">
+                <span>Registrarse</span>
+              </button>
+            </form>
 
-            <div class="travel-login-field">
-              <label for="signup-password">Contrasena</label>
-              <div class="travel-login-password-wrap">
-                <input
-                  id="signup-password"
-                  name="password"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="..........."
-                />
-                <button class="travel-login-visibility" type="button" data-toggle="#signup-password">Ver</button>
-              </div>
-            </div>
-
-            <div class="travel-login-field">
-              <label for="signup-confirm">Confirmar Contrasena</label>
-              <div class="travel-login-password-wrap">
-                <input
-                  id="signup-confirm"
-                  name="confirm_password"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="..........."
-                />
-                <button class="travel-login-visibility" type="button" data-toggle="#signup-confirm">Ver</button>
-              </div>
-            </div>
-
-            <div class="password-policy" aria-label="Requisitos de la contrasena">
-              <p>La contrasena debe contener:</p>
-              <ul><li>Minimo 8 caracteres</li><li>Al menos una letra mayuscula</li><li>Al menos una letra minuscula</li><li>Al menos un numero</li><li>Al menos un caracter especial</li></ul>
-            </div>
-
-            <p class="feedback" data-feedback="signup" aria-live="polite"></p>
-
-            <button class="travel-login-submit" type="submit">
-              <span>Registrarse</span>
-            </button>
-          </form>
-
-          <div class="travel-login-divider"></div>
-
-          <p class="travel-login-footer-note">
-            Ya tienes una cuenta? <a href="login.html" data-route="login">Inicia sesion</a>
-          </p>
+            <p class="mth-signup-footer-note">
+              Ya tienes una cuenta? <a href="login.html" data-route="login">Inicia sesion</a>
+            </p>
+          </div>
         </div>
       </section>
     </main>

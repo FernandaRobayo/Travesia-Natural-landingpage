@@ -29,10 +29,6 @@
         <p class="travel-dashboard-copy">Consulta y actualiza tu información personal dentro del operador actual.</p>
 
         <article class="travel-profile-info-card">
-          <div class="travel-profile-info-head">
-            <h2>Datos de la cuenta</h2>
-          </div>
-
           <div class="travel-profile-info-grid">
             <aside class="travel-profile-identity">
               <div class="travel-profile-photo-wrap">
@@ -44,35 +40,35 @@
               <p data-profile-email>No registrado</p>
             </aside>
 
-            <div class="travel-profile-form-grid">
-              <label class="travel-profile-field-block">
-                <span>Nombre completo</span>
-                <input type="text" readonly data-profile-name-input />
-              </label>
+            <div class="mt-form-section">
+              <h2 class="mt-form-section-title mt-label">Datos de la cuenta</h2>
+              <div class="travel-profile-form-grid mt-form-grid-2">
+                <label class="travel-profile-field-block">
+                  <span>Nombre completo</span>
+                  <input type="text" readonly data-profile-name-input />
+                </label>
 
-              <label class="travel-profile-field-block">
-                <span>Correo electronico</span>
-                <input type="email" readonly data-profile-email-input />
-              </label>
+                <label class="travel-profile-field-block">
+                  <span>Correo electronico</span>
+                  <input type="email" readonly data-profile-email-input />
+                </label>
 
-              <label class="travel-profile-field-block">
-                <span>Rol</span>
-                <input type="text" readonly value="Cliente" />
-              </label>
+                <label class="travel-profile-field-block">
+                  <span>Rol</span>
+                  <input type="text" readonly value="Cliente" />
+                </label>
+              </div>
             </div>
-          </div>
-        </article>
 
-        <article class="travel-profile-info-card">
-          <div class="travel-profile-info-head">
-            <h2>Datos personales</h2>
-          </div>
-
-          <div class="travel-profile-form-grid">
-            <label class="travel-profile-field-block">
-              <span>Numero de telefono</span>
-              <input type="text" readonly data-profile-phone-input />
-            </label>
+            <div class="mt-form-section">
+              <h2 class="mt-form-section-title mt-label">Datos personales</h2>
+              <div class="travel-profile-form-grid mt-form-grid-2">
+                <label class="travel-profile-field-block">
+                  <span>Numero de telefono</span>
+                  <input type="text" readonly data-profile-phone-input />
+                </label>
+              </div>
+            </div>
           </div>
         </article>
 
@@ -81,30 +77,21 @@
             <h2>Resumen</h2>
           </div>
 
-          <div class="travel-profile-list-panel">
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">RA</div>
-              <div class="travel-profile-row-copy">
-                <strong data-profile-active-reservations>0</strong>
-                <span>Reservas activas</span>
-              </div>
-            </article>
+          <div class="mt-summary-row">
+            <div class="mt-summary-metric">
+              <strong class="mt-summary-metric-value" data-profile-active-reservations>0</strong>
+              <span class="mt-summary-metric-label">Reservas activas</span>
+            </div>
 
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">PP</div>
-              <div class="travel-profile-row-copy">
-                <strong data-profile-pending-payments>0</strong>
-                <span>Pagos pendientes</span>
-              </div>
-            </article>
+            <div class="mt-summary-metric">
+              <strong class="mt-summary-metric-value" data-profile-pending-payments>0</strong>
+              <span class="mt-summary-metric-label">Pagos pendientes</span>
+            </div>
 
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">UR</div>
-              <div class="travel-profile-row-copy">
-                <strong data-profile-last-reservation>No registrado</strong>
-                <span>Ultima reserva</span>
-              </div>
-            </article>
+            <div class="mt-summary-metric">
+              <strong class="mt-summary-metric-value" data-profile-last-reservation>No registrado</strong>
+              <span class="mt-summary-metric-label">Ultima reserva</span>
+            </div>
           </div>
         </section>
 

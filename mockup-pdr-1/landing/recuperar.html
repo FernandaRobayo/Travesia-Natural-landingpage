@@ -7,102 +7,52 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="recuperar.css?v=20260918-1" />
   </head>
   <body data-screen="recover" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
-    <main id="contenido" class="travel-login-shell">
-      <header class="travel-login-header travel-login-header-centered">
-        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
-      </header>
+    <main id="contenido" class="mth-recover-shell">
+      <aside class="mth-recover-visual">
+        <img
+          class="mth-recover-visual-img"
+          src="https://images.unsplash.com/photo-1759150954328-8b0b005ade84?auto=format&fit=crop&w=1200&q=80"
+          alt="Cordillera iluminada por la luz dorada del atardecer, vista desde un sendero de montaña"
+        />
+        <div class="mth-recover-visual-content">
+          <a class="mth-recover-visual-brand" href="index.html" data-route="home">Multi Tour</a>
+        </div>
+      </aside>
 
-      <section class="travel-login-stage">
-        <div class="travel-login-card travel-recover-card">
-          <div class="travel-login-copy travel-recover-copy">
-            <h1>Recuperar acceso</h1>
-            <p>
-              Verifica tu identidad para establecer una nueva contrasena.
-            </p>
+      <section class="mth-recover-panel">
+        <header class="mth-recover-header">
+          <a class="mth-recover-brand" href="index.html" data-route="home">Multi Tour</a>
+          <a class="mth-recover-back" href="index.html" data-route="home">Volver al inicio</a>
+        </header>
+
+        <div class="mth-recover-stage">
+          <div class="mth-recover-card">
+            <div class="mth-recover-copy">
+              <span class="mth-recover-eyebrow">Multi Tour</span>
+              <h1 class="mth-recover-title">Recuperar acceso</h1>
+              <p class="mth-recover-subtitle">La recuperacion de contrasena por autoservicio aun no esta disponible en esta version de Multi Tour.</p>
+            </div>
+
+            <p class="mth-recover-note" aria-live="polite">Por ahora no podemos enviar un codigo de verificacion ni procesar un cambio de contrasena desde aqui. Si perdiste el acceso a tu cuenta, vuelve a iniciar sesion con tus credenciales actuales o crea una cuenta nueva.</p>
+
+            <div class="mth-recover-actions">
+              <a class="mth-recover-submit" href="login.html" data-route="login">
+                <span>Volver al inicio de sesion</span>
+              </a>
+              <a class="mth-recover-secondary" href="crear-cuenta.html" data-route="crear-cuenta">
+                <span>Crear una cuenta</span>
+              </a>
+            </div>
           </div>
-
-          <form class="travel-login-form" data-form="recover" novalidate>
-            <div data-recover-step="identify">
-              <div class="travel-login-field">
-                <label for="recover-email">Correo Electronico</label>
-                <input
-                  id="recover-email"
-                  name="email"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="correo@ejemplo.com"
-                />
-              </div>
-            </div>
-
-            <div data-recover-step="reset" hidden>
-              <p class="travel-recover-status" data-recover-email-status></p>
-
-              <div class="travel-login-field">
-                <label for="recover-code">Codigo de verificacion</label>
-                <input
-                  id="recover-code"
-                  name="code"
-                  type="text"
-                  inputmode="numeric"
-                  autocomplete="one-time-code"
-                  maxlength="6"
-                  placeholder="000000"
-                />
-              </div>
-
-              <div class="travel-login-field">
-                <label for="recover-password">Nueva Contrasena</label>
-                <div class="travel-login-password-wrap">
-                  <input
-                    id="recover-password"
-                    name="password"
-                    type="password"
-                    autocomplete="new-password"
-                    placeholder="..........."
-                  />
-                  <button class="travel-login-visibility" type="button" data-toggle="#recover-password">Ver</button>
-                </div>
-              </div>
-
-              <div class="travel-login-field">
-                <label for="recover-confirm">Confirmar Contrasena</label>
-                <div class="travel-login-password-wrap">
-                  <input
-                    id="recover-confirm"
-                    name="confirm_password"
-                    type="password"
-                    autocomplete="new-password"
-                    placeholder="..........."
-                  />
-                  <button class="travel-login-visibility" type="button" data-toggle="#recover-confirm">Ver</button>
-                </div>
-              </div>
-
-              <div class="password-policy" aria-label="Requisitos de la contrasena">
-                <p>La contrasena debe contener:</p>
-                <ul><li>Minimo 8 caracteres</li><li>Al menos una letra mayuscula</li><li>Al menos una letra minuscula</li><li>Al menos un numero</li><li>Al menos un caracter especial</li></ul>
-              </div>
-            </div>
-
-            <p class="feedback" data-feedback="recover" aria-live="polite"></p>
-
-            <button class="travel-login-submit" type="submit" data-recover-submit>
-              <span>Solicitar recuperacion</span>
-            </button>
-          </form>
-
-          <p class="travel-recover-back">
-            <a href="login.html" data-route="login">Volver al Inicio de Sesion</a>
-          </p>
         </div>
       </section>
     </main>

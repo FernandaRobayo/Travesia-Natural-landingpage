@@ -1,0 +1,166 @@
+/* Sistema visual "Modern Editorial Tourism" — misma familia de Home, Login y
+   Crear cuenta. Vive en un archivo aparte de main.css (compartido por el
+   resto de paginas del mockup) para no alterar ninguna otra pantalla. Solo
+   recuperar.html carga este archivo. Mismos valores que Portal
+   (recover.component.css) para mantener Portal <-> Landing consistentes.
+
+   Flujo real: esta pantalla NO tiene formulario (no hay backend de
+   recuperacion; el handler viejo de app.js para "[data-form=recover]" quedo
+   huerfano porque este HTML ya no tiene ese form — no se toca app.js aqui,
+   es codigo muerto inofensivo, no funcionalidad activa). Es un aviso + dos
+   acciones de salida. Contenido mas corto que Login, asi que se reutiliza la
+   MISMA composicion de Login (42/58, contenido centrado verticalmente) en
+   vez de la de Crear cuenta: no hace falta sticky, todo cabe en un viewport.
+
+   CTA hover: el hover oscurecido de Login/Signup (#d9694f sobre Ink) da
+   ~4.35:1, por debajo de AA (hallazgo de la auditoria de Crear cuenta). Aqui
+   se usa un hover ACLARADO (#eb836a) en vez de oscurecido: sube el contraste
+   a ~5.7:1 en vez de bajarlo, sin tocar el hover ya aprobado de Login/Signup. */
+
+body[data-screen="recover"] {
+  --mt-ink: #102A32;
+  --mt-teal: #147D73;
+  --mt-coral: #E9785D;
+  --mt-coral-hover: #eb836a;
+  --mt-sand: #EFE8DE;
+  --mt-warm-white: #FAF9F6;
+  --mt-slate: #627177;
+  --mt-line: #E5E0D8;
+  --mt-surface: #FFFFFF;
+  --mt-error: #9E3B2B;
+  background: var(--mt-warm-white);
+}
+
+.mth-recover-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(380px, 1fr);
+  min-height: 100vh;
+  background: var(--mt-warm-white);
+  font-family: "Manrope", sans-serif;
+}
+
+/* ===== Motion: mismo lenguaje del resto del sistema. ===== */
+@keyframes mthFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes mthScaleIn {
+  from { opacity: 0; transform: scale(1.015); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mth-recover-eyebrow, .mth-recover-title, .mth-recover-subtitle, .mth-recover-note,
+  .mth-recover-actions, .mth-recover-visual-img, .mth-recover-visual-content {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .mth-recover-back, .mth-recover-submit, .mth-recover-secondary {
+    transition: none !important;
+  }
+}
+
+/* ===== Panel visual: fotografia limpia, sin sticky. ===== */
+.mth-recover-visual { position: relative; overflow: hidden; min-height: 260px; display: flex; align-items: flex-end; }
+.mth-recover-visual-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
+  animation: mthScaleIn 640ms cubic-bezier(.16, 1, .3, 1) both;
+}
+.mth-recover-visual-content {
+  position: relative; z-index: 1; display: grid; gap: 10px; max-width: 340px; padding: 40px 40px 64px; color: #fff;
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 160ms both;
+}
+.mth-recover-visual-brand { color: #fff; font-family: "Fraunces", serif; font-size: 1.05rem; font-weight: 600; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45); }
+
+/* ===== Panel de contenido ===== */
+.mth-recover-panel { display: flex; flex-direction: column; min-width: 0; padding: 20px clamp(24px, 4vw, 56px) 40px; }
+.mth-recover-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; max-width: 520px; margin: 0 auto; }
+.mth-recover-brand { font-family: "Fraunces", serif; font-size: 1.05rem; font-weight: 600; color: var(--mt-ink); }
+.mth-recover-back { position: relative; font-family: "Manrope", sans-serif; font-size: 0.8rem; font-weight: 600; color: var(--mt-slate); }
+.mth-recover-back::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px;
+  background: var(--mt-teal); transform: scaleX(0); transform-origin: left;
+  transition: transform 220ms cubic-bezier(.16, 1, .3, 1);
+}
+.mth-recover-back:hover { color: var(--mt-teal); }
+.mth-recover-back:hover::after { transform: scaleX(1); }
+
+.mth-recover-stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 20px 0 8px; }
+.mth-recover-card { width: 100%; max-width: 520px; margin: -20px auto 0; }
+
+@media (min-width: 1181px) {
+  .mth-recover-panel { padding-left: clamp(56px, 7vw, 120px); }
+}
+
+.mth-recover-copy { margin-bottom: 18px; }
+.mth-recover-eyebrow {
+  display: inline-block; font-family: "Manrope", sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--mt-teal); margin-bottom: 8px;
+  animation: mthFadeUp 420ms cubic-bezier(.16, 1, .3, 1) both;
+}
+.mth-recover-title {
+  margin: 0 0 8px; font-family: "Fraunces", serif; font-weight: 500; font-size: clamp(1.7rem, 1.35rem + 1.15vw, 2.6rem);
+  line-height: 1.08; color: var(--mt-ink);
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 60ms both;
+}
+.mth-recover-subtitle {
+  margin: 0; font-family: "Manrope", sans-serif; font-size: 0.9rem; line-height: 1.5; color: var(--mt-slate);
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 110ms both;
+}
+
+.mth-recover-note {
+  margin: 18px 0 0; padding-top: 18px; border-top: 1px solid var(--mt-line);
+  font-family: "Manrope", sans-serif; font-size: 0.88rem; line-height: 1.6; color: var(--mt-slate);
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 160ms both;
+}
+
+.mth-recover-actions { display: grid; gap: 12px; margin-top: 22px; animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 210ms both; }
+
+.mth-recover-submit {
+  display: flex; align-items: center; justify-content: center;
+  height: 48px; border: 1px solid var(--mt-coral); border-radius: 6px;
+  background: var(--mt-coral); color: var(--mt-ink);
+  font-family: "Manrope", sans-serif; font-size: 0.92rem; font-weight: 700;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+.mth-recover-submit:hover { background: var(--mt-coral-hover); border-color: var(--mt-coral-hover); }
+.mth-recover-submit:focus-visible { outline: 2px solid var(--mt-teal); outline-offset: 2px; }
+.mth-recover-submit span::after {
+  content: "→"; display: inline-block; margin-left: 8px;
+  transition: transform 220ms cubic-bezier(.16, 1, .3, 1);
+}
+.mth-recover-submit:hover span::after { transform: translateX(3px); }
+
+.mth-recover-secondary {
+  display: flex; align-items: center; justify-content: center;
+  height: 48px; border: 1px solid var(--mt-line); border-radius: 6px;
+  background: transparent; color: var(--mt-ink);
+  font-family: "Manrope", sans-serif; font-size: 0.92rem; font-weight: 700;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+.mth-recover-secondary:hover { background: var(--mt-sand); border-color: var(--mt-slate); }
+.mth-recover-secondary:focus-visible { outline: 2px solid var(--mt-teal); outline-offset: 2px; }
+
+@media (max-width: 1180px) {
+  .mth-recover-shell { grid-template-columns: minmax(0, 0.85fr) minmax(340px, 1fr); }
+}
+
+@media (max-width: 860px) {
+  /* min-height:100vh se mantiene (main.css ya fuerza min-height:100vh en
+     <body> globalmente para todo el mockup; quitarlo aqui solo dejaba ver
+     el fondo gris del body detras, en vez del warm-white del shell — peor
+     que el problema original). En su lugar, el contenido (corto, a
+     diferencia de Login/Crear cuenta) se centra como bloque dentro de esos
+     100vh en vez de apilarse arriba con un vacio muerto debajo. */
+  .mth-recover-shell { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+  .mth-recover-panel { order: 1; padding: 20px 16px 32px; }
+  .mth-recover-visual { order: 2; min-height: 200px; }
+  .mth-recover-visual-content { padding: 24px 20px; max-width: none; }
+  .mth-recover-stage { padding-top: 16px; }
+  .mth-recover-card { margin-top: 0; }
+}
+
+@media (max-width: 420px) {
+  .mth-recover-visual { min-height: 160px; }
+}

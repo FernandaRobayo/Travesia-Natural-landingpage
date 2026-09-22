@@ -1,30 +1,250 @@
 :root {
   color-scheme: light;
-  --page-bg: linear-gradient(180deg, #f7f4ee 0%, #f1ede5 100%);
-  --surface: rgba(255, 255, 255, 0.9);
+  /* ===== Sistema visual Multi Tour v2 — travel editorial + plataforma profesional =====
+     Paleta base: natural (verde) como color interactivo primario, ambar reservado
+     estrictamente para la UNICA cta principal por pantalla. Fondo mas frio (menos
+     crema), bordes/tipografia recalibrados para contraste AA. */
+  --page-bg: #f5f7f7;
+  --surface: #ffffff;
   --surface-strong: #ffffff;
-  --surface-muted: rgba(244, 247, 244, 0.96);
-  --line: rgba(31, 47, 59, 0.12);
-  --line-strong: rgba(31, 47, 59, 0.22);
-  --text: #1d2c38;
-  --text-soft: #62707d;
-  --accent: #1e6f69;
-  --accent-strong: #184f4d;
-  --accent-soft: rgba(30, 111, 105, 0.1);
-  --shadow: 0 26px 56px rgba(24, 36, 46, 0.07);
-  --radius-shell: 30px;
-  --radius-panel: 24px;
-  --radius-card: 22px;
+  --surface-muted: #eef2f1;
+  --line: #d7e0de;
+  --line-strong: #c3d0cc;
+  --text: #17252b;
+  /* #5a6b70 sobre #f5f7f7 da ~4.34:1 (falla AA para texto normal). #5a6b70 da ~5.2:1. */
+  --text-soft: #5a6b70;
+  --accent: #2f6b57;
+  /* Verde natural mas oscuro: texto sobre blanco / hover / enfasis alto (AA). */
+  --accent-strong: #1f4d3d;
+  --accent-soft: rgba(47, 107, 87, 0.1);
+  /* Ambar: reservado para la UNICA cta principal por pantalla. */
+  --cta: #e9a23b;
+  --cta-strong: #c07f22;
+  --cta-soft: rgba(233, 162, 59, 0.16);
+  --support-green: #2f6b57;
+  --support-green-soft: rgba(47, 107, 87, 0.12);
+  /* Estados semanticos (normalizados desde is-confirmed/is-pending/is-execution/feedback.is-error
+     ya usados en operator/platform/travel-*; nunca se comunican solo por color). */
+  --success: #17685f;
+  --success-soft: #ddf0e7;
+  --warning: #a4621e;
+  --warning-soft: #fff1dc;
+  --error: #b34a4a;
+  --error-soft: #fbe9e9;
+  --info: #2d6480;
+  --info-soft: #e3eef5;
+  --shadow: 0 12px 28px rgba(23, 37, 43, 0.07);
+  --shadow-soft: 0 6px 16px rgba(23, 37, 43, 0.05);
+  --radius-shell: 20px;
+  --radius-panel: 16px;
+  --radius-card: 14px;
+  --radius-control: 10px;
   --radius-pill: 999px;
   --max-width: 1240px;
+  --focus-ring: 0 0 0 3px rgba(31, 77, 61, 0.35);
+
+  /* Escala tipografica: Display / H1 / H2 / H3 / Body / Label / Small / Caption. */
+  --fs-display: clamp(2.6rem, 2rem + 2.4vw, 4.4rem);
+  --fs-h1: clamp(2.1rem, 1.7rem + 1.6vw, 3.2rem);
+  --fs-h2: clamp(1.6rem, 1.4rem + 0.8vw, 2.1rem);
+  --fs-h3: clamp(1.2rem, 1.1rem + 0.4vw, 1.4rem);
+  --fs-body: 1rem;
+  --fs-label: 0.86rem;
+  --fs-small: 0.82rem;
+  --fs-caption: 0.72rem;
+
+  /* Escala de espaciado (ritmo vertical consistente). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
 }
 
 body[data-theme="travesia-natural"] {
-  --page-bg: linear-gradient(180deg, #f7f4ee 0%, #f1ede5 100%);
-  --accent: #146b5d;
-  --accent-strong: #0f564b;
-  --accent-soft: rgba(20, 107, 93, 0.12);
+  --page-bg: #f5f7f7;
+  --accent: #2f6b57;
+  --accent-strong: #1a3f32;
+  --accent-soft: rgba(47, 107, 87, 0.12);
 }
+
+/* ===== Chrome full-bleed de Home: reemplaza el patron de "shell" flotante boxed
+   (una tarjeta blanca centrada con sombra) que usan las demas pantallas, por una
+   silueta de landing editorial real: nav fija de ancho completo, hero a sangre,
+   franjas de seccion de ancho completo con contenedor interno, pie de ancho completo.
+   Distinto incluso en escala de grises (no depende de un tono de color especifico). ===== */
+/* Contenedor base: header, hero, secciones y pie comparten este mismo ancho/centrado
+   (fuente de la alineacion consistente entre ellos). */
+.mt-container { width: min(100% - 48px, 1320px); margin-inline: auto; }
+
+.mt-site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  width: 100%;
+  min-height: 72px;
+  padding-block: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+/* Fila interna del header con el MISMO ancho/centrado que .mt-container, para que
+   la marca quede exactamente alineada con el hero y las secciones de abajo (antes
+   el header usaba su propio padding en vw y no coincidia). */
+.mt-site-header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.mt-site-header-brand { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+.mt-site-header-brand span { color: var(--cta); }
+.mt-site-header-nav { display: flex; align-items: center; gap: var(--space-5); }
+.mt-site-header-nav a { color: var(--text-soft); font-weight: 700; font-size: 0.94rem; }
+.mt-site-header-nav a:hover { color: var(--accent-strong); }
+.mt-site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+/* Hero contenido: vive dentro de un .mt-container (ver HTML), con radio, padding
+   interno real y separacion de la barra de navegacion. Ya no es una foto a sangre
+   con texto pegado al borde. */
+/* Hero de Home v3: split asimetrico (copy | foto), reutiliza .mt-split (misma
+   pieza que ya usan client-profile/client-gastronomy-detail) en vez de una foto
+   a sangre con texto superpuesto. El texto nunca queda encima de la fotografia:
+   vive en su propia columna sobre fondo plano. */
+.mt-home-hero { margin-top: var(--space-7); margin-bottom: var(--space-2); }
+.mt-home-hero .mt-split-copy { max-width: 46ch; }
+.mt-home-hero h1 { text-wrap: balance; }
+.mt-home-hero .mt-split-media { min-height: clamp(340px, 42vw, 520px); }
+.mt-hero-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-2); }
+@media (max-width: 720px) {
+  .mt-home-hero { margin-top: var(--space-5); }
+  .mt-home-hero .mt-split-media { min-height: 280px; }
+}
+
+.mt-band { padding-block: var(--space-8); }
+.mt-band--tint { background: var(--surface-muted); }
+
+/* Layout de beneficios v3: encabezado a la izquierda + lista con divisores a la
+   derecha (reutiliza .mt-divider-list, la misma pieza del dashboard/pagos), en
+   vez de 3 tarjetas iguales sin jerarquia. */
+.mt-benefits-layout { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: var(--space-7); align-items: start; }
+.mt-benefits-heading { display: grid; gap: var(--space-3); position: sticky; top: 96px; }
+@media (max-width: 860px) {
+  .mt-benefits-layout { grid-template-columns: 1fr; gap: var(--space-5); }
+  .mt-benefits-heading { position: static; }
+}
+
+/* Bloque empresarial v3: panel oscuro contenido (no franja a sangre) con copy +
+   chips de capacidades a la izquierda y un panel de accion diferenciado a la
+   derecha, para separar claramente "contenido de viajero" de "acceso operador". */
+.mt-business-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: center;
+  padding: clamp(28px, 4vw, 56px);
+  border-radius: var(--radius-shell);
+  background: linear-gradient(190deg, #16302a 0%, #0c1a16 100%);
+  color: #d7e5df;
+}
+.mt-business-copy { display: grid; gap: var(--space-3); }
+.mt-business-copy .mt-h2 { color: #ffffff; }
+.mt-business-copy .mt-body { color: #b7c7c1; }
+.mt-business-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.mt-business-tags li { padding: 4px 12px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); font-size: 0.78rem; font-weight: 700; }
+.mt-business-action {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border-radius: var(--radius-panel);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  text-align: center;
+}
+.mt-business-action .mt-btn { width: 100%; }
+.mt-business-action .mt-small { color: #9fb3ac; }
+/* El anillo de foco por defecto (--accent-strong, verde oscuro) casi no se ve sobre
+   este fondo tambien oscuro; aqui el foco pasa a blanco para mantener contraste AA. */
+.mt-business-panel :where(a, button):focus-visible { outline-color: #ffffff; }
+@media (max-width: 860px) {
+  .mt-business-panel { grid-template-columns: 1fr; }
+}
+
+/* El pie usa el mismo .mt-container que el resto de la pagina (mismo margen/ancho
+   maximo), en vez de columnas repartidas en todo el ancho del viewport. */
+.mt-site-footer { background: #0c1a16; color: #9fb3ac; padding-block: var(--space-7) var(--space-5); }
+.mt-site-footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--space-6); max-width: 760px; padding-bottom: var(--space-6); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.mt-site-footer-brand { display: block; margin-bottom: var(--space-2); color: #ffffff; font-family: "Bricolage Grotesque", sans-serif; font-size: 1.2rem; font-weight: 800; }
+.mt-site-footer-brand span { color: var(--cta); }
+.mt-site-footer-col { display: grid; gap: var(--space-2); align-content: start; }
+.mt-site-footer-col strong { color: #ffffff; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.mt-site-footer-col a { color: #9fb3ac; font-size: 0.92rem; }
+.mt-site-footer-col a:hover { color: #ffffff; }
+.mt-site-footer-bottom { padding-top: var(--space-4); font-size: 0.82rem; color: #718a82; }
+
+@media (max-width: 720px) {
+  .mt-site-header { padding-block: 12px; }
+  .mt-site-header-nav { order: 3; width: 100%; justify-content: center; gap: var(--space-4); padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--line); }
+  .mt-site-footer-grid { grid-template-columns: 1fr; gap: var(--space-5); }
+}
+
+/* Footer de Home v3: el pie compartido (.mt-site-footer-grid) limita su ancho a
+   760px, lo que en Home deja un vacio grande a la derecha porque el resto de la
+   pagina usa el ancho completo de .mt-container. Este modificador (solo Home,
+   otras pantallas conservan el pie sin cambios) hace que el pie ocupe el mismo
+   ancho/alineacion que el resto de la pagina. */
+.mt-site-footer--home .mt-site-footer-grid { max-width: none; grid-template-columns: 1.6fr 1fr 1fr; }
+@media (max-width: 720px) {
+  .mt-site-footer--home .mt-site-footer-grid { grid-template-columns: 1fr; }
+}
+
+/* Tipografia editorial: escala consistente reutilizable en composiciones nuevas. */
+.mt-display { margin: 0; font-family: "Bricolage Grotesque", "Manrope", sans-serif; font-size: var(--fs-display); font-weight: 700; line-height: 0.98; letter-spacing: -0.03em; color: var(--text); }
+.mt-h1 { margin: 0; font-family: "Bricolage Grotesque", "Manrope", sans-serif; font-size: var(--fs-h1); font-weight: 700; line-height: 1.04; letter-spacing: -0.025em; color: var(--text); }
+.mt-h2 { margin: 0; font-family: "Bricolage Grotesque", "Manrope", sans-serif; font-size: var(--fs-h2); font-weight: 700; line-height: 1.12; letter-spacing: -0.02em; color: var(--text); }
+.mt-h3 { margin: 0; font-size: var(--fs-h3); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); }
+.mt-body { margin: 0; font-size: var(--fs-body); font-weight: 400; line-height: 1.65; color: var(--text-soft); }
+.mt-label { margin: 0; font-size: var(--fs-label); font-weight: 700; color: var(--text); }
+.mt-small { margin: 0; font-size: var(--fs-small); font-weight: 600; color: var(--text-soft); }
+.mt-caption { margin: 0; font-size: var(--fs-caption); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-strong); }
+
+/* Sistema de botones refinado (reemplaza el tratamiento "pildora/solido pesado" anterior). */
+.mt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+.mt-btn:active { transform: translateY(1px); }
+.mt-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.mt-btn-primary { border-color: var(--cta); background: var(--cta); color: #201406; }
+.mt-btn-primary:hover { background: var(--cta-strong); border-color: var(--cta-strong); }
+.mt-btn-secondary { border-color: var(--line-strong); background: var(--surface-strong); color: var(--text); }
+.mt-btn-secondary:hover { border-color: var(--accent); color: var(--accent-strong); }
+.mt-btn-ghost { border-color: transparent; background: transparent; padding: 0 4px; min-height: 36px; color: var(--accent-strong); font-weight: 700; }
+.mt-btn-ghost:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+/* Variante con borde sutil: para un ghost que necesita leerse como accion incluso
+   en reposo (ej. junto a texto no interactivo, sin nada mas que lo diferencie). */
+.mt-btn-ghost--outlined { padding: 0 14px; border-color: var(--line-strong); }
+.mt-btn-ghost--outlined:hover { border-color: var(--accent); }
+.mt-btn-danger { border-color: #c8503f; background: #fdf3f1; color: #8a2f22; }
+.mt-btn-danger:hover { background: #c8503f; color: #ffffff; }
+.mt-btn-table { min-height: 32px; padding: 0 10px; border-radius: 8px; font-size: 0.82rem; }
 
 *,
 *::before,
@@ -57,6 +277,15 @@ input {
 button {
   border: 0;
   cursor: pointer;
+}
+
+/* Foco visible global: capa base de baja especificidad (no pisa los focus
+   rings especificos por componente, se suma a ellos) para que TODO elemento
+   interactivo tenga :focus-visible perceptible incluso donde falte uno propio. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .skip-link {
@@ -821,341 +1050,6 @@ button {
   font-size: 0.94rem;
 }
 
-.client-home-shell-corporate {
-  background: #fffefb;
-  border-color: #d7dcda;
-  box-shadow: 0 22px 44px rgba(28, 35, 38, 0.05);
-  font-family: "Manrope", sans-serif;
-}
-
-.corporate-topbar {
-  gap: 24px;
-}
-
-.corporate-brand {
-  color: #243238;
-  font-family: "Manrope", sans-serif;
-  font-size: 2.1rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-}
-
-.corporate-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  flex: 1;
-}
-
-.corporate-nav a,
-.corporate-footer nav a {
-  color: #243238;
-  font-size: 0.96rem;
-  font-weight: 600;
-}
-
-.corporate-entry {
-  min-height: 46px;
-  padding: 0 22px;
-  border: 1px solid #0f766e;
-  border-radius: 12px;
-  background: #0f766e;
-  color: #ffffff;
-  box-shadow: none;
-}
-
-.corporate-entry:hover {
-  background: #0d675f;
-}
-
-.corporate-hero {
-  grid-template-columns: minmax(0, 0.96fr) minmax(360px, 0.9fr);
-  gap: 42px;
-  padding: 38px 0 34px;
-}
-
-.corporate-copy {
-  gap: 22px;
-  padding-top: 6px;
-}
-
-.corporate-eyebrow {
-  color: #0f766e;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.corporate-title {
-  max-width: 11ch;
-  color: #243238;
-  font-family: "Manrope", sans-serif;
-  font-size: clamp(3rem, 2.45rem + 2vw, 4.3rem);
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 1.02;
-}
-
-.corporate-description {
-  max-width: 34rem;
-  color: #5f6b70;
-  font-size: 1.05rem;
-  line-height: 1.75;
-}
-
-.corporate-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.corporate-primary-cta,
-.corporate-secondary-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 50px;
-  padding: 0 22px;
-  border-radius: 12px;
-  font-weight: 700;
-}
-
-.corporate-primary-cta {
-  background: #0f766e;
-  color: #ffffff;
-}
-
-.corporate-secondary-cta {
-  border: 1px solid #d7dcda;
-  background: #fffefb;
-  color: #243238;
-}
-
-.corporate-visual-frame {
-  min-height: 480px;
-  padding: 20px;
-  border-color: #d7dcda;
-  background: #f6f4ef;
-  box-shadow: none;
-}
-
-.corporate-mockup-shell {
-  display: grid;
-  gap: 14px;
-  height: 100%;
-  padding: 18px;
-  border: 1px solid #d7dcda;
-  border-radius: 18px;
-  background: #fffefb;
-}
-
-.corporate-mockup-topbar {
-  display: flex;
-  gap: 8px;
-}
-
-.corporate-mockup-topbar span {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: #d7dcda;
-}
-
-.corporate-mockup-body {
-  display: grid;
-  grid-template-columns: 84px minmax(0, 1fr);
-  gap: 14px;
-  flex: 1;
-  min-height: 0;
-}
-
-.corporate-mockup-sidebar {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-  padding: 14px 10px;
-  border: 1px solid #d7dcda;
-  border-radius: 14px;
-  background: #f6f4ef;
-}
-
-.corporate-mockup-nav-item,
-.corporate-mockup-table-row,
-.corporate-mockup-table-head,
-.corporate-mockup-panel {
-  border-radius: 10px;
-  background: #dfe5e3;
-}
-
-.corporate-mockup-nav-item {
-  height: 12px;
-}
-
-.corporate-mockup-nav-item.active {
-  background: #0f766e;
-}
-
-.corporate-mockup-nav-item.short {
-  width: 70%;
-}
-
-.corporate-mockup-main {
-  display: grid;
-  gap: 14px;
-}
-
-.corporate-mockup-panel.large {
-  min-height: 112px;
-  background: #243238;
-}
-
-.corporate-mockup-card-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.corporate-mockup-panel.card {
-  min-height: 90px;
-  background: #eef1ef;
-  border: 1px solid #d7dcda;
-}
-
-.corporate-mockup-panel.card.accent {
-  background: rgba(15, 118, 110, 0.16);
-  border-color: rgba(15, 118, 110, 0.22);
-}
-
-.corporate-mockup-table {
-  display: grid;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid #d7dcda;
-  border-radius: 14px;
-  background: #fffefb;
-}
-
-.corporate-mockup-table-head {
-  height: 14px;
-  width: 42%;
-  background: #52606d;
-}
-
-.corporate-mockup-table-row {
-  height: 18px;
-  background: #edf0ef;
-}
-
-.corporate-mockup-table-row.short {
-  width: 78%;
-}
-
-.corporate-operators-strip {
-  display: grid;
-  gap: 10px;
-  padding: 28px 0 14px;
-  border-top: 1px solid #d7dcda;
-}
-
-.corporate-operators-strip span {
-  color: #243238;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.corporate-operators-strip p,
-.corporate-section-head p,
-.corporate-capability-card p {
-  color: #5f6b70;
-  line-height: 1.7;
-}
-
-.corporate-capabilities {
-  display: grid;
-  gap: 22px;
-  padding: 14px 0 6px;
-}
-
-.corporate-section-head {
-  display: grid;
-  gap: 10px;
-  max-width: 740px;
-}
-
-.corporate-section-head h2 {
-  margin: 0;
-  color: #1c2326;
-  font-family: "Manrope", sans-serif;
-  font-size: clamp(2rem, 1.5rem + 1.4vw, 2.8rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-}
-
-.corporate-capability-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.corporate-capability-card {
-  display: grid;
-  gap: 14px;
-  padding: 22px;
-  border: 1px solid #d7dcda;
-  border-radius: 16px;
-  background: #fffefb;
-  box-shadow: none;
-}
-
-.corporate-capability-card strong {
-  color: #1c2326;
-  font-size: 1.12rem;
-  font-weight: 700;
-}
-
-.corporate-capability-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(15, 118, 110, 0.22);
-  border-radius: 12px;
-  background: rgba(15, 118, 110, 0.06);
-}
-
-.corporate-capability-icon span {
-  width: 18px;
-  height: 18px;
-  border: 2px solid #0f766e;
-  border-radius: 6px;
-}
-
-.corporate-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding-top: 26px;
-  margin-top: 8px;
-  border-top: 1px solid #d7dcda;
-}
-
-.corporate-footer strong {
-  color: #243238;
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-
-.corporate-footer nav {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-
 @media (max-width: 1024px) {
   .client-home-hero,
   .login-shell {
@@ -1322,7 +1216,7 @@ button {
   padding: 0 0 28px;
   border: 0;
   border-radius: 0;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: none;
   font-family: "Manrope", sans-serif;
 }
@@ -1336,7 +1230,7 @@ button {
 }
 
 .travel-home-brand {
-  color: #243238;
+  color: #17252b;
   font-size: 1.75rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -1348,10 +1242,10 @@ button {
   justify-content: center;
   min-height: 34px;
   padding: 0 14px;
-  border: 1px solid #d7dcda;
+  border: 1px solid #d7e0de;
   border-radius: 10px;
-  background: #fffefb;
-  color: #243238;
+  background: #ffffff;
+  color: #17252b;
   font-size: 0.88rem;
   font-weight: 600;
 }
@@ -1431,9 +1325,16 @@ button {
   padding: 0 22px;
   margin-top: 8px;
   border-radius: 10px;
-  background: #0f8b86;
-  color: #ffffff;
+  background: var(--cta);
+  /* Blanco sobre --cta da ~2.2:1 (falla AA); texto oscuro da >7:1. */
+  color: var(--text);
   font-weight: 800;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.travel-home-primary-cta:hover {
+  background: var(--cta-strong);
+  transform: translateY(-1px);
 }
 
 .travel-home-section {
@@ -1453,7 +1354,7 @@ button {
 
 .travel-home-section-head h2 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: clamp(2.1rem, 1.7rem + 0.8vw, 3rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -1467,10 +1368,12 @@ button {
 }
 
 .travel-destination-card {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  border: 1px solid #d7dcda;
+  border: 1px solid #d7e0de;
   border-radius: 14px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 4px 10px rgba(28, 35, 38, 0.04);
 }
 
@@ -1512,7 +1415,7 @@ button {
 }
 
 .travel-destination-body strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.28rem;
   font-weight: 800;
   line-height: 1.25;
@@ -1520,7 +1423,7 @@ button {
 
 .travel-destination-body span,
 .travel-destination-meta small {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.86rem;
 }
 
@@ -1532,7 +1435,7 @@ button {
 }
 
 .travel-destination-meta em {
-  color: #0f8b86;
+  color: #1f4d3d;
   font-style: normal;
   font-weight: 800;
 }
@@ -1556,7 +1459,7 @@ button {
   padding: 16px 18px;
   border: 1px solid #e5e1d8;
   border-radius: 14px;
-  background: #fffefb;
+  background: #ffffff;
 }
 
 .travel-benefit-icon {
@@ -1572,13 +1475,13 @@ button {
 .travel-benefit-card strong {
   display: block;
   margin-bottom: 4px;
-  color: #243238;
+  color: #17252b;
   font-size: 1.02rem;
 }
 
 .travel-benefit-card p {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   line-height: 1.6;
 }
 
@@ -1637,6 +1540,205 @@ button {
   }
 }
 
+/* ==========================================================================
+   Auth split shell: composicion en dos areas para Login (Cliente/Equipo) y
+   Admin Login. Reemplaza el patron de card centrada solo en estas pantallas;
+   Recuperar/Crear cuenta siguen usando .travel-login-shell (card centrada)
+   y comparten tokens, inputs y botones con este shell.
+   ========================================================================== */
+.travel-auth-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  min-height: 100vh;
+  background: var(--surface-strong);
+  font-family: "Manrope", sans-serif;
+}
+
+.travel-auth-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  min-height: 260px;
+  padding: 40px;
+  color: #f4f8f7;
+}
+
+.travel-auth-visual-media {
+  position: absolute;
+  inset: 0;
+  background-image: url("https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1400&q=80");
+  background-size: cover;
+  background-position: center;
+}
+
+.travel-auth-visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(190deg, rgba(18, 60, 70, 0.35) 0%, rgba(9, 33, 40, 0.86) 100%);
+}
+
+.travel-auth-visual--sober .travel-auth-visual-media {
+  background-image: linear-gradient(160deg, #123c46 0%, #0e3540 55%, #0a2a32 100%);
+}
+
+.travel-auth-visual--sober .travel-auth-visual-overlay {
+  background: radial-gradient(circle at 18% 12%, rgba(217, 138, 43, 0.14), transparent 46%);
+}
+
+.travel-auth-visual-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 14px;
+  max-width: 420px;
+}
+
+.travel-auth-visual-brand {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.travel-auth-visual-kicker {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  padding: 6px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.travel-auth-visual-title {
+  margin: 0;
+  max-width: 22ch;
+  color: #ffffff;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2.05rem);
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+}
+
+.travel-login-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px clamp(24px, 4vw, 56px) 40px;
+}
+
+.travel-login-panel .travel-login-header {
+  justify-content: flex-start;
+  padding: 4px 0 0;
+}
+
+.travel-login-panel .travel-login-stage {
+  flex: 1;
+  align-items: center;
+  min-height: 0;
+  padding: 28px 0 8px;
+}
+
+.travel-login-panel .travel-login-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.travel-login-panel .travel-login-copy,
+.travel-login-panel .travel-login-footer-note,
+.travel-login-panel .travel-platform-entry,
+.travel-login-panel .travel-recover-back {
+  text-align: left;
+}
+
+.travel-login-panel .travel-login-copy {
+  margin-bottom: 22px;
+}
+
+/* Selector de rol dentro del equipo: mismo lenguaje visual que el selector
+   principal pero con menos peso (mas chico, en un bloque diferenciado). */
+.travel-login-subrole {
+  display: grid;
+  gap: 10px;
+  margin: -6px 0 22px;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+
+.travel-login-subrole-label {
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.travel-login-role-switch--sub {
+  margin-bottom: 0;
+}
+
+.travel-login-role-switch--sub .travel-login-role {
+  min-height: 36px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1180px) {
+  .travel-auth-shell {
+    grid-template-columns: minmax(0, 0.9fr) minmax(340px, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .travel-auth-shell {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .travel-auth-visual {
+    min-height: 200px;
+    padding: 22px 20px;
+  }
+
+  .travel-auth-visual-title {
+    display: none;
+  }
+
+  .travel-login-panel {
+    padding: 22px 20px 40px;
+  }
+
+  .travel-login-panel .travel-login-stage {
+    padding-top: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .travel-auth-visual {
+    min-height: 152px;
+    padding: 18px;
+  }
+
+  .travel-auth-visual-kicker {
+    font-size: 0.68rem;
+  }
+}
+
 .travel-login-shell {
   width: min(calc(100% - 32px), 1680px);
   min-height: calc(100vh - 24px);
@@ -1644,7 +1746,7 @@ button {
   padding: 18px 24px 36px;
   border: 0;
   border-radius: 0;
-  background: #fffefb;
+  background: var(--surface-strong);
   font-family: "Manrope", sans-serif;
 }
 
@@ -1660,7 +1762,7 @@ button {
 }
 
 .travel-login-brand {
-  color: #1c2326;
+  color: var(--text);
   font-size: 1.6rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -1677,10 +1779,10 @@ button {
 .travel-login-card {
   width: min(100%, 530px);
   padding: 38px 34px 28px;
-  border: 1px solid #d7dcda;
-  border-radius: 18px;
-  background: #fffefb;
-  box-shadow: 0 18px 40px rgba(28, 35, 38, 0.08);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-soft);
 }
 
 .travel-login-copy {
@@ -1692,15 +1794,15 @@ button {
 
 .travel-login-copy h1 {
   margin: 0;
-  color: #1c2326;
-  font-size: clamp(2.1rem, 1.8rem + 1vw, 2.85rem);
+  color: var(--text);
+  font-size: clamp(1.6rem, 1.4rem + 0.7vw, 2.05rem);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
 }
 
 .travel-login-copy p {
   margin: 0;
-  color: #5f6b70;
+  color: var(--text-soft);
   font-size: 1.02rem;
   line-height: 1.6;
 }
@@ -1708,24 +1810,32 @@ button {
 .travel-login-role-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 4px;
   margin-bottom: 26px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
 }
 
-
 .travel-login-role {
-  min-height: 48px;
-  border: 1px solid #d7dcda;
-  border-radius: 12px;
-  background: #fffefb;
-  color: #243238;
+  min-height: 42px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-soft);
   font-weight: 700;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.travel-login-role:hover {
+  color: var(--text);
 }
 
 .travel-login-role.is-active {
-  border-color: #0f766e;
-  background: rgba(15, 118, 110, 0.08);
-  color: #0f766e;
+  background: var(--surface-strong);
+  color: var(--accent-strong);
+  box-shadow: 0 1px 2px rgba(18, 60, 70, 0.14), 0 0 0 1px var(--line);
 }
 
 .travel-login-form {
@@ -1740,7 +1850,7 @@ button {
 
 .travel-login-field label,
 .travel-login-field-head {
-  color: #243238;
+  color: var(--text);
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -1756,16 +1866,17 @@ button {
   width: 100%;
   min-height: 52px;
   padding: 0 16px;
-  border: 1px solid #dfe3e1;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: #fffefb;
-  color: #243238;
+  background: var(--surface-strong);
+  color: var(--text);
   outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .travel-login-field input:focus {
-  border-color: rgba(15, 118, 110, 0.4);
-  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08);
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 4px rgba(18, 60, 70, 0.1);
 }
 
 .travel-login-password-wrap {
@@ -1785,14 +1896,14 @@ button {
   min-height: 28px;
   border-radius: 999px;
   background: transparent;
-  color: #52606d;
+  color: var(--text-soft);
   font-size: 0.82rem;
   font-weight: 700;
 }
 
 .travel-login-help,
 .travel-login-footer-note a {
-  color: #0f766e;
+  color: var(--accent-strong);
   font-weight: 600;
 }
 
@@ -1800,21 +1911,27 @@ button {
   min-height: 56px;
   margin-top: 8px;
   border-radius: 10px;
-  background: #197d75;
+  background: var(--accent-strong);
   color: #ffffff;
   font-weight: 800;
   box-shadow: none;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.travel-login-submit:hover {
+  background: #0a2a32;
+  transform: translateY(-1px);
 }
 
 .travel-login-divider {
   height: 1px;
   margin: 30px 0 16px;
-  background: #e7e7e2;
+  background: var(--line);
 }
 
 .travel-login-footer-note {
   margin: 0;
-  color: #5f6b70;
+  color: var(--text-soft);
   text-align: center;
   line-height: 1.6;
 }
@@ -1825,18 +1942,18 @@ button {
 }
 
 .travel-platform-entry a {
-  color: #7a8588;
+  color: var(--text-soft);
   font-size: 0.8rem;
   font-weight: 700;
 }
 
-.travel-platform-entry a:hover { color: #0f766e; }
+.travel-platform-entry a:hover { color: var(--accent-strong); }
 
 .travel-platform-login-card { width: min(100%, 500px); }
 
 .travel-platform-login-kicker {
   margin: 0 0 10px !important;
-  color: #0f766e !important;
+  color: var(--accent-strong) !important;
   font-size: 0.74rem !important;
   font-weight: 800;
   letter-spacing: 0.09em;
@@ -1871,7 +1988,7 @@ button {
 }
 
 .travel-recover-back a {
-  color: #0f766e;
+  color: #2f6b57;
   font-weight: 600;
 }
 
@@ -1915,10 +2032,10 @@ button {
   width: 100%;
   min-height: 52px;
   padding: 0 16px;
-  border: 1px solid #dfe3e1;
+  border: 1px solid #d7e0de;
   border-radius: 12px;
-  background: #fffefb;
-  color: #243238;
+  background: #ffffff;
+  color: #17252b;
   outline: none;
 }
 
@@ -1935,7 +2052,7 @@ button {
   width: min(calc(100% - 32px), 1680px);
   margin: 12px auto;
   padding: 0 0 40px;
-  background: #fffefb;
+  background: #ffffff;
   font-family: "Manrope", sans-serif;
 }
 
@@ -1945,11 +2062,11 @@ button {
   justify-content: space-between;
   gap: 18px;
   padding: 22px 20px 16px;
-  border-bottom: 1px solid #e5e8e6;
+  border-bottom: 1px solid #d7e0de;
 }
 
 .travel-dashboard-brand {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.55rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -1962,7 +2079,7 @@ button {
 }
 
 .travel-dashboard-header-link {
-  color: #5f6b70;
+  color: #5a6b70;
   font-weight: 700;
 }
 
@@ -1972,10 +2089,10 @@ button {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border: 1px solid #d7dcda;
+  border: 1px solid #d7e0de;
   border-radius: 999px;
   background: #f2f5f3;
-  color: #1c2326;
+  color: #17252b;
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -1998,7 +2115,7 @@ button {
 
 .travel-dashboard-eyebrow {
   margin: 0;
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.18em;
@@ -2007,7 +2124,7 @@ button {
 
 .travel-dashboard-copy h1 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: clamp(2.15rem, 1.9rem + 1.4vw, 3.3rem);
   font-weight: 800;
   letter-spacing: -0.05em;
@@ -2015,7 +2132,7 @@ button {
 
 .travel-dashboard-copy p {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 1rem;
   line-height: 1.7;
 }
@@ -2024,13 +2141,13 @@ button {
   display: grid;
   gap: 14px;
   padding: 22px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(240, 245, 243, 0.78), rgba(255, 254, 251, 0.96));
 }
 
 .travel-dashboard-search-label {
-  color: #243238;
+  color: #17252b;
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -2045,10 +2162,10 @@ button {
   width: 100%;
   min-height: 54px;
   padding: 0 18px;
-  border: 1px solid #dfe3e1;
+  border: 1px solid #d7e0de;
   border-radius: 14px;
-  background: #fffefb;
-  color: #243238;
+  background: #ffffff;
+  color: #17252b;
   outline: none;
 }
 
@@ -2065,7 +2182,7 @@ button {
   min-height: 54px;
   padding: 0 22px;
   border-radius: 14px;
-  background: #197d75;
+  background: #2f6b57;
   color: #ffffff;
   font-weight: 800;
 }
@@ -2083,9 +2200,9 @@ button {
   justify-content: center;
   min-height: 40px;
   padding: 0 16px;
-  border: 1px solid #d7dcda;
+  border: 1px solid #d7e0de;
   border-radius: 999px;
-  background: #fffefb;
+  background: #ffffff;
   color: #45555c;
   font-size: 0.92rem;
   font-weight: 700;
@@ -2095,7 +2212,7 @@ button {
   width: min(calc(100% - 32px), 1680px);
   margin: 12px auto;
   padding: 0 0 40px;
-  background: #fffefb;
+  background: #ffffff;
   font-family: "Manrope", sans-serif;
 }
 
@@ -2105,7 +2222,7 @@ button {
   justify-content: space-between;
   gap: 18px;
   padding: 20px 20px 16px;
-  border-bottom: 1px solid #e5e8e6;
+  border-bottom: 1px solid #d7e0de;
 }
 
 .travel-tours-brand {
@@ -2123,7 +2240,7 @@ button {
 }
 
 .travel-tours-nav a {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -2146,7 +2263,7 @@ button {
 
 .travel-tours-intro h1 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: clamp(2rem, 1.6rem + 1vw, 2.8rem);
   letter-spacing: -0.05em;
   line-height: 1.05;
@@ -2154,7 +2271,7 @@ button {
 
 .travel-tours-intro p {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 1rem;
   line-height: 1.55;
 }
@@ -2184,13 +2301,13 @@ button {
   border: 1px solid #d7e4e1;
   border-radius: 999px;
   background: #f4faf8;
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 0.95rem;
   line-height: 1;
 }
 
 .travel-tours-back:hover {
-  color: #0f766e;
+  color: #2f6b57;
   transform: translateX(-1px);
 }
 
@@ -2211,10 +2328,10 @@ button {
   width: 100%;
   min-height: 54px;
   padding: 0 18px;
-  border: 1px solid #dfe3e1;
+  border: 1px solid #d7e0de;
   border-radius: 14px;
-  background: #fffefb;
-  color: #243238;
+  background: #ffffff;
+  color: #17252b;
   outline: none;
 }
 
@@ -2227,7 +2344,7 @@ button {
   min-height: 54px;
   padding: 0 22px;
   border-radius: 14px;
-  background: #197d75;
+  background: #2f6b57;
   color: #ffffff;
   font-weight: 800;
 }
@@ -2241,9 +2358,9 @@ button {
 
 .travel-tour-card {
   overflow: hidden;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 22px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 18px 34px rgba(28, 35, 38, 0.04);
 }
 
@@ -2344,7 +2461,7 @@ button {
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #197d75;
+  background: #2f6b57;
   color: #ffffff;
   font-size: 0.76rem;
   font-weight: 800;
@@ -2357,19 +2474,19 @@ button {
 }
 
 .travel-tour-duration {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .travel-tour-body strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.05rem;
   line-height: 1.45;
 }
 
 .travel-tour-location {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.94rem;
 }
 
@@ -2386,9 +2503,9 @@ button {
   justify-content: center;
   min-height: 38px;
   padding: 0 14px;
-  border: 1px solid #d7dcda;
+  border: 1px solid #d7e0de;
   border-radius: 999px;
-  background: #fffefb;
+  background: #ffffff;
   color: #45555c;
   font-size: 0.9rem;
   font-weight: 700;
@@ -2396,8 +2513,8 @@ button {
 
 .travel-catalog-filter-row button.is-active,
 .travel-catalog-filter-row a.is-active {
-  border-color: #1c2326;
-  background: #1c2326;
+  border-color: #17252b;
+  background: #17252b;
   color: #ffffff;
 }
 
@@ -2475,7 +2592,7 @@ button {
   padding: 0 10px;
   border-radius: 999px;
   background: #f1f5f3;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -2492,11 +2609,11 @@ button {
 .travel-tour-meta small {
   display: block;
   margin-bottom: 4px;
-  color: #5f6b70;
+  color: #5a6b70;
 }
 
 .travel-tour-meta em {
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 1.6rem;
   font-style: normal;
   font-weight: 800;
@@ -2525,10 +2642,10 @@ button {
   justify-content: center;
   min-height: 40px;
   padding: 0 14px;
-  border: 1px solid #d7dcda;
+  border: 1px solid #d7e0de;
   border-radius: 12px;
-  background: #fffefb;
-  color: #243238;
+  background: #ffffff;
+  color: #17252b;
   font-weight: 700;
 }
 
@@ -2541,14 +2658,14 @@ button {
   gap: 8px;
   margin: 22px 20px 0;
   padding: 20px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 16px;
-  background: #fffefb;
-  color: #5f6b70;
+  background: #ffffff;
+  color: #5a6b70;
 }
 
 .travel-catalog-empty-state strong {
-  color: #243238;
+  color: #17252b;
 }
 
 .travel-catalog-empty-state p {
@@ -2562,7 +2679,7 @@ button {
   border: 1px solid #cddbd6;
   border-radius: 10px;
   background: #f3faf7;
-  color: #0f766e;
+  color: #2f6b57;
   font: inherit;
   font-weight: 800;
 }
@@ -2575,7 +2692,7 @@ button {
   width: min(calc(100% - 40px), 1380px);
   margin: 18px auto 132px;
   padding: 0 0 36px;
-  background: #fffefb;
+  background: #ffffff;
   font-family: "Manrope", sans-serif;
 }
 
@@ -2596,7 +2713,7 @@ button {
 
 .travel-detail-screen-title {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.84rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -2638,7 +2755,7 @@ button {
 
 .travel-detail-copy-head h1 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: clamp(2.2rem, 1.95rem + 0.8vw, 3.2rem);
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -2647,7 +2764,7 @@ button {
 
 .travel-detail-copy-head p {
   margin: 12px 0 0;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 1.04rem;
   font-weight: 600;
 }
@@ -2678,7 +2795,7 @@ button {
 
 .travel-detail-description {
   padding: 22px 20px;
-  border: 1px solid #e0e5e3;
+  border: 1px solid #d7e0de;
   border-radius: 20px;
   background: #fbfcfb;
   color: #3b474c;
@@ -2691,7 +2808,7 @@ button {
 
 .travel-detail-section h2 {
   margin: 0 0 16px;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.55rem;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -2731,7 +2848,7 @@ button {
 }
 
 .travel-detail-price strong {
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 1.05rem;
   font-weight: 800;
 }
@@ -2748,7 +2865,7 @@ button {
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #197d75;
+  background: #2f6b57;
   color: #ffffff;
   font-size: 0.74rem;
   font-weight: 800;
@@ -2765,25 +2882,25 @@ button {
   justify-content: space-between;
   gap: 18px;
   padding: 20px 20px;
-  border: 1px solid #e0e5e3;
+  border: 1px solid #d7e0de;
   border-radius: 20px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 12px 22px rgba(28, 35, 38, 0.03);
 }
 
 .travel-detail-menu-item strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.02rem;
 }
 
 .travel-detail-menu-item p {
   margin: 8px 0 0;
-  color: #5f6b70;
+  color: #5a6b70;
   line-height: 1.7;
 }
 
 .travel-detail-menu-item span {
-  color: #1c2326;
+  color: #17252b;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -2800,9 +2917,9 @@ button {
   gap: 16px;
   width: 100%;
   padding: 15px 18px;
-  border: 1px solid #e0e5e3;
+  border: 1px solid #d7e0de;
   border-radius: 14px;
-  background: #fffefb;
+  background: #ffffff;
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -2811,7 +2928,7 @@ button {
 
 .travel-detail-departure:hover:not(:disabled),
 .travel-detail-departure.is-selected {
-  border-color: #16877d;
+  border-color: #2f6b57;
   background: #f1faf7;
 }
 
@@ -2826,7 +2943,7 @@ button {
   flex: 0 0 22px;
   place-items: center;
   border-radius: 50%;
-  background: #16877d;
+  background: #2f6b57;
   color: #ffffff;
   content: "✓";
   font-size: 0.78rem;
@@ -2850,7 +2967,7 @@ button {
   padding: 0 10px;
   border-radius: 999px;
   background: #edf6f2;
-  color: #0d746b;
+  color: #1f4d3d;
   font-size: 0.76rem;
   font-weight: 800;
 }
@@ -2895,7 +3012,7 @@ button {
 }
 
 .travel-detail-review-copy strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -2908,7 +3025,7 @@ button {
 }
 
 .travel-detail-review-link {
-  color: #0f766e;
+  color: #2f6b57;
   font-weight: 700;
 }
 
@@ -2940,7 +3057,7 @@ button {
 }
 
 .travel-detail-sticky-eyebrow {
-  color: #187e76;
+  color: #1f4d3d;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -2987,9 +3104,9 @@ button {
   display: grid;
   gap: 16px;
   padding: 26px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 22px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 18px 34px rgba(28, 35, 38, 0.06);
 }
 
@@ -3021,13 +3138,13 @@ button {
   display: grid;
   gap: 6px;
   padding: 16px 18px;
-  border: 1px solid #e0e5e3;
+  border: 1px solid #d7e0de;
   border-radius: 16px;
   background: #fbfcfb;
 }
 
 .travel-detail-info-card span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -3035,7 +3152,7 @@ button {
 }
 
 .travel-detail-info-card strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.04rem;
   font-weight: 800;
   line-height: 1.4;
@@ -3066,7 +3183,7 @@ button {
 
 .travel-dashboard-section-head h2 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: clamp(1.35rem, 1.2rem + 0.45vw, 1.75rem);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -3074,7 +3191,7 @@ button {
 
 .travel-dashboard-section-head span,
 .travel-dashboard-section-action {
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 0.84rem;
   font-weight: 700;
 }
@@ -3099,14 +3216,14 @@ button {
   gap: 10px;
   min-height: 132px;
   padding: 22px 20px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 20px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 18px 34px rgba(28, 35, 38, 0.04);
 }
 
 .travel-dashboard-action-card span {
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -3114,7 +3231,7 @@ button {
 }
 
 .travel-dashboard-action-card strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.02rem;
   line-height: 1.45;
 }
@@ -3129,24 +3246,24 @@ button {
   display: grid;
   gap: 12px;
   padding: 22px 22px 20px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 20px;
 }
 
 .travel-dashboard-promo strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.15rem;
 }
 
 .travel-dashboard-promo p {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
 }
 
 .travel-dashboard-promo a,
 .travel-dashboard-credit-note a,
 .travel-dashboard-destination-body a {
-  color: #0f766e;
+  color: #2f6b57;
   font-weight: 700;
 }
 
@@ -3166,7 +3283,7 @@ button {
 }
 
 .promo-cyan .travel-dashboard-promo-tag {
-  background: #197d75;
+  background: #2f6b57;
   color: #ffffff;
 }
 
@@ -3181,9 +3298,9 @@ button {
 
 .travel-dashboard-reservation-card,
 .travel-dashboard-credit-card {
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 24px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 18px 34px rgba(28, 35, 38, 0.04);
 }
 
@@ -3217,7 +3334,7 @@ button {
 }
 
 .travel-dashboard-reservation-copy strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.2rem;
 }
 
@@ -3225,7 +3342,7 @@ button {
 .travel-dashboard-reservation-copy small,
 .travel-dashboard-reservation-status small {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
 }
 
 .travel-dashboard-reservation-status {
@@ -3247,7 +3364,7 @@ button {
 }
 
 .travel-dashboard-reservation-status strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
   letter-spacing: -0.03em;
 }
@@ -3279,9 +3396,9 @@ button {
 .travel-dashboard-reservation-actions button {
   min-height: 42px;
   padding: 0 14px;
-  border: 1px solid #d7dcda;
+  border: 1px solid #d7e0de;
   border-radius: 12px;
-  background: #fffefb;
+  background: #ffffff;
   color: #45555c;
   font-weight: 700;
 }
@@ -3312,14 +3429,14 @@ button {
 }
 
 .travel-dashboard-booking-head strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.2rem;
 }
 
 .travel-dashboard-booking-head p,
 .travel-dashboard-reservation-note {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   line-height: 1.6;
 }
 
@@ -3344,8 +3461,8 @@ button {
   padding: 0 14px;
   border: 1px solid #d8dfdc;
   border-radius: 14px;
-  background: #fffefb;
-  color: #1c2326;
+  background: #ffffff;
+  color: #17252b;
   font: inherit;
 }
 
@@ -3364,7 +3481,7 @@ button {
 
 .travel-profile-page {
   min-height: 100vh;
-  background: #fffefb;
+  background: #ffffff;
   font-family: "Manrope", sans-serif;
 }
 
@@ -3379,7 +3496,7 @@ button {
 
 .travel-profile-topbar h1 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -3400,9 +3517,9 @@ button {
 
 .travel-profile-info-card {
   padding: 22px 24px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 20px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 16px 30px rgba(28, 35, 38, 0.04);
 }
 
@@ -3412,7 +3529,7 @@ button {
 
 .travel-profile-info-head h2 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -3443,7 +3560,7 @@ button {
   bottom: 4px;
   width: 18px;
   height: 18px;
-  border: 3px solid #fffefb;
+  border: 3px solid #ffffff;
   border-radius: 999px;
   background: #15a081;
 }
@@ -3455,21 +3572,21 @@ button {
   width: 82px;
   height: 82px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #0f766e, #1f4f57);
+  background: linear-gradient(180deg, #2f6b57, #1f4f57);
   color: #ffffff;
   font-size: 1.4rem;
   font-weight: 800;
 }
 
 .travel-profile-identity strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.2rem;
   font-weight: 800;
 }
 
 .travel-profile-identity p {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.95rem;
 }
 
@@ -3478,7 +3595,7 @@ button {
   padding: 0 12px;
   border: 0;
   background: transparent;
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 0.86rem;
   font-weight: 800;
 }
@@ -3507,7 +3624,7 @@ button {
   border: 1px solid #d8dfdc;
   border-radius: 12px;
   background: #f8faf9;
-  color: #1c2326;
+  color: #17252b;
   font: inherit;
 }
 
@@ -3523,17 +3640,17 @@ button {
   padding: 16px 18px;
   border: 1px solid #e3e8e5;
   border-radius: 16px;
-  background: #fffefb;
+  background: #ffffff;
 }
 
 .travel-profile-summary-box span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.88rem;
   font-weight: 700;
 }
 
 .travel-profile-summary-box strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
   font-weight: 800;
 }
@@ -3545,16 +3662,16 @@ button {
 
 .travel-profile-section-headline h2 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
 
 .travel-profile-list-panel {
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 18px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 16px 30px rgba(28, 35, 38, 0.04);
   overflow: hidden;
 }
@@ -3590,17 +3707,17 @@ button {
 }
 
 .travel-profile-row-copy strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
 }
 
 .travel-profile-row-copy span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.9rem;
 }
 
 .travel-profile-row-arrow {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.35rem;
   line-height: 1;
   text-align: right;
@@ -3631,7 +3748,7 @@ button {
 
 .travel-profile-version {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.88rem;
   font-weight: 700;
 }
@@ -3643,7 +3760,7 @@ button {
   min-height: 48px;
   padding: 0 24px;
   border-radius: 12px;
-  background: #197d75;
+  background: #2f6b57;
   color: #ffffff;
   font-weight: 800;
 }
@@ -3656,7 +3773,7 @@ button {
   border: 1px solid #d8e4eb;
   border-radius: 0;
   padding-bottom: 104px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 18px 36px rgba(28, 35, 38, 0.04);
   font-family: "Manrope", sans-serif;
 }
@@ -3672,9 +3789,9 @@ button {
 .travel-booking-card,
 .travel-booking-note-card {
   padding: 22px 24px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 20px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 16px 30px rgba(28, 35, 38, 0.04);
 }
 
@@ -3689,7 +3806,7 @@ button {
 .travel-booking-card-head h2,
 .travel-booking-card-head strong {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -3697,7 +3814,7 @@ button {
 
 .travel-booking-card-head p {
   margin: 6px 0 0;
-  color: #5f6b70;
+  color: #5a6b70;
 }
 
 .travel-booking-card-head-simple {
@@ -3711,7 +3828,7 @@ button {
   padding: 0 14px;
   border-radius: 999px;
   background: #eef6fb;
-  color: #0f766e;
+  color: #2f6b57;
   font-weight: 800;
 }
 
@@ -3744,7 +3861,7 @@ button {
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.2rem;
   font-weight: 800;
 }
@@ -3755,7 +3872,7 @@ button {
 }
 
 .travel-booking-calendar-head strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.2rem;
   font-weight: 800;
 }
@@ -3763,7 +3880,7 @@ button {
 .travel-booking-calendar-head span,
 .travel-booking-note-card p,
 .travel-booking-guest-row span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.95rem;
 }
 
@@ -3783,10 +3900,10 @@ button {
 
 .travel-booking-day {
   min-height: 42px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 999px;
-  background: #fffefb;
-  color: #1c2326;
+  background: #ffffff;
+  color: #17252b;
   font-weight: 700;
 }
 
@@ -3795,8 +3912,8 @@ button {
 }
 
 .travel-booking-day.is-active {
-  border-color: #197d75;
-  background: #197d75;
+  border-color: #2f6b57;
+  background: #2f6b57;
   color: #ffffff;
 }
 
@@ -3818,7 +3935,7 @@ button {
 }
 
 .travel-booking-note-card strong {
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 1rem;
 }
 
@@ -3835,7 +3952,7 @@ button {
   align-items: center;
   min-height: 34px;
   cursor: pointer;
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 0.9rem;
   font-weight: 800;
   list-style: none;
@@ -3895,7 +4012,7 @@ button {
 }
 
 .travel-booking-guest-row strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
 }
 
@@ -3908,10 +4025,10 @@ button {
 .travel-booking-counter button {
   width: 38px;
   height: 38px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 999px;
-  background: #fffefb;
-  color: #1c2326;
+  background: #ffffff;
+  color: #17252b;
   font-size: 1.2rem;
 }
 
@@ -3948,7 +4065,7 @@ button {
 
 .travel-booking-sticky-pricing span,
 .travel-booking-sticky-selection span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.84rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -3958,7 +4075,7 @@ button {
 .travel-booking-sticky-selection strong {
   display: block;
   margin-top: 4px;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.1rem;
   font-weight: 800;
 }
@@ -3968,7 +4085,7 @@ button {
   min-width: 190px;
   padding: 0 24px;
   border-radius: 12px;
-  background: #197d75;
+  background: #2f6b57;
   color: #ffffff;
   font-weight: 800;
 }
@@ -3979,7 +4096,7 @@ button {
 }
 
 .travel-checkout-page {
-  background: #fffefb;
+  background: #ffffff;
 }
 
 body[data-screen="tour-booking"],
@@ -4008,7 +4125,7 @@ body[data-screen="tour-payment-transfer"] {
   padding: 0 16px;
   border-radius: 999px;
   background: #eef6f1;
-  color: #197d75;
+  color: #2f6b57;
   font-size: 0.92rem;
   font-weight: 800;
 }
@@ -4019,7 +4136,7 @@ body[data-screen="tour-payment-transfer"] {
 
 .travel-checkout-section-title h2 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -4049,14 +4166,14 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-checkout-summary-copy strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.04em;
 }
 
 .travel-checkout-summary-copy span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 1rem;
 }
 
@@ -4074,12 +4191,12 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-checkout-pricing span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.98rem;
 }
 
 .travel-checkout-pricing strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
   font-weight: 700;
 }
@@ -4091,7 +4208,7 @@ body[data-screen="tour-payment-transfer"] {
 
 .travel-checkout-pricing-total span,
 .travel-checkout-pricing-total strong {
-  color: #1c2326;
+  color: #17252b;
   font-weight: 800;
 }
 
@@ -4110,7 +4227,7 @@ body[data-screen="tour-payment-transfer"] {
   align-items: start;
   gap: 14px;
   padding: 18px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 16px;
   background: #ffffff;
   transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
@@ -4126,12 +4243,12 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-checkout-payment-option strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
 }
 
 .travel-checkout-payment-option span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.94rem;
 }
 
@@ -4151,13 +4268,13 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-checkout-help-copy strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
   font-weight: 800;
 }
 
 .travel-checkout-help-copy span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.96rem;
   line-height: 1.6;
 }
@@ -4176,9 +4293,9 @@ body[data-screen="tour-payment-transfer"] {
   display: grid;
   gap: 22px;
   padding: 28px 28px 24px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 22px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 18px 34px rgba(28, 35, 38, 0.05);
 }
 
@@ -4201,7 +4318,7 @@ body[data-screen="tour-payment-transfer"] {
 
 .travel-payment-success-copy h1 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -4209,7 +4326,7 @@ body[data-screen="tour-payment-transfer"] {
 
 .travel-payment-success-copy p {
   margin: 10px 0 0;
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.98rem;
   line-height: 1.6;
 }
@@ -4219,7 +4336,7 @@ body[data-screen="tour-payment-transfer"] {
   grid-template-columns: 92px minmax(0, 1fr);
   gap: 14px;
   padding: 12px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 16px;
   background: #ffffff;
 }
@@ -4239,13 +4356,13 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-payment-success-details strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.15rem;
   font-weight: 800;
 }
 
 .travel-payment-success-details span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.94rem;
 }
 
@@ -4259,14 +4376,14 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-payment-success-ref span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.88rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .travel-payment-success-ref strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
   font-weight: 800;
 }
@@ -4287,9 +4404,9 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-payment-secondary {
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   background: #ffffff;
-  color: #1c2326;
+  color: #17252b;
 }
 
 .travel-payment-failed-card {
@@ -4302,19 +4419,19 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-companions-page {
-  background: #fffefb;
+  background: #ffffff;
 }
 
 .travel-companions-summary strong {
   display: block;
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.2rem;
 }
 
 .travel-companions-summary p,
 .travel-companions-empty {
   margin: 8px 0 0;
-  color: #5f6b70;
+  color: #5a6b70;
   line-height: 1.6;
 }
 
@@ -4340,7 +4457,7 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-companion-grid span {
-  color: #1c2326;
+  color: #17252b;
   font-size: 0.94rem;
   font-weight: 700;
 }
@@ -4349,10 +4466,10 @@ body[data-screen="tour-payment-transfer"] {
   width: 100%;
   min-height: 50px;
   padding: 0 14px;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 12px;
-  background: #fffefb;
-  color: #1c2326;
+  background: #ffffff;
+  color: #17252b;
   outline: none;
 }
 
@@ -4362,12 +4479,12 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-transfer-page {
-  background: #fffefb;
+  background: #ffffff;
 }
 
 .travel-transfer-heading h2 {
   margin: 0;
-  color: #1c2326;
+  color: #17252b;
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -4390,7 +4507,7 @@ body[data-screen="tour-payment-transfer"] {
 .travel-transfer-alert p,
 .travel-transfer-reference-copy {
   margin: 8px 0 0;
-  color: #5f6b70;
+  color: #5a6b70;
   line-height: 1.6;
 }
 
@@ -4402,14 +4519,14 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-transfer-total-card span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .travel-transfer-total-card strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 3rem;
   font-weight: 800;
   letter-spacing: -0.05em;
@@ -4427,13 +4544,13 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-transfer-bank-grid span {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.88rem;
   font-weight: 700;
 }
 
 .travel-transfer-bank-grid strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
 }
 
@@ -4459,7 +4576,7 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-transfer-reference-pill strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -4479,7 +4596,7 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-dashboard-credit-head strong {
-  color: #197d75;
+  color: #2f6b57;
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -4491,17 +4608,17 @@ body[data-screen="tour-payment-transfer"] {
   padding: 18px;
   border: 1px solid #d8e4eb;
   border-radius: 18px;
-  background: #fffefb;
+  background: #ffffff;
 }
 
 .travel-dashboard-credit-note strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1rem;
 }
 
 .travel-dashboard-credit-note p {
   margin: 0;
-  color: #5f6b70;
+  color: #5a6b70;
   line-height: 1.6;
 }
 
@@ -4513,9 +4630,9 @@ body[data-screen="tour-payment-transfer"] {
 
 .travel-dashboard-destination-card {
   overflow: hidden;
-  border: 1px solid #dce3e0;
+  border: 1px solid #d7e0de;
   border-radius: 22px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 18px 34px rgba(28, 35, 38, 0.04);
 }
 
@@ -4544,14 +4661,14 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-dashboard-destination-body strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.2rem;
   line-height: 1.35;
 }
 
 .travel-dashboard-destination-body span,
 .travel-dashboard-destination-meta small {
-  color: #5f6b70;
+  color: #5a6b70;
 }
 
 .travel-dashboard-destination-meta {
@@ -4564,7 +4681,7 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .travel-dashboard-destination-meta em {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.5rem;
   font-style: normal;
   font-weight: 800;
@@ -4590,7 +4707,7 @@ body[data-screen="tour-payment-transfer"] {
   left: 0;
   width: 4px;
   border-radius: 0 4px 4px 0;
-  background: #0f766e;
+  background: #2f6b57;
   content: "";
 }
 
@@ -4874,7 +4991,7 @@ body[data-screen="tour-payment-transfer"] {
   width: min(calc(100% - 32px), 1540px);
   padding: 28px 18px 34px;
   border-radius: 0;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: none;
   font-family: "Manrope", sans-serif;
 }
@@ -4885,7 +5002,7 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .mockup-index-header h1 {
-  color: #1c2326;
+  color: #17252b;
   font-family: "Manrope", sans-serif;
   font-size: clamp(2.2rem, 1.95rem + 0.8vw, 2.9rem);
   font-weight: 700;
@@ -4904,7 +5021,7 @@ body[data-screen="tour-payment-transfer"] {
   min-height: 54px;
   padding: 0 26px;
   border-radius: 12px;
-  background: #0f766e;
+  background: #2f6b57;
   color: #ffffff;
   font-size: 1rem;
   font-weight: 800;
@@ -4916,7 +5033,7 @@ body[data-screen="tour-payment-transfer"] {
   border-color: rgba(15, 118, 110, 0.18);
   border-radius: 16px;
   background: rgba(15, 118, 110, 0.06);
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.6;
@@ -4928,7 +5045,7 @@ body[data-screen="tour-payment-transfer"] {
 }
 
 .mockup-index-section h2 {
-  color: #1c2326;
+  color: #17252b;
   font-family: "Manrope", sans-serif;
   font-size: clamp(1.6rem, 1.38rem + 0.45vw, 2rem);
   font-weight: 700;
@@ -4944,18 +5061,18 @@ body[data-screen="tour-payment-transfer"] {
   gap: 18px;
   padding: 24px 22px;
   border-radius: 18px;
-  background: #fffefb;
+  background: #ffffff;
   box-shadow: 0 8px 18px rgba(28, 35, 38, 0.04);
 }
 
 .mockup-index-card strong {
-  color: #1c2326;
+  color: #17252b;
   font-size: 1.02rem;
   font-weight: 700;
 }
 
 .mockup-index-card span:last-child {
-  color: #5f6b70;
+  color: #5a6b70;
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -4965,7 +5082,7 @@ body[data-screen="tour-payment-transfer"] {
   height: 48px;
   border-radius: 14px;
   background: rgba(15, 118, 110, 0.08);
-  color: #0f766e;
+  color: #2f6b57;
   font-size: 1rem;
 }
 
@@ -5312,32 +5429,32 @@ body {
 /* Platform administration: shared shell for cross-tenant controls. */
 .platform-shell {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 264px minmax(0, 1fr);
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 90% 0%, rgba(223, 237, 230, 0.88), transparent 28%),
-    #f7f5ef;
-  color: #1c2326;
+  background: var(--page-bg);
+  color: #17252b;
   font-family: "Manrope", sans-serif;
 }
 
+/* Shell oscuro: silueta claramente distinta al area de contenido (funciona
+   incluso en escala de grises, no depende de un tono de color especifico). */
 .platform-sidebar {
   display: flex;
   min-height: 100%;
   flex-direction: column;
-  padding: 34px 22px 26px;
-  border-right: 1px solid #d9dfda;
-  background: #fbfaf6;
+  padding: 30px 20px 26px;
+  background: linear-gradient(190deg, #12251f 0%, #0c1a16 100%);
+  color: #d7e5df;
 }
 
 .platform-brand {
-  color: #1c2326;
-  font-size: 1.1rem;
+  color: #f3f8f6;
+  font-size: 1.05rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
 }
 
-.platform-brand span { color: #0f766e; }
+.platform-brand span { color: var(--cta); }
 
 .platform-role,
 .platform-eyebrow,
@@ -5352,27 +5469,30 @@ body {
   text-transform: uppercase;
 }
 
-.platform-role { margin: 10px 0 46px; }
+.platform-sidebar .platform-role { color: #7f978f; margin: 12px 0 40px; }
 
-.platform-nav { display: grid; gap: 7px; }
+.platform-nav { display: grid; gap: 4px; }
 
 .platform-nav a,
 .platform-signout {
   padding: 12px 14px;
-  border-radius: 10px;
-  color: #536064;
-  font-size: 0.92rem;
+  border-radius: 9px;
+  border-left: 3px solid transparent;
+  color: #aebfb9;
+  font-size: 0.9rem;
   font-weight: 700;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .platform-nav a.is-active,
 .platform-nav a:hover {
-  background: #dcedE6;
-  color: #0b685f;
+  background: rgba(255, 255, 255, 0.06);
+  border-left-color: var(--cta);
+  color: #ffffff;
 }
 
-.platform-signout { margin-top: auto; padding-left: 14px; }
-.platform-signout:hover { color: #ae3c32; }
+.platform-signout { margin-top: auto; padding-left: 14px; color: #8fa39c; }
+.platform-signout:hover { color: #f0b088; background: transparent; border-left-color: transparent; }
 
 .platform-content { width: min(100%, 1380px); padding: 44px clamp(24px, 5vw, 76px) 70px; }
 
@@ -5401,19 +5521,20 @@ body {
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
+  font-weight: 700;
   font: inherit;
   font-size: 0.9rem;
   font-weight: 800;
   cursor: pointer;
 }
 
-.platform-primary { min-height: 46px; padding: 0 19px; background: #16877d; color: #fff; box-shadow: 0 10px 22px rgba(15, 118, 110, 0.17); }
-.platform-primary:hover { background: #0d746b; }
+.platform-primary { min-height: 44px; padding: 0 18px; background: var(--accent-strong); color: #fff; box-shadow: none; }
+.platform-primary:hover { background: #0a2a32; }
 .platform-danger { min-height: 46px; padding: 0 19px; background: #b94a3f; color: #fff; }
 .platform-danger:hover { background: #9d3d34; }
-.platform-link { color: #0e756c; }
-.platform-table-link { min-height: 34px; padding: 0 11px; background: #edf6f2; color: #0d746b; }
+.platform-link { color: var(--accent-strong); }
+.platform-table-link { min-height: 34px; padding: 0 11px; background: rgba(18, 60, 70, 0.08); color: var(--accent-strong); }
 
 .platform-intro {
   display: grid;
@@ -5442,15 +5563,15 @@ body {
 .platform-panel { padding: 26px; }
 .platform-panel-head { margin-bottom: 20px; }
 .platform-panel h2 { font-size: 1.18rem; }
-.platform-panel-head > a { color: #0e756c; font-size: 0.9rem; font-weight: 800; }
+.platform-panel-head > a { color: #1f4d3d; font-size: 0.9rem; font-weight: 800; }
 .platform-table-note { color: #687579; font-size: 0.84rem; }
 
 .platform-tenant-list { display: grid; }
-.platform-tenant-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto 20px; align-items: center; gap: 15px; padding: 15px 0; border-top: 1px solid #e5e9e5; color: #1c2326; }
+.platform-tenant-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto 20px; align-items: center; gap: 15px; padding: 15px 0; border-top: 1px solid #e5e9e5; color: #17252b; }
 .platform-tenant-row:first-child { border-top: 0; }
 .platform-tenant-row strong { display: block; font-size: 0.95rem; }
 .platform-tenant-row small { display: block; margin-top: 3px; font-size: 0.68rem; }
-.platform-tenant-mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; background: #ddf0e7; color: #0d746b; font-weight: 800; }
+.platform-tenant-mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; background: #ddf0e7; color: #1f4d3d; font-weight: 800; }
 .platform-row-arrow { color: #829093; font-size: 1.1rem; }
 
 .platform-status { display: inline-flex; align-items: center; gap: 6px; width: max-content; padding: 6px 9px; border-radius: 999px; font-size: 0.74rem; font-weight: 800; }
@@ -5465,12 +5586,12 @@ body {
 .platform-table strong { color: #213034; }
 .platform-table small { display: block; margin-top: 4px; color: #768387; font-size: 0.7rem; letter-spacing: normal; text-transform: none; }
 .platform-table code { padding: 4px 6px; border-radius: 5px; background: #f0f3f0; color: #476266; font-size: 0.78rem; }
-.platform-audit-dialog { width: min(680px, calc(100% - 32px)); max-height: min(760px, calc(100vh - 48px)); padding: 0; border: 1px solid #d8e2dc; border-radius: 18px; background: #fffefb; color: #233236; box-shadow: 0 24px 56px rgba(20, 38, 35, 0.22); }
+.platform-audit-dialog { width: min(680px, calc(100% - 32px)); max-height: min(760px, calc(100vh - 48px)); padding: 0; border: 1px solid #d8e2dc; border-radius: 18px; background: #ffffff; color: #233236; box-shadow: 0 24px 56px rgba(20, 38, 35, 0.22); }
 .platform-audit-dialog::backdrop { background: rgba(20, 38, 35, 0.42); }
 .platform-audit-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 26px 28px 20px; border-bottom: 1px solid #e1e8e3; }
 .platform-audit-dialog-head h2 { margin: 4px 0 0; color: #172426; font-size: 1.25rem; letter-spacing: -0.035em; }
 .platform-dialog-close { min-height: 38px; padding: 0 12px; border: 1px solid #c8d8d1; border-radius: 8px; background: #f6faf7; color: #0b685f; font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
-.platform-dialog-close:hover { border-color: #16877d; background: #e9f4ef; }
+.platform-dialog-close:hover { border-color: #2f6b57; background: #e9f4ef; }
 .platform-audit-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 24px 28px 28px; }
 .platform-audit-detail-grid div { min-height: 76px; padding: 13px 14px; border: 1px solid #e0e8e3; border-radius: 10px; background: #f8faf7; }
 .platform-audit-detail-grid dt { color: #617075; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -5488,7 +5609,7 @@ body {
 .platform-state-form label { display: grid; gap: 8px; color: #334348; font-size: 0.86rem; font-weight: 800; }
 .platform-form input,
 .platform-form select,
-.platform-state-form textarea { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid #d7dfda; border-radius: 9px; outline: none; background: #fffefb; color: #233236; font: inherit; }
+.platform-state-form textarea { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid #d7dfda; border-radius: 9px; outline: none; background: #ffffff; color: #233236; font: inherit; }
 .platform-state-form textarea { min-height: auto; padding-block: 12px; resize: vertical; }
 .platform-form input:focus,
 .platform-form select:focus,
@@ -5504,12 +5625,12 @@ body {
 .platform-detail-grid > * { flex: 1; }
 .platform-scope-list { display: grid; gap: 13px; margin: 22px 0 0; padding: 0; color: #5b686c; line-height: 1.5; list-style: none; }
 .platform-scope-list li { padding-left: 20px; position: relative; }
-.platform-scope-list li::before { position: absolute; left: 0; color: #16877d; content: "*"; font-weight: 900; }
+.platform-scope-list li::before { position: absolute; left: 0; color: #2f6b57; content: "*"; font-weight: 900; }
 .platform-state-form { display: grid; gap: 15px; margin-top: 22px; }
 
 @media (max-width: 860px) {
   .platform-shell { grid-template-columns: 1fr; }
-  .platform-sidebar { min-height: auto; padding: 20px; border-right: 0; border-bottom: 1px solid #d9dfda; }
+  .platform-sidebar { min-height: auto; padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
   .platform-role { margin: 8px 0 16px; }
   .platform-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .platform-nav a { text-align: center; padding-inline: 8px; font-size: 0.8rem; }
@@ -5537,33 +5658,57 @@ body {
 }
 
 /* Operator administration: bounded to one operator's commercial and operational controls. */
-.operator-shell { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; color: #1c292b; background: radial-gradient(circle at 96% 2%, rgba(213, 234, 223, 0.86), transparent 30%), #f7f5ef; font-family: "Manrope", sans-serif; }
+.operator-shell { display: grid; grid-template-columns: 226px minmax(0, 1fr); min-height: 100vh; color: #1c292b; background: var(--page-bg); font-family: "Manrope", sans-serif; }
 .operator-shell:not(:has(.operator-sidebar)) { display: block; }
 .operator-shell:not(:has(.operator-sidebar)) .operator-content { width: min(1180px, 100%); box-sizing: border-box; margin: 0 auto; }
-.operator-sidebar { display: flex; flex-direction: column; padding: 34px 22px 26px; border-right: 1px solid #d7e1da; background: rgba(255, 254, 250, 0.88); }
-.operator-brand { color: #1a2d2e; font-size: 0.98rem; font-weight: 800; letter-spacing: 0.12em; }
-.operator-brand span { color: #0f766e; }
-.operator-role, .operator-eyebrow, .operator-catalog-grid span { color: #667579; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
-.operator-role { margin: 10px 0 42px; }
-.operator-nav { display: grid; gap: 5px; }
-.operator-nav a, .operator-signout { padding: 11px 13px; border-radius: 10px; color: #526064; font-size: 0.88rem; font-weight: 700; }
-.operator-nav a:hover, .operator-nav a.is-active { color: #0b685f; background: #dceee6; }
-.operator-signout { margin-top: auto; }
-.operator-signout:hover { color: #a94638; }
-.operator-content { width: min(100%, 1420px); padding: 44px clamp(24px, 5vw, 74px) 72px; }
+/* Administrative Premium, sidebar clara: ligera, labels siempre visibles, acento
+   verde controlado en el item activo (no fondo oscuro pesado). */
+.operator-sidebar { display: flex; flex-direction: column; padding: 22px 14px 18px; background: var(--surface); border-right: 1px solid var(--line); color: var(--text); }
+.operator-brand { color: var(--text); font-size: 0.9rem; font-weight: 800; letter-spacing: 0.12em; }
+.operator-brand span { color: var(--cta); }
+.operator-eyebrow, .operator-catalog-grid span { color: #667579; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
+.operator-sidebar .operator-role { color: var(--text-soft); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin: 10px 0 26px; }
+.operator-nav { display: grid; gap: 2px; }
+.operator-nav a, .operator-signout { padding: 9px 11px; border-radius: 7px; border-left: 3px solid transparent; color: var(--text-soft); font-size: 0.85rem; font-weight: 700; transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease; }
+.operator-nav a:hover { color: var(--text); background: var(--surface-muted); }
+.operator-nav a.is-active { color: var(--accent-strong); background: var(--accent-soft); border-left-color: var(--accent); font-weight: 800; }
+.operator-nav .mt-caption { margin-top: 14px; padding: 0 11px; color: var(--text-soft) !important; }
+.operator-nav a:first-child + .mt-caption, .operator-nav .mt-caption:first-child { margin-top: 2px; }
+@media (max-width: 860px) { .operator-nav .mt-caption { display: none; } }
+.operator-signout { margin-top: auto; color: var(--text-soft); }
+.operator-signout:hover { color: #b34a4a; background: transparent; border-left-color: transparent; }
+.operator-content { width: min(100%, 1420px); padding: 32px clamp(20px, 4vw, 56px) 56px; }
+/* Encabezado de pantalla compacto (Administrative Premium): jerarquia por peso,
+   no por tamano gigante — este override solo aplica dentro del Portal, la Landing
+   sigue usando la escala .mt-h1 completa en sus propios encabezados. */
+.operator-content .mt-page-header, .platform-content .mt-page-header {
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.operator-content .mt-page-header-title, .platform-content .mt-page-header-title {
+  font-size: clamp(1.35rem, 1.15rem + 0.6vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+}
+.operator-content .mt-page-header-desc, .platform-content .mt-page-header-desc {
+  font-size: 0.88rem;
+}
 .operator-topbar, .operator-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .operator-topbar { margin-bottom: 30px; }
 .operator-topbar h1, .operator-hero h2, .operator-panel h2, .operator-report-grid h2 { margin: 4px 0 0; color: #172728; letter-spacing: -0.045em; }
 .operator-topbar h1 { font-size: clamp(1.9rem, 1.45rem + 1vw, 2.55rem); line-height: 1.08; }
 .operator-date { color: #657478; font-size: 0.86rem; font-weight: 700; }
-.operator-primary, .operator-outline { display: inline-flex; align-items: center; justify-content: center; min-height: 45px; padding: 0 18px; border-radius: 10px; font: inherit; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
-.operator-primary { border: 1px solid #16877d; background: #16877d; color: #fff; box-shadow: 0 10px 22px rgba(15, 118, 110, 0.16); }
-.operator-primary:hover { background: #0d746b; }
+.operator-primary, .operator-outline { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: var(--radius-control); font: inherit; font-size: 0.86rem; font-weight: 700; letter-spacing: -0.005em; cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease; }
+.operator-primary { border: 1px solid #2f6b57; background: #2f6b57; color: #fff; box-shadow: none; }
+.operator-primary:hover { background: #1f4d3d; }
+.operator-primary:active, .operator-outline:active { transform: translateY(1px); }
 /* Detalle de reserva: ".operator-panel-head > a" (linea 5481) le gana en especificidad
    a ".operator-primary" y deja el texto en teal; los botones "Gestionar pago" y
    "Gestionar devolucion" deben verse siempre en blanco sobre el mismo fondo. */
 .operator-panel-head > a.operator-primary { color: #fff; }
-.operator-outline { border: 1px solid #bcd4ca; background: #f5faf7; color: #0e756c; }
+.operator-outline { border: 1px solid #bcd4ca; background: #f5faf7; color: #1f4d3d; }
 .operator-outline:disabled { border-color: #d7e2dc; background: #eef3f0; color: #93a29d; cursor: not-allowed; }
 .operator-topbar--catalog-management .operator-outline { align-self: flex-end; position: relative; top: 10px; }
 .operator-hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.7fr); gap: 28px; margin-bottom: 24px; padding: 25px 28px; border: 1px solid #d5e4dc; border-radius: 16px; background: linear-gradient(135deg, #e9f4ed, #fffefa 76%); }
@@ -5590,7 +5735,7 @@ body {
 .operator-metrics span { color: #68767a; font-size: 0.8rem; font-weight: 700; }
 .operator-metrics strong { color: #14776f; font-size: clamp(1.45rem, 1rem + 1.2vw, 2.2rem); letter-spacing: -0.07em; line-height: 1; }
 .operator-metrics p { margin: 0; color: #657478; font-size: 0.77rem; line-height: 1.42; }
-.operator-metrics a, .operator-panel-head > a, .operator-table a, .operator-report-grid a { color: #0d746b; font-size: 0.82rem; font-weight: 800; }
+.operator-metrics a, .operator-panel-head > a, .operator-table a, .operator-report-grid a { color: #1f4d3d; font-size: 0.82rem; font-weight: 800; }
 .operator-metrics a { align-self: end; margin-top: auto; padding-top: 7px; }
 .operator-panel { margin-top: 22px; padding: 25px; }
 .operator-panel-head { margin-bottom: 20px; }
@@ -5604,13 +5749,13 @@ body {
 .operator-catalog-grid article { display: grid; gap: 10px; min-height: 190px; padding: 20px; }
 .operator-catalog-grid strong { color: #1d3c3a; font-size: 1.24rem; letter-spacing: -0.04em; }
 .operator-catalog-grid p { margin: 0; color: #637174; font-size: 0.84rem; line-height: 1.5; }
-.operator-catalog-grid button, .operator-table button { width: max-content; border: 0; padding: 0; background: transparent; color: #0d746b; font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+.operator-catalog-grid button, .operator-table button { width: max-content; border: 0; padding: 0; background: transparent; color: #1f4d3d; font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
 .operator-table-wrap { overflow-x: auto; }
 .operator-table { width: 100%; min-width: 760px; border-collapse: collapse; text-align: left; }
 .operator-table th { padding: 0 12px 12px; color: #748084; font-size: 0.69rem; letter-spacing: 0.08em; text-transform: uppercase; }
-.operator-table td { padding: 15px 12px; border-top: 1px solid #e4ebe6; color: #4b5a5d; font-size: 0.86rem; vertical-align: middle; }
+.operator-table td { padding: 15px 12px; border-top: 1px solid #e4ebe6; color: var(--text-soft); font-size: 0.86rem; vertical-align: middle; }
 .operator-table strong { color: #203234; }
-.operator-table .operator-reservation-link { color: #0d746b; font-size: 0.86rem; font-weight: 800; cursor: pointer; }
+.operator-table .operator-reservation-link { color: #1f4d3d; font-size: 0.86rem; font-weight: 800; cursor: pointer; }
 .operator-table .operator-reservation-link:hover { color: #075d55; text-decoration: underline; }
 .operator-table .operator-reservation-link:focus-visible { outline: 3px solid rgba(22, 135, 125, 0.35); outline-offset: 3px; border-radius: 3px; text-decoration: underline; }
 .operator-table small { display: block; margin-top: 4px; color: #758386; font-size: 0.72rem; }
@@ -5626,7 +5771,7 @@ body {
 #alimentacion-catalog-panel [data-service-status].operator-status.is-confirmed::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #3fa66b; flex-shrink: 0; }
 #alimentacion-catalog-panel .operator-table td:last-child { white-space: nowrap; }
 #transporte-catalog-panel .operator-table td:last-child { white-space: nowrap; }
-.operator-table-toggle { border: 0; padding: 7px 0; background: transparent; color: #0d746b; font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+.operator-table-toggle { border: 0; padding: 7px 0; background: transparent; color: #1f4d3d; font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
 .operator-table-toggle:hover { color: #075d55; text-decoration: underline; }
 .operator-detail-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 14px; padding: 24px 28px; border-radius: 16px; background: #193d3a; color: #fff; }
 .operator-detail-hero h2 { margin: 5px 0; font-size: clamp(1.32rem, 1.1rem + 0.8vw, 1.85rem); letter-spacing: -0.045em; }
@@ -5653,9 +5798,9 @@ body {
 .operator-form-grid input, .operator-form-grid select, .operator-form-grid textarea { width: 100%; min-height: 44px; box-sizing: border-box; border: 1px solid #d2dfd8; border-radius: 9px; background: #fffefa; color: #26383a; font: inherit; font-size: 0.86rem; font-weight: 500; }
 .operator-form-grid input, .operator-form-grid select { padding: 0 12px; }
 .operator-form-grid textarea { min-height: 92px; padding: 11px 12px; resize: vertical; line-height: 1.5; }
-.operator-form-grid input:focus, .operator-form-grid select:focus, .operator-form-grid textarea:focus { outline: 3px solid rgba(22, 135, 125, 0.2); border-color: #16877d; }
+.operator-form-grid input:focus, .operator-form-grid select:focus, .operator-form-grid textarea:focus { outline: 3px solid rgba(22, 135, 125, 0.2); border-color: #2f6b57; }
 .operator-form-wide { grid-column: 1 / -1; }
-.operator-panel-head > span { color: #0d746b; font-size: 0.78rem; font-weight: 800; }
+.operator-panel-head > span { color: #1f4d3d; font-size: 0.78rem; font-weight: 800; }
 .operator-companion-list, .operator-risk-list { display: grid; gap: 14px; margin-top: 18px; }
 .operator-companion-card, .operator-risk-card { padding: 17px; border: 1px solid #dce8e1; border-radius: 12px; background: #f9fcfa; }
 .operator-companion-card > strong, .operator-risk-card > strong { display: block; margin-bottom: 14px; color: #264341; font-size: 0.86rem; }
@@ -5670,7 +5815,7 @@ body {
 .operator-conditions p, .operator-conditions ul { margin: 0; color: #637174; font-size: 0.79rem; line-height: 1.5; }
 .operator-conditions ul { padding-left: 18px; }
 .operator-check { display: flex; gap: 9px; margin-top: 17px; color: #536367; font-size: 0.8rem; line-height: 1.45; }
-.operator-check input { accent-color: #16877d; }
+.operator-check input { accent-color: #2f6b57; }
 .operator-reservation-summary { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
 .operator-reservation-summary h2 { margin-bottom: 8px; }
 .operator-reservation-summary p { max-width: 470px; margin: 0; color: #637174; font-size: 0.83rem; line-height: 1.5; }
@@ -5681,6 +5826,7 @@ body {
 .operator-form-feedback { margin: -6px 0 0; color: #69777a; font-size: 0.8rem; line-height: 1.45; }
 .operator-form-feedback.is-valid { color: #117166; font-weight: 700; }
 .operator-form-actions { display: flex; justify-content: flex-end; gap: 12px; }
+@media (max-width: 620px) { .operator-form-actions .mt-btn { width: 100%; } }
 .operator-form-grid [hidden], .operator-payment-review[hidden] { display: none !important; }
 .operator-payment-actions { margin-top: 7px; padding-top: 18px; border-top: 1px solid #e1e9e4; }
 .operator-payment-actions .operator-primary { min-width: 168px; min-height: 48px; }
@@ -5708,15 +5854,231 @@ body {
 .operator-next-panel h2 { margin: 6px 0 8px; color: #1d3635; font-size: 1.16rem; letter-spacing: -0.035em; }
 .operator-payment-state { display: inline-flex; margin: -7px 0 17px; padding: 6px 10px; border-radius: 999px; background: #eef1f2; color: #526268; font-size: 0.76rem; font-weight: 800; }
 .operator-promo { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 21px; border: 1px solid #cce3d6; border-radius: 14px; background: #f1faf5; }
-.operator-promo span { display: block; color: #0e756c; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; }
+.operator-promo span { display: block; color: #1f4d3d; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; }
 .operator-promo strong { display: block; margin-top: 5px; color: #1e3c3a; font-size: 1.2rem; }
 .operator-promo p { margin: 7px 0 0; color: #607174; font-size: 0.87rem; }
-.operator-promo button { border: 1px solid #bad8ca; border-radius: 9px; background: #fffefb; color: #0d746b; font: inherit; font-size: 0.84rem; font-weight: 800; padding: 10px 12px; cursor: pointer; }
+.operator-promo button { border: 1px solid #bad8ca; border-radius: 9px; background: #ffffff; color: #1f4d3d; font: inherit; font-size: 0.84rem; font-weight: 800; padding: 10px 12px; cursor: pointer; }
 .operator-report-grid { margin-top: 22px; }
 .operator-report-grid article { padding: 24px; }
 .operator-report-grid h2 { font-size: 1.16rem; }
 .operator-report-grid ul { display: grid; gap: 9px; margin: 18px 0; padding-left: 19px; color: #627174; font-size: 0.88rem; line-height: 1.45; }
 
 @media (max-width: 1180px) { .operator-metrics--daily { grid-template-columns: repeat(3, minmax(0, 1fr)); } .operator-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 860px) { .operator-shell { grid-template-columns: 1fr; } .operator-sidebar { min-height: auto; padding: 20px; border-right: 0; border-bottom: 1px solid #d7e1da; } .operator-role { margin: 8px 0 16px; } .operator-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); } .operator-nav a { padding: 9px 6px; text-align: center; font-size: 0.74rem; } .operator-signout { display: none; } .operator-content { padding: 30px 20px 54px; } }
+@media (max-width: 860px) { .operator-shell { grid-template-columns: 1fr; } .operator-sidebar { min-height: auto; padding: 16px; border-right: 0; border-bottom: 1px solid var(--line); } .operator-sidebar .operator-role { margin: 6px 0 12px; } .operator-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); } .operator-nav a { padding: 8px 6px; text-align: center; font-size: 0.74rem; border-left: 0; border-top: 3px solid transparent; } .operator-nav a:hover { background: var(--surface-muted); } .operator-nav a.is-active { border-top-color: var(--accent); } .operator-signout { display: none; } .operator-content { padding: 24px 16px 40px; } }
 @media (max-width: 620px) { .operator-topbar, .operator-panel-head, .operator-promo, .operator-section-heading, .operator-detail-hero, .operator-reservation-summary, .operator-tenant-context, .operator-success-card { align-items: flex-start; flex-direction: column; } .operator-topbar .operator-primary, .operator-topbar .operator-outline { width: 100%; } .operator-hero, .operator-metrics, .operator-action-grid, .operator-catalog-grid, .operator-report-grid, .operator-detail-grid, .operator-form-grid, .operator-summary-values { grid-template-columns: 1fr; } .operator-section-heading > p { max-width: none; text-align: left; } .operator-date { display: none; } .operator-panel { padding: 20px; } .operator-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); } .operator-promo button { width: 100%; } .operator-detail-hero { padding: 21px; } .operator-tenant-context p { margin-left: 0; } .operator-success-card .operator-status { margin-left: 0; } .operator-form-actions { flex-direction: column-reverse; } .operator-form-actions .operator-primary, .operator-form-actions .operator-outline { width: 100%; } }
+
+/* ==========================================================================
+   Libreria de composicion Multi Tour v2 (".mt-*") — patrones reutilizables de
+   layout compartidos entre Landing y Portal. No reemplazan las clases
+   ".travel-*"/".operator-*"/".platform-*" existentes: se usan para construir
+   NUEVA composicion (hero, secciones editoriales, encabezados de pagina
+   interna, dashboards, formularios agrupados) sin repetir "card-card-card".
+   ========================================================================== */
+
+/* --- Encabezado de pagina interna (marketing y SaaS operativo) --- */
+.mt-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--line);
+}
+.mt-page-header-main { display: grid; gap: var(--space-2); max-width: 62ch; }
+.mt-page-header-eyebrow { display: block; }
+.mt-page-header-title { display: block; }
+.mt-page-header-desc { display: block; max-width: 58ch; }
+.mt-page-header-action { flex: 0 0 auto; }
+.mt-page-header--stacked { flex-direction: column; align-items: flex-start; }
+.mt-page-header--stacked .mt-page-header-main { max-width: none; }
+.mt-page-header--stacked .mt-page-header-action { align-self: flex-start; }
+
+/* --- Split asimetrico texto|imagen (o invertido) --- */
+.mt-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  align-items: center;
+  gap: var(--space-7);
+}
+.mt-split--reverse { grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr); }
+.mt-split--reverse > :first-child { order: 2; }
+.mt-split--reverse > :last-child { order: 1; }
+.mt-split-copy { display: grid; gap: var(--space-4); }
+.mt-split-media {
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
+  border-radius: var(--radius-panel);
+  background-size: cover;
+  background-position: center;
+}
+.mt-split-media-caption {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  background: rgba(23, 37, 43, 0.62);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: var(--fs-small);
+  font-weight: 700;
+}
+
+/* --- Bloque editorial de ancho completo (manifiesto de marca) --- */
+.mt-editorial-block {
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.mt-editorial-block p {
+  max-width: 32ch;
+  margin: 0;
+  font-family: "Bricolage Grotesque", "Manrope", sans-serif;
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.mt-editorial-block p em { color: var(--accent-strong); font-style: normal; }
+
+/* --- Grid de destinos con jerarquia (una celda dominante + secundarias) --- */
+.mt-destination-grid--featured {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* --- Grid simple de 2 columnas (complementa el grid con jerarquia) --- */
+.mt-destination-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+
+/* Grid equilibrada de 3 columnas iguales (sin una foto gigante + 2 chicas). */
+.mt-destination-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.mt-destination-grid-3 .travel-destination-media { aspect-ratio: 4 / 3; min-height: 0; }
+@media (max-width: 960px) { .mt-destination-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .mt-destination-grid-3 { grid-template-columns: 1fr; } }
+
+/* Acceso por categoria: fallback honesto cuando no hay suficiente catalogo real
+   para mostrar como "destacado" (nunca se rellena con destinos inventados). Tarjeta
+   editorial con indice + icono en vez de una fila plana "titulo + flecha". */
+.mt-category-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-strong);
+  color: var(--text);
+  transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+.mt-category-tile:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.mt-category-tile-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); }
+.mt-category-tile-index { font-size: var(--fs-caption); font-weight: 800; letter-spacing: 0.06em; color: var(--text-soft); }
+.mt-category-tile strong { font-size: 1.05rem; font-weight: 800; }
+.mt-category-tile p { margin: 0; color: var(--text-soft); font-size: 0.92rem; }
+.mt-category-tile-arrow { margin-top: auto; padding-top: var(--space-2); display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--accent-strong); }
+.mt-category-tile:hover .mt-category-tile-arrow { text-decoration: underline; text-underline-offset: 3px; }
+
+.mt-inline-note { padding: var(--space-4) 0; color: var(--text-soft); }
+
+/* Dashboard Administrative Premium: una metrica destacada + fila compacta
+   tipografica (reemplaza el grid uniforme de tarjetas), sin cards ni sombras. */
+.mt-metric-feature {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+.mt-metric-feature-copy { display: grid; gap: 2px; }
+.mt-metric-feature-label { font-size: 0.82rem; font-weight: 700; color: var(--text-soft); }
+.mt-metric-feature-value { font-size: clamp(1.8rem, 1.5rem + 1vw, 2.4rem); font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+.mt-metric-feature > a { flex: 0 0 auto; }
+
+.mt-metric-row { display: flex; flex-wrap: wrap; }
+.mt-metric-row-item { display: grid; gap: 2px; padding-right: var(--space-5); margin-right: var(--space-5); border-right: 1px solid var(--line); }
+.mt-metric-row-item:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+.mt-metric-row-item strong { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+.mt-metric-row-item span { font-size: 0.78rem; font-weight: 700; color: var(--text-soft); }
+.mt-metric-row-item a { font-size: 0.78rem; font-weight: 700; color: var(--accent-strong); }
+@media (max-width: 720px) {
+  .mt-metric-row { flex-direction: column; gap: var(--space-3); }
+  .mt-metric-row-item { border-right: 0; margin-right: 0; padding-right: 0; padding-bottom: var(--space-3); border-bottom: 1px solid var(--line); }
+  .mt-metric-row-item:last-child { border-bottom: 0; padding-bottom: 0; }
+}
+
+/* --- Tira horizontal "tour destacado" (imagen grande + info al lado) --- */
+.mt-featured-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface-strong);
+}
+.mt-featured-strip-media { min-height: 320px; background-size: cover; background-position: center; }
+.mt-featured-strip-body { display: grid; align-content: center; gap: var(--space-3); padding: var(--space-6); }
+
+/* --- Formularios reagrupados en secciones + grid de 2 columnas --- */
+.mt-form-section { display: grid; gap: var(--space-4); padding: var(--space-5) 0; border-top: 1px solid var(--line); }
+.mt-form-section:first-of-type { border-top: 0; padding-top: 0; }
+.mt-form-section-title { display: block; margin-bottom: var(--space-1); }
+.mt-form-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.mt-form-grid-2 > .mt-form-wide { grid-column: 1 / -1; }
+
+/* --- Dashboard con jerarquia (resumen destacado + columnas), no grid uniforme --- */
+.mt-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.62fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+.mt-dashboard-main { display: grid; gap: var(--space-6); min-width: 0; }
+.mt-dashboard-aside { display: grid; gap: var(--space-5); align-content: start; }
+
+/* --- Metrica discreta (numero + label), sin envolver en card pesada --- */
+.mt-summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-5); padding: var(--space-4) 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.mt-summary-metric { display: grid; gap: 2px; padding-left: var(--space-4); border-left: 2px solid var(--line-strong); }
+.mt-summary-metric-value { display: block; font-family: "Bricolage Grotesque", "Manrope", sans-serif; font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem); font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.mt-summary-metric-label { display: block; }
+
+/* --- Lista con divisores sutiles en vez de card-por-fila --- */
+.mt-divider-list { display: grid; }
+.mt-divider-list-item { display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-4) 0; border-top: 1px solid var(--line); }
+.mt-divider-list-item:first-child { border-top: 0; padding-top: 0; }
+.mt-divider-list-icon { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); }
+.mt-divider-list-copy { display: grid; gap: var(--space-1); }
+
+@media (max-width: 960px) {
+  .mt-dashboard-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 860px) {
+  .mt-split,
+  .mt-split--reverse,
+  .mt-destination-grid--featured,
+  .mt-destination-grid-2,
+  .mt-featured-strip,
+  .mt-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .mt-split--reverse > :first-child,
+  .mt-split--reverse > :last-child { order: initial; }
+  .mt-featured-strip-media { min-height: 220px; }
+  .mt-featured-strip-body { padding: var(--space-5); }
+  .mt-page-header { align-items: flex-start; flex-direction: column; }
+  .mt-editorial-block p { max-width: none; }
+}

@@ -17,62 +17,23 @@
 
     <main id="contenido" class="travel-login-shell">
       <header class="travel-login-header travel-login-header-centered">
-        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
+        <a class="travel-login-brand" href="index.html" data-route="home">Multi Tour</a>
       </header>
 
       <section class="travel-login-stage">
         <div class="travel-login-card travel-reset-card">
           <div class="travel-login-copy travel-recover-copy">
-            <h1>Definir Nueva Contrasena</h1>
-            <p>Ingresa tu nueva contrasena para asegurar tu cuenta.</p>
+            <h1 class="mt-h1">Definir nueva contrasena</h1>
+            <p class="mt-body">Este enlace de cambio de contrasena no corresponde a un proceso activo: la recuperacion por autoservicio aun no esta disponible en esta version de Multi Tour.</p>
           </div>
 
-          <form class="travel-login-form" data-form="reset" novalidate>
-            <div class="travel-login-field">
-              <label for="reset-password">Nueva Contrasena</label>
-              <div class="travel-login-password-wrap">
-                <input
-                  id="reset-password"
-                  name="password"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="..........."
-                />
-                <button class="travel-login-visibility" type="button" data-toggle="#reset-password">Ver</button>
-              </div>
-            </div>
+          <p class="feedback" aria-live="polite">No es posible guardar una nueva contrasena desde esta pantalla todavia. Vuelve a iniciar sesion con tus credenciales actuales o crea una cuenta nueva.</p>
 
-            <div class="travel-login-field">
-              <label for="reset-confirm">Confirmar Contrasena</label>
-              <div class="travel-login-password-wrap">
-                <input
-                  id="reset-confirm"
-                  name="confirm_password"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="..........."
-                />
-                <button class="travel-login-visibility" type="button" data-toggle="#reset-confirm">Ver</button>
-              </div>
-            </div>
-
-            <div class="password-policy" aria-label="Requisitos de la contrasena">
-              <p>La contrasena debe contener:</p>
-              <ul>
-                <li>Minimo 8 caracteres</li>
-                <li>Al menos una letra mayuscula</li>
-                <li>Al menos una letra minuscula</li>
-                <li>Al menos un numero</li>
-                <li>Al menos un caracter especial</li>
-              </ul>
-            </div>
-
-            <p class="feedback" data-feedback="reset" aria-live="polite"></p>
-
-            <button class="travel-login-submit" type="submit">
-              <span>Guardar Contrasena</span>
-            </button>
-          </form>
+          <div class="travel-login-form">
+            <a class="travel-login-submit mt-btn mt-btn-primary" href="login.html" data-route="login">
+              <span>Volver al inicio de sesion</span>
+            </a>
+          </div>
 
           <p class="travel-recover-back">
             <a href="login.html" data-route="login">Volver al Inicio de Sesion</a>

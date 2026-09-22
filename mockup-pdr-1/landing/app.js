@@ -2296,7 +2296,7 @@ function recordClientReservation(booking) {
 // incorrecto como hardcodear uno fijo. Se mantiene el placeholder literal hasta que exista
 // una sesion real de Cliente que resuelva su tenant e identidad visual configurada.
 function resolveClientTenantName() {
-  return "[Tu Marca]";
+  return "Multi Tour";
 }
 
 function setupDashboardIdentity() {

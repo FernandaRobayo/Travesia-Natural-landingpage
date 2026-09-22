@@ -23,12 +23,12 @@
       </aside>
 
       <section class="platform-content">
-        <header class="platform-topbar">
-          <div>
-            <p class="platform-eyebrow">Control de plataforma</p>
-            <h1>Operadores bajo control</h1>
+        <header class="mt-page-header">
+          <div class="mt-page-header-main">
+            <p class="mt-page-header-eyebrow mt-caption">Control de plataforma</p>
+            <h1 class="mt-page-header-title mt-h1">Operadores bajo control</h1>
           </div>
-          <a class="platform-primary" href="admin-crear-operador.html" data-route="platformCreate">Crear operador</a>
+          <a class="platform-primary mt-page-header-action" href="admin-crear-operador.html" data-route="platformCreate">Crear operador</a>
         </header>
 
         <section class="platform-intro">
@@ -39,11 +39,11 @@
           <p>Administra el alta y estado de cada tenant. Las reservas, pagos y caja pertenecen exclusivamente a cada operador.</p>
         </section>
 
-        <section class="platform-metrics" aria-label="Resumen de operadores">
-          <article><span>Operadores activos</span><strong data-platform-active-count>2</strong><small>Listos para nuevas autenticaciones y reservas</small></article>
-          <article><span>Operadores inactivos</span><strong data-platform-inactive-count>1</strong><small>Conservan historial y auditoria</small></article>
-          <article><span>Altas este mes</span><strong data-platform-created-count>2</strong><small>Incluyen su primer administrador</small></article>
-        </section>
+        <div class="mt-summary-row" aria-label="Resumen de operadores">
+          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Operadores activos</span><strong class="mt-summary-metric-value" data-platform-active-count>2</strong><small class="mt-small">Listos para nuevas autenticaciones y reservas</small></div>
+          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Operadores inactivos</span><strong class="mt-summary-metric-value" data-platform-inactive-count>1</strong><small class="mt-small">Conservan historial y auditoria</small></div>
+          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Altas este mes</span><strong class="mt-summary-metric-value" data-platform-created-count>2</strong><small class="mt-small">Incluyen su primer administrador</small></div>
+        </div>
 
         <section class="platform-panel">
           <div class="platform-panel-head">

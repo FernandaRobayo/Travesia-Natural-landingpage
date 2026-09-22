@@ -1,0 +1,234 @@
+/* Sistema visual "Modern Editorial Tourism" — misma familia de Home y Login.
+   Vive en un archivo aparte de main.css (compartido por el resto de paginas
+   del mockup) para no alterar ninguna otra pantalla. Solo crear-cuenta.html
+   carga este archivo. Mismos valores que Portal (signup.component.css) para
+   mantener Portal <-> Landing consistentes.
+
+   Adaptacion respecto a Login: el formulario tiene mas campos (datos
+   personales + seguridad), asi que el panel de fotografia se angosta
+   (~37% en vez de ~42%) y queda "sticky" para acompañar el scroll natural
+   del formulario, en vez de forzar un split 50/50 o comprimir campos.
+   Fotografia LIMPIA: cero mask-image, cero overlay, cero blur.
+
+   Fix sticky (2 partes), mismos valores que Portal (signup.component.css):
+   1) .mth-signup-visual (el grid item) NO tiene position/height propios
+      — se estira (align-items: stretch, default de CSS Grid) hasta
+      igualar la altura real de la fila, que la define el formulario (mas
+      alto que 100vh). El position:sticky + height:100vh viven en un
+      wrapper INTERNO (.mth-signup-visual-sticky), cuyo containing block
+      pasa a ser esa caja ya estirada: asi el "rango de anclaje" es toda
+      la fila, no solo el propio alto del sticky.
+   2) .mth-signup-shell es su PROPIO contenedor de scroll (height:100vh +
+      overflow-y:auto) en vez de dejar que la pagina completa haga
+      scroll. Motivo: si `html`/`body` tienen `overflow-x: hidden` sin
+      `overflow-y` explicito en algun stylesheet compartido, la spec de
+      CSS promueve ese overflow-y no-declarado a "auto" automaticamente,
+      y si quien realmente hace scroll es <html> (no <body>),
+      position:sticky termina anclandose contra el scrollport de <body>
+      — que nunca se mueve — y se comporta como position:static. En vez
+      de depender de eso, el shell se vuelve su propio scrollport
+      autocontenido. */
+
+body[data-screen="signup"] {
+  --mt-ink: #102A32;
+  --mt-teal: #147D73;
+  --mt-coral: #E9785D;
+  --mt-sand: #EFE8DE;
+  --mt-warm-white: #FAF9F6;
+  --mt-slate: #627177;
+  --mt-line: #E5E0D8;
+  --mt-surface: #FFFFFF;
+  --mt-error: #9E3B2B;
+  background: var(--mt-warm-white);
+}
+
+.mth-signup-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 0.58fr) minmax(420px, 1fr);
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--mt-warm-white);
+  font-family: "Manrope", sans-serif;
+}
+
+/* ===== Motion: mismo lenguaje del Home/Login. ===== */
+@keyframes mthFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes mthScaleIn {
+  from { opacity: 0; transform: scale(1.015); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mth-signup-eyebrow, .mth-signup-title, .mth-signup-subtitle, .mth-signup-section,
+  .mth-signup-visual-img, .mth-signup-visual-content {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .mth-signup-back, .mth-signup-visibility, .mth-signup-submit, .mth-signup-input {
+    transition: none !important;
+  }
+}
+
+/* ===== Panel visual: fotografia limpia, sticky para acompañar un
+   formulario mas largo que el de Login. =====
+   .mth-signup-visual: grid item, se estira a la altura de la fila (sin
+   position/height propios). .mth-signup-visual-sticky: wrapper interno
+   que sí es sticky + 100vh, anclado dentro de esa caja ya estirada. */
+.mth-signup-visual { min-width: 0; }
+.mth-signup-visual-sticky {
+  position: sticky; top: 0; height: 100vh; overflow: hidden;
+  display: flex; align-items: flex-end;
+}
+.mth-signup-visual-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
+  animation: mthScaleIn 640ms cubic-bezier(.16, 1, .3, 1) both;
+}
+.mth-signup-visual-content {
+  position: relative; z-index: 1; display: grid; gap: 10px; max-width: 340px; padding: 40px 40px 64px; color: #fff;
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 160ms both;
+}
+.mth-signup-visual-brand { color: #fff; font-family: "Fraunces", serif; font-size: 1.05rem; font-weight: 600; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45); }
+.mth-signup-visual-title { margin: 0; max-width: 22ch; font-family: "Fraunces", serif; font-weight: 500; font-size: clamp(1.05rem, 0.85rem + 0.7vw, 1.3rem); line-height: 1.3; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45); }
+
+/* ===== Panel de formulario ===== */
+.mth-signup-panel { display: flex; flex-direction: column; min-width: 0; padding: 20px clamp(24px, 4vw, 56px) 48px; }
+.mth-signup-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; max-width: 640px; margin: 0 auto; }
+.mth-signup-brand { font-family: "Fraunces", serif; font-size: 1.05rem; font-weight: 600; color: var(--mt-ink); }
+.mth-signup-back { position: relative; font-family: "Manrope", sans-serif; font-size: 0.8rem; font-weight: 600; color: var(--mt-slate); }
+.mth-signup-back::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px;
+  background: var(--mt-teal); transform: scaleX(0); transform-origin: left;
+  transition: transform 220ms cubic-bezier(.16, 1, .3, 1);
+}
+.mth-signup-back:hover { color: var(--mt-teal); }
+.mth-signup-back:hover::after { transform: scaleX(1); }
+
+.mth-signup-stage { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 28px 0 8px; }
+.mth-signup-card { width: 100%; max-width: 640px; }
+
+@media (min-width: 1181px) {
+  .mth-signup-panel { padding-left: clamp(56px, 7vw, 120px); }
+}
+
+.mth-signup-copy { margin-bottom: 18px; }
+.mth-signup-eyebrow {
+  display: inline-block; font-family: "Manrope", sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--mt-teal); margin-bottom: 8px;
+  animation: mthFadeUp 420ms cubic-bezier(.16, 1, .3, 1) both;
+}
+.mth-signup-title {
+  margin: 0 0 8px; font-family: "Fraunces", serif; font-weight: 500; font-size: clamp(1.6rem, 1.3rem + 1vw, 2.4rem);
+  line-height: 1.1; color: var(--mt-ink);
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 60ms both;
+}
+.mth-signup-subtitle {
+  margin: 0; font-family: "Manrope", sans-serif; font-size: 0.9rem; line-height: 1.5; color: var(--mt-slate);
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 110ms both;
+}
+
+.mth-signup-form { display: grid; gap: 8px; }
+
+/* Secciones del formulario: divisor sutil + rotulo tipo "eyebrow", en vez
+   de tarjetas separadas. */
+.mth-signup-section {
+  display: grid; gap: 16px; padding-top: 22px; border-top: 1px solid var(--mt-line);
+  animation: mthFadeUp 480ms cubic-bezier(.16, 1, .3, 1) 160ms both;
+}
+.mth-signup-section:first-of-type { padding-top: 0; border-top: 0; }
+.mth-signup-section-title {
+  margin: 0; font-family: "Manrope", sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--mt-teal);
+}
+
+.mth-signup-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.mth-signup-grid-2 > .mth-signup-wide { grid-column: 1 / -1; }
+
+.mth-signup-field { display: grid; gap: 8px; }
+.mth-signup-field label { font-family: "Manrope", sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--mt-ink); }
+.mth-signup-optional { font-weight: 500; color: var(--mt-slate); text-transform: none; letter-spacing: normal; }
+
+.mth-signup-input {
+  width: 100%; height: 48px; padding-inline: 14px;
+  background: var(--mt-surface); border: 1px solid var(--mt-line); border-radius: 6px;
+  font-family: "Manrope", sans-serif; font-size: 0.92rem; color: var(--mt-ink);
+}
+.mth-signup-input::placeholder { color: var(--mt-slate); opacity: 0.8; }
+.mth-signup-input:focus-visible { outline: 2px solid var(--mt-teal); outline-offset: 2px; border-color: var(--mt-teal); }
+
+.mth-signup-password-wrap { position: relative; }
+.mth-signup-password-wrap .mth-signup-input { padding-right: 56px; }
+.mth-signup-visibility {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  height: 32px; padding-inline: 10px; border: none; background: transparent;
+  font-family: "Manrope", sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--mt-teal); cursor: pointer;
+}
+.mth-signup-visibility:hover { text-decoration: underline; }
+.mth-signup-visibility:focus-visible { outline: 2px solid var(--mt-teal); outline-offset: 2px; border-radius: 4px; }
+
+/* Requisitos de contrasena: discretos y agrupados, sin tarjeta/gradiente. */
+.mth-signup-rules { display: grid; gap: 8px; }
+.mth-signup-rules p { margin: 0; font-family: "Manrope", sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--mt-ink); }
+.mth-signup-rules ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; margin: 0; padding: 0; list-style: none; }
+.mth-signup-rules li { position: relative; padding-left: 16px; font-family: "Manrope", sans-serif; font-size: 0.8rem; line-height: 1.45; color: var(--mt-slate); }
+.mth-signup-rules li::before {
+  content: ""; position: absolute; left: 0; top: 0.5em; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--mt-teal);
+}
+
+/* El feedback de crear-cuenta.html es controlado por app.js via
+   node.className = "feedback" [+ "is-error"|"is-success"] (reemplaza el
+   className completo), por eso se estiliza por ancestro en vez de una
+   clase propia en el <p> (mismo patron que login.css). */
+.mth-signup-form .feedback { margin: 4px 0 0; font-family: "Manrope", sans-serif; font-size: 0.84rem; color: var(--mt-slate); min-height: 1.2em; }
+.mth-signup-form .feedback.is-error { color: var(--mt-error); font-weight: 600; }
+.mth-signup-form .feedback.is-success { color: var(--mt-teal); font-weight: 600; }
+
+.mth-signup-submit {
+  display: flex; align-items: center; justify-content: center; margin-top: 6px;
+  height: 48px; border: 1px solid var(--mt-coral); border-radius: 6px;
+  background: var(--mt-coral); color: var(--mt-ink);
+  font-family: "Manrope", sans-serif; font-size: 0.92rem; font-weight: 700; cursor: pointer;
+}
+.mth-signup-submit:hover:not(:disabled) { background: #d9694f; border-color: #d9694f; }
+.mth-signup-submit:focus-visible { outline: 2px solid var(--mt-teal); outline-offset: 2px; }
+.mth-signup-submit:not(:disabled) span::after {
+  content: "→"; display: inline-block; margin-left: 8px;
+  transition: transform 220ms cubic-bezier(.16, 1, .3, 1);
+}
+.mth-signup-submit:hover:not(:disabled) span::after { transform: translateX(3px); }
+
+.mth-signup-footer-note { margin: 18px 0 0; text-align: center; font-family: "Manrope", sans-serif; font-size: 0.85rem; color: var(--mt-slate); }
+.mth-signup-footer-note a { color: var(--mt-teal); font-weight: 700; }
+.mth-signup-footer-note a:hover { text-decoration: underline; }
+
+@media (max-width: 1180px) {
+  .mth-signup-shell { grid-template-columns: minmax(0, 0.7fr) minmax(360px, 1fr); }
+}
+
+@media (max-width: 860px) {
+  /* overflow-x y overflow-y deben resetearse juntos: si quedan distintos
+     (p.ej. hidden + visible), la spec CSS promueve el eje "visible" a
+     "auto" automaticamente — el mismo problema que motivo el fix sticky
+     de arriba. */
+  .mth-signup-shell { display: flex; flex-direction: column; height: auto; min-height: 100vh; overflow: visible; }
+  .mth-signup-visual { order: 2; }
+  .mth-signup-visual-sticky { position: relative; top: auto; height: auto; min-height: 200px; }
+  .mth-signup-panel { order: 1; padding: 20px 16px 40px; }
+  .mth-signup-visual-content { padding: 24px 20px; max-width: none; }
+  .mth-signup-visual-title { display: none; }
+  .mth-signup-stage { padding-top: 16px; }
+}
+
+@media (max-width: 520px) {
+  .mth-signup-grid-2 { grid-template-columns: 1fr; }
+  .mth-signup-rules ul { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .mth-signup-visual-sticky { min-height: 160px; }
+}

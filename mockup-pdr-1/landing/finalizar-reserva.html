@@ -28,121 +28,127 @@
       <section class="travel-checkout-content">
         <div class="travel-checkout-secure-pill">Pago 100% seguro</div>
 
-        <article class="travel-booking-card">
-          <div class="travel-checkout-section-title">
-            <h2>Resumen de reserva</h2>
-          </div>
-
-          <div class="travel-checkout-summary">
-            <div class="travel-checkout-summary-media" data-checkout-image></div>
-
-            <div class="travel-checkout-summary-copy">
-              <strong data-checkout-tour-name>Tour destino ejemplo</strong>
-              <span data-checkout-date>09 Sep 2026</span>
-              <span data-checkout-guests>2 viajeros</span>
-            </div>
-          </div>
-
-          <div class="travel-checkout-pricing">
-            <div>
-              <span data-checkout-subtotal-label>Precio base x2</span>
-              <strong data-checkout-subtotal>$2.598.000</strong>
-            </div>
-            <div data-checkout-discount-row hidden>
-              <span>Descuentos aplicables</span>
-              <strong data-checkout-discount>-$0</strong>
-            </div>
-            <div class="travel-checkout-pricing-total">
-              <span>Valor final</span>
-              <strong data-checkout-total>$2.806.000</strong>
-            </div>
-          </div>
-        </article>
-
-        <article class="travel-booking-card">
-          <div class="travel-checkout-section-title">
-            <h2>Cliente titular</h2>
-          </div>
-          <div class="travel-companion-grid">
-            <label>Nombre completo<input type="text" required data-checkout-holder-name placeholder="Nombre completo" /></label>
-            <label>Documento de identidad<input type="text" required data-checkout-holder-document placeholder="Documento" /></label>
-          </div>
-        </article>
-
-        <article class="travel-booking-card">
-          <div class="travel-checkout-section-title">
-            <h2>Viajeros</h2>
-            <span data-checkout-companions-count>Sin acompañantes requeridos</span>
-          </div>
-          <p class="travel-transfer-reference-copy">La cantidad total de viajeros determina los acompañantes que deben registrarse. Los documentos no pueden repetirse dentro de la misma reserva.</p>
-          <div data-checkout-companions></div>
-        </article>
-
-        <article class="travel-booking-card" data-checkout-risk-section hidden>
-          <div class="travel-checkout-section-title">
-            <h2>Requisitos de actividad de riesgo</h2>
-          </div>
-          <p class="travel-transfer-reference-copy">Esta actividad requiere consentimiento informado, tipo de sangre, contacto de emergencia y restricciones físicas o movilidad reducida para cada viajero.</p>
-          <div data-checkout-risk-fields></div>
-        </article>
-
-        <article class="travel-booking-card">
-          <div class="travel-checkout-section-title">
-            <h2>Condiciones de reserva</h2>
-          </div>
-          <ul data-checkout-conditions-list></ul>
-          <label class="travel-checkout-consent"><input type="checkbox" required data-checkout-conditions-accept /> Confirmo que acepto las condiciones aplicables a esta reserva.</label>
-        </article>
-
-        <article class="travel-booking-card">
-          <div class="travel-checkout-section-title">
-            <h2>Metodo de pago</h2>
-          </div>
-
-          <div class="travel-checkout-payment-list" data-checkout-payment-list>
-            <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Transferencia">
-              <input type="radio" name="payment-method" value="bank" />
-              <div>
-                <strong>Transferencia</strong>
-                <span>Recibe los datos bancarios y confirma con comprobante.</span>
+        <div class="mt-dashboard-layout">
+          <div class="mt-dashboard-main">
+            <article class="travel-booking-card">
+              <div class="travel-checkout-section-title">
+                <h2 class="mt-h3">Cliente titular</h2>
               </div>
-            </label>
-
-            <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Efectivo">
-              <input type="radio" name="payment-method" value="cash" />
-              <div>
-                <strong>Efectivo</strong>
-                <span>El pago en efectivo será registrado por el equipo del operador según el canal acordado.</span>
+              <div class="travel-companion-grid">
+                <label>Nombre completo<input type="text" required data-checkout-holder-name placeholder="Nombre completo" /></label>
+                <label>Documento de identidad<input type="text" required data-checkout-holder-document placeholder="Documento" /></label>
               </div>
-            </label>
+            </article>
 
-            <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Abono">
-              <input type="radio" name="payment-method" value="deposit" />
-              <div>
-                <strong>Abono</strong>
-                <span>Registra un pago parcial y completa el saldo despues.</span>
+            <article class="travel-booking-card">
+              <div class="travel-checkout-section-title">
+                <h2 class="mt-h3">Viajeros</h2>
+                <span data-checkout-companions-count>Sin acompañantes requeridos</span>
               </div>
-            </label>
+              <p class="travel-transfer-reference-copy">La cantidad total de viajeros determina los acompañantes que deben registrarse. Los documentos no pueden repetirse dentro de la misma reserva.</p>
+              <div data-checkout-companions></div>
+            </article>
+
+            <article class="travel-booking-card" data-checkout-risk-section hidden>
+              <div class="travel-checkout-section-title">
+                <h2 class="mt-h3">Requisitos de actividad de riesgo</h2>
+              </div>
+              <p class="travel-transfer-reference-copy">Esta actividad requiere consentimiento informado, tipo de sangre, contacto de emergencia y restricciones físicas o movilidad reducida para cada viajero.</p>
+              <div data-checkout-risk-fields></div>
+            </article>
+
+            <article class="travel-booking-card">
+              <div class="travel-checkout-section-title">
+                <h2 class="mt-h3">Condiciones de reserva</h2>
+              </div>
+              <ul data-checkout-conditions-list></ul>
+              <label class="travel-checkout-consent"><input type="checkbox" required data-checkout-conditions-accept /> Confirmo que acepto las condiciones aplicables a esta reserva.</label>
+            </article>
+
+            <article class="travel-booking-card">
+              <div class="travel-checkout-section-title">
+                <h2 class="mt-h3">Metodo de pago</h2>
+              </div>
+
+              <div class="travel-checkout-payment-list" data-checkout-payment-list>
+                <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Transferencia">
+                  <input type="radio" name="payment-method" value="bank" />
+                  <div>
+                    <strong>Transferencia</strong>
+                    <span>Recibe los datos bancarios y confirma con comprobante.</span>
+                  </div>
+                </label>
+
+                <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Efectivo">
+                  <input type="radio" name="payment-method" value="cash" />
+                  <div>
+                    <strong>Efectivo</strong>
+                    <span>El pago en efectivo será registrado por el equipo del operador según el canal acordado.</span>
+                  </div>
+                </label>
+
+                <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Abono">
+                  <input type="radio" name="payment-method" value="deposit" />
+                  <div>
+                    <strong>Abono</strong>
+                    <span>Registra un pago parcial y completa el saldo despues.</span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="travel-companion-grid" data-checkout-deposit-fields hidden>
+                <label>Monto a abonar<input type="number" min="1" data-checkout-deposit-amount placeholder="Ej. 500000" /></label>
+                <p class="travel-transfer-reference-copy" data-checkout-deposit-hint></p>
+              </div>
+            </article>
+
+            <p class="travel-transfer-reference-copy" data-checkout-feedback aria-live="polite"></p>
           </div>
 
-          <div class="travel-companion-grid" data-checkout-deposit-fields hidden>
-            <label>Monto a abonar<input type="number" min="1" data-checkout-deposit-amount placeholder="Ej. 500000" /></label>
-            <p class="travel-transfer-reference-copy" data-checkout-deposit-hint></p>
-          </div>
-        </article>
+          <aside class="mt-dashboard-aside">
+            <article class="travel-booking-card">
+              <div class="travel-checkout-section-title">
+                <h2 class="mt-h3">Resumen de reserva</h2>
+              </div>
 
-        <article class="travel-booking-card travel-checkout-help-card">
-          <div class="travel-checkout-section-title">
-            <h2>¿Necesitas ayuda?</h2>
-          </div>
+              <div class="travel-checkout-summary">
+                <div class="travel-checkout-summary-media" data-checkout-image></div>
 
-          <div class="travel-checkout-help-copy">
-            <strong>Asistencia comercial</strong>
-            <span>El equipo del operador puede ayudarte a continuar el proceso.</span>
-          </div>
-        </article>
+                <div class="travel-checkout-summary-copy">
+                  <strong data-checkout-tour-name>Tour destino ejemplo</strong>
+                  <span data-checkout-date>09 Sep 2026</span>
+                  <span data-checkout-guests>2 viajeros</span>
+                </div>
+              </div>
 
-        <p class="travel-transfer-reference-copy" data-checkout-feedback aria-live="polite"></p>
+              <div class="travel-checkout-pricing">
+                <div>
+                  <span data-checkout-subtotal-label>Precio base x2</span>
+                  <strong data-checkout-subtotal>$2.598.000</strong>
+                </div>
+                <div data-checkout-discount-row hidden>
+                  <span>Descuentos aplicables</span>
+                  <strong data-checkout-discount>-$0</strong>
+                </div>
+                <div class="travel-checkout-pricing-total">
+                  <span>Valor final</span>
+                  <strong class="mt-summary-metric-value" data-checkout-total>$2.806.000</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="travel-booking-card travel-checkout-help-card">
+              <div class="travel-checkout-section-title">
+                <h2 class="mt-h3">¿Necesitas ayuda?</h2>
+              </div>
+
+              <div class="travel-checkout-help-copy">
+                <strong>Asistencia comercial</strong>
+                <span>El equipo del operador puede ayudarte a continuar el proceso.</span>
+              </div>
+            </article>
+          </aside>
+        </div>
       </section>
     </main>
 
@@ -163,7 +169,7 @@
         <strong data-checkout-selection>09 Sep 2026 - 2 viajeros</strong>
       </div>
 
-      <button type="button" class="travel-booking-continue" data-checkout-pay>
+      <button type="button" class="travel-booking-continue mt-btn mt-btn-primary" data-checkout-pay>
         Pagar ahora
       </button>
     </aside>

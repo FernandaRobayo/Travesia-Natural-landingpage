@@ -56,93 +56,111 @@
         </div>
       </section>
 
-      <section class="travel-dashboard-section" aria-labelledby="acciones-rapidas">
-        <div class="travel-dashboard-section-head">
-          <h2 id="acciones-rapidas">Acciones rapidas</h2>
-        </div>
+      <div class="mt-dashboard-layout">
+        <div class="mt-dashboard-main">
+          <section class="travel-dashboard-section" aria-labelledby="mis-reservas">
+            <div class="travel-dashboard-section-head travel-dashboard-section-head-split">
+              <h2 id="mis-reservas">Mis reservas</h2>
+              <a class="travel-dashboard-section-action" href="tours.html" data-route="tours" data-booking-section-action hidden>Nueva reserva</a>
+            </div>
 
-        <div class="travel-dashboard-actions-grid">
-          <a class="travel-dashboard-action-card" href="tours.html" data-route="tours" data-action="new-reservation">
-            <span>Nueva reserva</span>
-            <strong>Inicia una nueva reserva</strong>
-          </a>
+            <div class="travel-dashboard-reservation-grid">
+              <article id="reserva-activa" class="travel-dashboard-reservation-card" data-booking-result>
+                <div class="travel-dashboard-reservation-main">
+                  <div class="travel-dashboard-reservation-copy">
+                    <strong data-booking-experience>No tienes reservas activas</strong>
+                    <p data-booking-dates>Explora el catálogo y selecciona los servicios para comenzar una nueva reserva.</p>
+                    <small data-booking-code hidden></small>
+                  </div>
 
-          <a class="travel-dashboard-action-card" href="gastronomia.html" data-route="gastronomy" data-action="gastronomy">
-            <span>Gastronomía</span>
-            <strong>Explora opciones gastronómicas disponibles.</strong>
-          </a>
-
-          <a class="travel-dashboard-action-card" href="finalizar-reserva.html" data-action="continue-payment" hidden>
-            <span>Continuar pago</span>
-            <strong data-continue-payment-copy>Continúa el pago pendiente de una de tus reservas.</strong>
-          </a>
-
-          <a class="travel-dashboard-action-card" href="mis-pagos.html" data-action="my-payments">
-            <span>Mis pagos</span>
-            <strong>Consulta pagos, abonos, saldos y soportes de tus reservas.</strong>
-          </a>
-        </div>
-      </section>
-
-      <section class="travel-dashboard-section" aria-labelledby="descuentos-vigentes">
-        <div class="travel-dashboard-section-head">
-          <h2 id="descuentos-vigentes">Descuentos vigentes</h2>
-        </div>
-
-        <div class="travel-dashboard-promos">
-          <article class="travel-dashboard-promo promo-cyan">
-            <span class="travel-dashboard-promo-tag">20% de descuento</span>
-            <strong>Tour destino ejemplo</strong>
-            <p>Válido hasta 30 sep 2026</p>
-            <a href="detalle-tour.html" data-route="tourDetail">Ver detalle</a>
-          </article>
-
-          <article class="travel-dashboard-promo promo-sand">
-            <span class="travel-dashboard-promo-tag">15% de descuento</span>
-            <strong>Alojamiento ejemplo</strong>
-            <p>Reserva anticipada</p>
-            <a href="alojamiento.html" data-route="lodging">Ver detalle</a>
-          </article>
-        </div>
-      </section>
-
-      <section class="travel-dashboard-section" aria-labelledby="mis-reservas">
-        <div class="travel-dashboard-section-head travel-dashboard-section-head-split">
-          <h2 id="mis-reservas">Mis reservas</h2>
-          <a class="travel-dashboard-section-action" href="tours.html" data-route="tours" data-booking-section-action hidden>Nueva reserva</a>
-        </div>
-
-        <div class="travel-dashboard-reservation-grid">
-          <article id="reserva-activa" class="travel-dashboard-reservation-card" data-booking-result>
-            <div class="travel-dashboard-reservation-main">
-              <div class="travel-dashboard-reservation-copy">
-                <strong data-booking-experience>No tienes reservas activas</strong>
-                <p data-booking-dates>Explora el catálogo y selecciona los servicios para comenzar una nueva reserva.</p>
-                <small data-booking-code hidden></small>
-              </div>
-
-              <div class="travel-dashboard-reservation-status" data-booking-status-block hidden>
-                <span class="travel-dashboard-status-badge" data-booking-status></span>
-                <small data-booking-travelers></small>
-                <div class="travel-dashboard-reservation-values">
-                  <strong data-booking-projected-value></strong>
-                  <small data-booking-discount-value hidden></small>
-                  <strong data-booking-final-value></strong>
+                  <div class="travel-dashboard-reservation-status" data-booking-status-block hidden>
+                    <span class="travel-dashboard-status-badge" data-booking-status></span>
+                    <small data-booking-travelers></small>
+                    <div class="travel-dashboard-reservation-values">
+                      <strong data-booking-projected-value></strong>
+                      <small data-booking-discount-value hidden></small>
+                      <strong data-booking-final-value></strong>
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                <div class="travel-dashboard-reservation-actions">
+                  <a class="travel-dashboard-primary-action mt-btn mt-btn-primary" href="tours.html" data-route="tours" data-booking-primary-action>
+                    Crear reserva
+                  </a>
+                  <a class="travel-dashboard-section-action mt-btn mt-btn-ghost" href="mis-reservas.html" data-view-reservations-link>
+                    Ver mis reservas
+                  </a>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="travel-dashboard-section" aria-labelledby="acciones-rapidas">
+            <div class="travel-dashboard-section-head">
+              <h2 id="acciones-rapidas">Acciones rapidas</h2>
             </div>
 
-            <div class="travel-dashboard-reservation-actions">
-              <a class="travel-dashboard-primary-action" href="tours.html" data-route="tours" data-booking-primary-action>
-                Crear reserva
+            <div class="mt-divider-list">
+              <a class="mt-divider-list-item" href="tours.html" data-route="tours" data-action="new-reservation">
+                <span class="mt-divider-list-icon" aria-hidden="true">NR</span>
+                <span class="mt-divider-list-copy">
+                  <strong>Nueva reserva</strong>
+                  <span>Inicia una nueva reserva</span>
+                </span>
               </a>
-              <a class="travel-dashboard-section-action" href="mis-reservas.html" data-view-reservations-link>
-                Ver mis reservas
+
+              <a class="mt-divider-list-item" href="gastronomia.html" data-route="gastronomy" data-action="gastronomy">
+                <span class="mt-divider-list-icon" aria-hidden="true">GA</span>
+                <span class="mt-divider-list-copy">
+                  <strong>Gastronomía</strong>
+                  <span>Explora opciones gastronómicas disponibles.</span>
+                </span>
+              </a>
+
+              <a class="mt-divider-list-item" href="finalizar-reserva.html" data-action="continue-payment" hidden>
+                <span class="mt-divider-list-icon" aria-hidden="true">CP</span>
+                <span class="mt-divider-list-copy">
+                  <strong>Continuar pago</strong>
+                  <span data-continue-payment-copy>Continúa el pago pendiente de una de tus reservas.</span>
+                </span>
+              </a>
+
+              <a class="mt-divider-list-item" href="mis-pagos.html" data-action="my-payments">
+                <span class="mt-divider-list-icon" aria-hidden="true">MP</span>
+                <span class="mt-divider-list-copy">
+                  <strong>Mis pagos</strong>
+                  <span>Consulta pagos, abonos, saldos y soportes de tus reservas.</span>
+                </span>
               </a>
             </div>
-          </article>
+          </section>
         </div>
-      </section>
+
+        <aside class="mt-dashboard-aside">
+          <section class="travel-dashboard-section" aria-labelledby="descuentos-vigentes">
+            <div class="travel-dashboard-section-head">
+              <h2 id="descuentos-vigentes">Descuentos vigentes</h2>
+            </div>
+
+            <div class="travel-dashboard-promos">
+              <article class="travel-dashboard-promo promo-cyan">
+                <span class="travel-dashboard-promo-tag">20% de descuento</span>
+                <strong>Tour destino ejemplo</strong>
+                <p>Válido hasta 30 sep 2026</p>
+                <a href="detalle-tour.html" data-route="tourDetail">Ver detalle</a>
+              </article>
+
+              <article class="travel-dashboard-promo promo-sand">
+                <span class="travel-dashboard-promo-tag">15% de descuento</span>
+                <strong>Alojamiento ejemplo</strong>
+                <p>Reserva anticipada</p>
+                <a href="alojamiento.html" data-route="lodging">Ver detalle</a>
+              </article>
+            </div>
+          </section>
+        </aside>
+      </div>
 
       <section class="travel-dashboard-section" aria-labelledby="recomendados">
         <div class="travel-dashboard-section-head">

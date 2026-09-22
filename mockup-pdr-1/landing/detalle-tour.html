@@ -15,26 +15,30 @@
   <body data-screen="tour-detail" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
+    <header class="mt-site-header">
+      <div class="mt-container mt-site-header-inner">
+      <a class="mt-site-header-brand" href="index.html" data-route="home">MULTI<span>TOUR</span></a>
+      <nav class="mt-site-header-nav" aria-label="Navegacion principal del cliente">
+        <a class="is-active" href="tours.html" data-route="tours">Explorar</a>
+        <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+        <a href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
+      </nav>
+      <div class="mt-site-header-actions">
+        <a class="mt-btn mt-btn-ghost" href="panel-cliente.html" data-route="dashboard">Mis reservas</a>
+        <a class="mt-btn mt-btn-ghost" href="profile.html" data-route="profile">Perfil</a>
+      </div>
+      </div>
+    </header>
+
     <main id="contenido" class="travel-detail-shell">
-      <header class="travel-tours-header">
-        <a class="travel-tours-brand" href="index.html" data-route="home">[Tu Marca]</a>
-
-        <nav class="travel-tours-nav" aria-label="Navegacion principal del cliente">
-          <a class="is-active" href="tours.html" data-route="tours">Explorar</a>
-          <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
-          <a href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
-          <a href="panel-cliente.html" data-route="dashboard">Reservas</a>
-          <a href="profile.html" data-route="profile">Perfil</a>
-        </nav>
-      </header>
-
-      <section class="travel-detail-topbar">
-        <a class="travel-tours-back" href="tours.html" data-route="tours">
-          <span aria-hidden="true">&larr;</span>
-          <span data-tour-back-label>Volver a tours</span>
-        </a>
-
-        <p class="travel-detail-screen-title" data-tour-field="detailTitle">Detalle del tour</p>
+      <section class="travel-detail-topbar mt-page-header">
+        <div class="mt-page-header-main">
+          <a class="travel-tours-back" href="tours.html" data-route="tours">
+            <span aria-hidden="true">&larr;</span>
+            <span data-tour-back-label>Volver a tours</span>
+          </a>
+          <p class="travel-detail-screen-title mt-page-header-eyebrow" data-tour-field="detailTitle">Detalle del tour</p>
+        </div>
       </section>
 
       <div class="travel-detail-layout">
@@ -43,7 +47,7 @@
             <div class="travel-detail-copy">
               <div class="travel-detail-copy-head">
                 <div>
-                  <h1 data-tour-field="name">Tour</h1>
+                  <h1 class="mt-h1" data-tour-field="name">Tour</h1>
                 </div>
               </div>
             </div>
@@ -95,6 +99,27 @@
         </aside>
       </div>
     </main>
+
+    <footer class="mt-site-footer">
+      <div class="mt-site-footer-grid">
+        <div>
+          <span class="mt-site-footer-brand">MULTI<span>TOUR</span></span>
+          <p class="mt-body" style="color: #9fb3ac; max-width: 34ch;">Plataforma para descubrir, reservar y gestionar experiencias de turismo con operadores locales.</p>
+        </div>
+        <nav class="mt-site-footer-col" aria-label="Explorar">
+          <strong>Explorar</strong>
+          <a href="tours.html" data-route="tours">Tours</a>
+          <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+          <a href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
+        </nav>
+        <nav class="mt-site-footer-col" aria-label="Cuenta">
+          <strong>Cuenta</strong>
+          <a href="login.html" data-route="login">Ingresar</a>
+          <a href="crear-cuenta.html" data-route="crear-cuenta">Crear cuenta</a>
+        </nav>
+      </div>
+      <p class="mt-site-footer-bottom">© 2026 Multi Tour. Plataforma para operadores de turismo.</p>
+    </footer>
 
     <script src="app.js"></script>
   </body>
