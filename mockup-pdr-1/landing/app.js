@@ -70,8 +70,8 @@ const THEMES = {
       index: "Indice del Mockup | Multitour",
       login: "Login | Multitour",
       signup: "Crear cuenta | Multitour",
-      recover: "Recuperar contrasena | Multitour",
-      reset: "Nueva contrasena | Multitour",
+      recover: "Recuperar contraseña | Multitour",
+      reset: "Nueva contraseña | Multitour",
       "platform-admin": "Plataforma | Multitour",
       "platform-operators": "Operadores | Multitour",
       "platform-create": "Crear operador | Multitour",
@@ -219,6 +219,7 @@ function applyRoutes(theme) {
     signup: "crear-cuenta.html",
     recover: "recuperar.html",
     reset: "nueva-contrasena.html",
+    clientReprogrammingProposal: "propuesta-reprogramacion.html",
     platformAdmin: "admin-plataforma.html",
     platformOperators: "admin-operadores.html",
     platformCreate: "admin-crear-operador.html",
@@ -440,7 +441,7 @@ function getMvpPasswordPolicyError(password) {
   const hasSpecialCharacter = /[^A-Za-z0-9\s]/.test(password);
 
   if (hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSpecialCharacter) return "";
-  return "La contrasena debe tener minimo 8 caracteres, una mayuscula, una minuscula, un numero y un caracter especial.";
+  return "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.";
 }
 
 function setupLoginForm(themeConfig, theme) {
@@ -795,61 +796,64 @@ function setupRoleSwitch() {
   });
 }
 
-function setupRecoverForm(theme) {
-  const form = document.querySelector('[data-form="recover"]');
-  if (!form) return;
-
-  const identifyStep = form.querySelector('[data-recover-step="identify"]');
-  const resetStep = form.querySelector('[data-recover-step="reset"]');
-  const submitLabel = form.querySelector("[data-recover-submit] span");
-  const emailStatus = form.querySelector("[data-recover-email-status]");
-  let isVerificationStep = false;
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    if (!isVerificationStep) {
-      const email = form.querySelector("#recover-email");
-      if (!email.value.trim()) {
-        setFeedback("recover", "Completa el correo electronico para continuar.", "is-error");
+function setupAccountRecovery(theme) {
+  const recoverForm = document.querySelector("[data-recover-form]");
+  if (recoverForm) {
+    const email = recoverForm.querySelector("[name=\"email\"]");
+    const feedback = recoverForm.querySelector("[data-recover-feedback]");
+    const simulateLink = recoverForm.querySelector("[data-recover-simulate]");
+    recoverForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!email?.value.trim() || !email.validity.valid) {
+        if (feedback) feedback.textContent = "Ingresa un correo electrónico válido para continuar.";
         return;
       }
+      if (feedback) feedback.textContent = "Si existe una cuenta con ese correo, enviaremos un enlace de un solo uso que vence en 30 minutos.";
+      if (simulateLink) simulateLink.hidden = false;
+    });
+  }
 
-      isVerificationStep = true;
-      identifyStep.hidden = true;
-      resetStep.hidden = false;
-      emailStatus.textContent = `Ingresa el codigo de verificacion asociado a ${email.value.trim()}.`;
-      submitLabel.textContent = "Guardar nueva contrasena";
-      setFeedback("recover", "", "");
-      form.querySelector("#recover-code")?.focus();
+  const resetForm = document.querySelector("[data-reset-form]");
+  if (!resetForm) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const state = params.get("estado");
+  const feedback = resetForm.querySelector("[data-reset-feedback]");
+  const loginLink = resetForm.querySelector("[data-reset-login]");
+  const requestNewLink = resetForm.querySelector("[data-reset-request-new]");
+  const password = resetForm.querySelector("[name=\"password\"]");
+  const confirm = resetForm.querySelector("[name=\"password-confirmation\"]");
+
+  if (state === "vencido" || state === "usado") {
+    if (feedback) feedback.textContent = state === "vencido"
+      ? "Este enlace de recuperación venció. Solicita uno nuevo para continuar."
+      : "Este enlace de recuperación ya fue usado. Solicita uno nuevo para continuar.";
+    resetForm.hidden = true;
+    if (requestNewLink) requestNewLink.hidden = false;
+    return;
+  }
+
+  resetForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = password?.value.trim() || "";
+    const confirmation = confirm?.value.trim() || "";
+    if (!value || !confirmation) {
+      if (feedback) feedback.textContent = "Completa ambos campos para continuar.";
       return;
     }
-
-    const code = form.querySelector("#recover-code");
-    const password = form.querySelector("#recover-password");
-    const confirm = form.querySelector("#recover-confirm");
-
-    if (!code.value.trim() || !password.value.trim() || !confirm.value.trim()) {
-      setFeedback("recover", "Completa el codigo y la nueva contrasena para continuar.", "is-error");
+    if (value !== confirmation) {
+      if (feedback) feedback.textContent = "Las contraseñas no coinciden.";
       return;
     }
-
-    const passwordPolicyError = getMvpPasswordPolicyError(password.value);
-    if (passwordPolicyError) {
-      setFeedback("recover", passwordPolicyError, "is-error");
+    const policyError = getMvpPasswordPolicyError(value);
+    if (policyError) {
+      if (feedback) feedback.textContent = policyError;
       return;
     }
-
-    if (password.value !== confirm.value) {
-      setFeedback("recover", "Las contrasenas no coinciden.", "is-error");
-      return;
-    }
-
-    setFeedback("recover", "La nueva contrasena se guardo en esta simulacion.", "is-success");
-
-    window.setTimeout(() => {
-      window.location.href = withTheme("login.html", theme);
-    }, 900);
+    if (feedback) feedback.textContent = "Tu contraseña fue actualizada. Se cerraron las sesiones activas.";
+    const submitButton = resetForm.querySelector("button[type=submit]");
+    if (submitButton) submitButton.hidden = true;
+    if (loginLink) loginLink.hidden = false;
   });
 }
 
@@ -1308,12 +1312,19 @@ function setupGastronomyDetail(theme) {
   const params = new URLSearchParams(window.location.search);
   const venueKey = params.get("venue");
   const sourceKey = params.get("source") || "gastronomy";
+  const isLodging = sourceKey === "lodging" || venueKey === "hotel-mirador";
   // BUG corregido: esta pantalla mostraba un establecimiento fijo (o "La Maison Botanica"
   // como fallback) con menu/calificacion/resenas inventados. Ahora busca el establecimiento
   // asociado REAL por id; si no existe o ya no esta activo, se informa en vez de inventar uno.
-  const establishment = getOperatorActiveAssociatedEstablishments("restaurant").find(
+  const establishment = getOperatorActiveAssociatedEstablishments(isLodging ? "hotel" : "restaurant").find(
     (item) => item.id === venueKey,
-  );
+  ) || (venueKey === "hotel-mirador" ? {
+    name: "Ecohotel Mirador",
+    description: "Contacto: reservas@ecohotelmirador.co · +57 300 555 0184",
+  } : venueKey === "sabores-montana" ? {
+    name: "Sabores de la Montaña",
+    description: "Contacto: reservas@saboresmontana.co · +57 310 555 0220 · Plaza principal, local 4",
+  } : null);
   const themeConfig = THEMES[theme];
   const sourceMap = {
     gastronomy: {
@@ -1323,6 +1334,10 @@ function setupGastronomyDetail(theme) {
     restaurants: {
       path: "restaurantes.html",
       label: "Volver a restaurantes",
+    },
+    lodging: {
+      path: "alojamiento.html",
+      label: "Volver a alojamiento",
     },
   };
   const sourceConfig = sourceMap[sourceKey] || sourceMap.gastronomy;
@@ -1335,6 +1350,9 @@ function setupGastronomyDetail(theme) {
 
   if (!establishment) {
     document.title = `Establecimiento no disponible | ${themeConfig.titlePrefix}`;
+    document.querySelector("[data-venue-field=detailTitle]")?.replaceChildren(document.createTextNode("Establecimiento no disponible"));
+    document.querySelector("[data-venue-field=name]")?.replaceChildren(document.createTextNode("Establecimiento no disponible"));
+    document.querySelector("[data-venue-field=description]")?.replaceChildren(document.createTextNode("Este establecimiento ya no está activo o no existe."));
     const intro = document.querySelector(".travel-detail-intro");
     if (intro) intro.innerHTML = '<div class="travel-detail-copy"><h1>Establecimiento no disponible</h1><div class="travel-detail-description">Este establecimiento ya no está activo o no existe.</div></div>';
     document.querySelector(".travel-detail-gallery")?.remove();
@@ -1343,7 +1361,7 @@ function setupGastronomyDetail(theme) {
     return;
   }
 
-  const categoryLabel = "Restaurante asociado";
+  const categoryLabel = isLodging ? "Alojamiento asociado" : "Restaurante asociado";
   document.title = `${establishment.name} | ${themeConfig.titlePrefix}`;
 
   const fieldValues = {
@@ -1853,6 +1871,9 @@ function setupTourCheckout(theme) {
     }
   }
   const holderDocumentInput = document.querySelector("[data-checkout-holder-document]");
+  const holderPhoneInput = document.querySelector("[data-checkout-holder-phone]");
+  const holderEmailInput = document.querySelector("[data-checkout-holder-email]");
+  const holderBirthDateInput = document.querySelector("[data-checkout-holder-birthdate]");
 
   // Viajeros (PDR: total viajeros = titular + acompañantes). Mismos campos minimos ya
   // respaldados por el modelo/PDR (nombre, documento, fecha de nacimiento), iguales a los
@@ -1914,31 +1935,30 @@ function setupTourCheckout(theme) {
     conditionsListNode.innerHTML = (booking.conditions || []).map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
   }
 
-  // Metodo de pago: solo las modalidades realmente habilitadas para este tour (Fase 1:
-  // Transferencia, Efectivo, Abono), nunca todas por defecto.
-  const allowedPayments = new Set(booking.payments || DEFAULT_TOUR_PAYMENT_METHODS);
+  // PDR v1.9: tipo y medio de pago son campos independientes; ambos quedan habilitados en esta demo.
+  const paymentConfig = { types: ["Pago total", "Abono"], media: ["Transferencia", "Efectivo"] };
   const depositFields = document.querySelector("[data-checkout-deposit-fields]");
-  document.querySelectorAll("[data-payment-option]").forEach((option) => {
-    const input = option.querySelector('input[type="radio"]');
-    option.hidden = !allowedPayments.has(option.dataset.paymentValue);
-    if (!input) return;
-    const syncState = () => option.classList.toggle("is-active", input.checked);
-    input.addEventListener("change", () => {
-      document.querySelectorAll("[data-payment-option]").forEach((node) => node.classList.remove("is-active"));
-      syncState();
-      if (depositFields) {
-        depositFields.hidden = input.value !== "deposit";
-        const hint = depositFields.querySelector("[data-checkout-deposit-hint]");
-        if (hint) hint.textContent = `El saldo pendiente se calcula sobre el valor final: ${formatCOP(finalValue)}.`;
-      }
-    });
-    syncState();
-  });
-  const firstAllowedInput = document.querySelector("[data-payment-option]:not([hidden]) input[type='radio']");
-  if (firstAllowedInput) {
-    firstAllowedInput.checked = true;
-    firstAllowedInput.dispatchEvent(new Event("change"));
-  }
+  const syncPaymentCopy = () => {
+    const selectedType = document.querySelector('input[name="payment-type"]:checked')?.value || "";
+    const selectedMedium = document.querySelector('input[name="payment-medium"]:checked')?.value || "";
+    document.querySelectorAll("[data-payment-type-option]").forEach((option) => { option.hidden = !paymentConfig.types.includes(option.dataset.paymentTypeValue); });
+    document.querySelectorAll("[data-payment-medium-option]").forEach((option) => { option.hidden = !paymentConfig.media.includes(option.dataset.paymentMediumValue); });
+    if (depositFields) depositFields.hidden = selectedType !== "deposit";
+    const depositHint = depositFields?.querySelector("[data-checkout-deposit-hint]");
+    if (depositHint) depositHint.textContent = selectedType === "deposit" ? "El abono mínimo se calcula sobre el valor final después de aplicar descuentos. El saldo pendiente se calcula con base en el valor efectivamente abonado." : "";
+    const cashHint = document.querySelector("[data-checkout-cash-hint]");
+    if (cashHint) cashHint.hidden = selectedMedium !== "cash";
+    const transferHint = document.querySelector("[data-checkout-transfer-hint]");
+    if (transferHint) transferHint.hidden = selectedMedium !== "bank";
+    const payButton = document.querySelector("[data-checkout-pay]");
+    if (payButton) payButton.textContent = selectedMedium === "bank" ? "Continuar al pago" : selectedMedium === "cash" ? "Confirmar reserva" : "Continuar";
+  };
+  document.querySelectorAll('input[name="payment-type"], input[name="payment-medium"]').forEach((input) => input.addEventListener("change", syncPaymentCopy));
+  const firstType = document.querySelector('input[name="payment-type"]');
+  const firstMedium = document.querySelector('input[name="payment-medium"]');
+  if (firstType) firstType.checked = true;
+  if (firstMedium) firstMedium.checked = true;
+  syncPaymentCopy();
 
   const feedbackNode = document.querySelector("[data-checkout-feedback]");
   const payButton = document.querySelector("[data-checkout-pay]");
@@ -1951,10 +1971,15 @@ function setupTourCheckout(theme) {
       .replace(/[^a-z0-9]/g, "");
 
   payButton.addEventListener("click", () => {
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "";
+    const selectedType = document.querySelector('input[name="payment-type"]:checked')?.value || "";
+    const selectedMedium = document.querySelector('input[name="payment-medium"]:checked')?.value || "";
     const conditionsAccepted = Boolean(document.querySelector("[data-checkout-conditions-accept]")?.checked);
     const holderName = holderNameInput?.value.trim() || "";
     const holderDocument = holderDocumentInput?.value.trim() || "";
+    const holderPhone = holderPhoneInput?.value.trim() || "";
+    const holderEmail = holderEmailInput?.value.trim() || "";
+    const holderBirthDate = holderBirthDateInput?.value || "";
+    const termsAccepted = Boolean(document.querySelector("[data-checkout-terms-accept]")?.checked);
 
     const companions = Array.from({ length: companionsCount }, (_, index) => ({
       name: document.querySelector(`[data-companion-name="${index}"]`)?.value.trim() || "",
@@ -1962,8 +1987,8 @@ function setupTourCheckout(theme) {
       birthDate: document.querySelector(`[data-companion-birthdate="${index}"]`)?.value || "",
     }));
 
-    if (!holderName || !holderDocument) {
-      if (feedbackNode) feedbackNode.textContent = "Completa el nombre y documento del titular.";
+    if (!holderName || !holderDocument || !holderPhone || !holderEmail || !holderBirthDate) {
+      if (feedbackNode) feedbackNode.textContent = "Completa nombre, documento, teléfono, correo y fecha de nacimiento del titular.";
       return;
     }
     if (companions.some((companion) => !companion.name || !companion.document || !companion.birthDate)) {
@@ -1988,17 +2013,21 @@ function setupTourCheckout(theme) {
         }
       }
     }
+    if (!termsAccepted) {
+      if (feedbackNode) feedbackNode.textContent = "Debes aceptar los términos y condiciones para continuar.";
+      return;
+    }
     if (!conditionsAccepted) {
       if (feedbackNode) feedbackNode.textContent = "Debes aceptar las condiciones aplicables para continuar.";
       return;
     }
-    if (!selectedMethod) {
-      if (feedbackNode) feedbackNode.textContent = "Selecciona una modalidad de pago.";
+    if (!selectedType || !selectedMedium) {
+      if (feedbackNode) feedbackNode.textContent = "Selecciona el tipo y el medio de pago.";
       return;
     }
 
     let depositAmount = 0;
-    if (selectedMethod === "deposit") {
+    if (selectedType === "deposit") {
       depositAmount = Number(document.querySelector("[data-checkout-deposit-amount]")?.value || 0);
       if (!depositAmount || depositAmount <= 0 || depositAmount > finalValue) {
         if (feedbackNode) feedbackNode.textContent = "Ingresa un monto de abono válido (mayor a cero y hasta el valor final).";
@@ -2021,15 +2050,20 @@ function setupTourCheckout(theme) {
       holderDocument,
       companions,
       transportSelected: booking.transportSelected || "",
-      method: selectedMethod === "bank" ? "Transferencia" : selectedMethod === "cash" ? "Efectivo" : "Abono",
+      method: selectedMedium === "bank" ? "Transferencia" : "Efectivo",
+      paymentType: selectedType === "deposit" ? "Abono" : "Pago total",
+      paymentMedium: selectedMedium === "bank" ? "Transferencia" : "Efectivo",
+      holderPhone,
+      holderEmail,
+      holderBirthDate,
     };
 
     // PDR v1.7.1 (lineas 628-630): ninguna modalidad confirma la reserva automaticamente al
     // crearla. Transferencia requiere soporte + validacion operativa; Efectivo requiere
     // condicion parametrizada o dinero recibido; Abono requiere el abono minimo
     // parametrizado. Sin esas condiciones cumplidas aqui, la reserva queda Pendiente de pago.
-    if (selectedMethod === "bank") {
-      const pendingBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago" };
+    if (selectedMedium === "bank") {
+      const pendingBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago", receiptStatus: "En validación", financialStatus: "Sin pago" };
       window.localStorage.setItem(successStorageKey, JSON.stringify(pendingBooking));
       window.localStorage.setItem(storageKey, JSON.stringify(pendingBooking));
       recordClientReservation(pendingBooking);
@@ -2038,8 +2072,8 @@ function setupTourCheckout(theme) {
       return;
     }
 
-    if (selectedMethod === "cash") {
-      const cashBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago" };
+    if (selectedMedium === "cash") {
+      const cashBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago", financialStatus: "Sin pago" };
       window.localStorage.setItem(storageKey, JSON.stringify(cashBooking));
       recordClientReservation(cashBooking);
       window.localStorage.removeItem(checkoutStorageKey);
@@ -2051,6 +2085,8 @@ function setupTourCheckout(theme) {
       ...finalBooking,
       status: "Pendiente de pago",
       paymentStatus: "Parcial",
+      receiptStatus: "Aprobado",
+      financialStatus: "Parcial",
       paid: formatCOP(depositAmount),
       balance: formatCOP(finalValue - depositAmount),
       paymentHistory: [{ amount: depositAmount, date: new Date().toISOString() }],
@@ -2187,6 +2223,19 @@ function setupTourPaymentFailed(theme) {
 
   if (retryLink) retryLink.setAttribute("href", checkoutHref);
   if (methodLink) methodLink.setAttribute("href", checkoutHref);
+
+  if (booking?.paymentMethod === "bank" || booking?.method === "Transferencia" || params.get("origin") === "transfer" || params.has("motivo")) {
+    const rejected = params.get("motivo") === "rechazado";
+    const title = rejected ? "Comprobante rechazado" : "Comprobante no recibido";
+    document.title = `${title} | ${THEMES[theme].titlePrefix}`;
+    document.querySelector("[data-failed-title]")?.replaceChildren(document.createTextNode(title));
+    const statusNode = document.querySelector("[data-failed-status]");
+    const message = document.querySelector("[data-failed-message]");
+    if (statusNode) statusNode.textContent = rejected ? "Rechazado" : "Error técnico";
+    if (message) message.textContent = rejected
+      ? "El comprobante fue rechazado. Revisa el estado de tu reserva."
+      : "No pudimos recibir o procesar el comprobante. Revisa el archivo e inténtalo de nuevo; el estado de la reserva sigue pendiente de pago.";
+  }
 }
 
 function setupTourPaymentTransfer(theme) {
@@ -2243,10 +2292,30 @@ function setupTourPaymentTransfer(theme) {
   const uploadButton = document.querySelector("[data-transfer-upload]");
   if (!uploadButton) return;
 
+  const fileInput = document.querySelector("[data-transfer-file-input]");
+  const feedback = document.querySelector("[data-transfer-file-feedback]");
+  const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+  const allowedExtension = /\.(pdf|jpe?g|png)$/i;
+  const validateFile = () => {
+    const file = fileInput?.files?.[0];
+    if (!file) {
+      if (feedback) feedback.textContent = "Selecciona un comprobante para continuar.";
+      return false;
+    }
+    if (!allowedTypes.includes(file.type) || !allowedExtension.test(file.name) || file.size > 5 * 1024 * 1024) {
+      if (feedback) feedback.textContent = "El comprobante debe ser PDF, JPG, JPEG o PNG y no superar 5 MB.";
+      return false;
+    }
+    if (feedback) feedback.textContent = "Archivo válido. El comprobante quedará En validación hasta su revisión.";
+    return true;
+  };
+  fileInput?.addEventListener("change", validateFile);
+
   // BUG corregido: subir el comprobante NO confirma el pago automaticamente (PDR linea 628:
   // requiere ademas validacion operativa de recepcion). La reserva queda registrada con
   // estado economico "En validación" hasta esa validacion.
   uploadButton.addEventListener("click", () => {
+    if (!validateFile()) return;
     const pendingBooking = {
       ...booking,
       savedAt: new Date().toLocaleDateString("es-CO"),
@@ -2442,6 +2511,25 @@ function setupDashboardBooking() {
     syncContinuePayment(isActiveBooking ? booking : null);
 
     if (!isActiveBooking) {
+      const demoActive = getClientDemoReservations().filter((item) => ["Pendiente de pago", "Confirmada"].includes(item.status));
+      if (demoActive.length) {
+        const pending = demoActive.filter((item) => item.status === "Pendiente de pago").length;
+        const confirmed = demoActive.filter((item) => item.status === "Confirmada").length;
+        experienceNode.textContent = demoActive.length + (demoActive.length === 1 ? " reserva activa" : " reservas activas");
+        datesNode.textContent = [pending ? pending + " Pendiente de pago" : "", confirmed ? confirmed + " Confirmada" : ""].filter(Boolean).join(" · ");
+        codeNode.textContent = demoActive.map((item) => item.code).join(" · ");
+        codeNode.hidden = false;
+        statusBlock.hidden = false;
+        statusNode.textContent = "Consulta en Mis reservas";
+        travelersNode.textContent = "Reservas propias";
+        projectedValueNode.textContent = "";
+        finalValueNode.textContent = "";
+        discountValueNode.hidden = true;
+        sectionAction.hidden = true;
+        bookingCard.classList.remove("is-empty");
+        setAction(primaryAction, "Ver mis reservas", "mis-reservas.html", "clientReservations");
+        return;
+      }
       experienceNode.textContent = "No tienes reservas activas";
       datesNode.textContent = "Explora el catálogo y selecciona los servicios para comenzar una nueva reserva.";
       codeNode.hidden = true;
@@ -2451,7 +2539,6 @@ function setupDashboardBooking() {
       setAction(primaryAction, "Crear reserva", "tours.html", "tours");
       return;
     }
-
     experienceNode.textContent = booking.experience;
     datesNode.textContent = `${formatDate(booking.startDate)} - ${formatDate(booking.endDate)}`;
     codeNode.textContent = `Reserva: ${booking.code}`;
@@ -2529,6 +2616,41 @@ function setupDashboardBooking() {
   }
 }
 
+// Fuente única de reservas de demostración del portal cliente (Bloque A).
+// El Bloque B podrá reutilizarla para alinear las pantallas administrativas.
+const DEMO_RESERVATIONS = Object.freeze([
+  { code: "RES-1843", tour: "Ruta Andina", departure: "18 sep 2026 · 06:30", travelers: 2, status: "Pendiente de pago", receiptStatus: "En validación", financialStatus: "Sin pago", paymentType: "Pago total", paymentMedium: "Transferencia", value: 1299000, paid: 0, balance: 1299000, reprogrammingMark: "" },
+  { code: "RES-1844", tour: "Tour de ejemplo", departure: "20 sep 2026 · 07:00", travelers: 2, status: "Confirmada", receiptStatus: "Aprobado", financialStatus: "Abono recibido", paymentType: "Abono", paymentMedium: "Transferencia", value: 300000, paid: 100000, balance: 200000, reprogrammingMark: "" },
+  { code: "RES-1845", tour: "Ruta Andina", departure: "22 sep 2026 · 06:30", travelers: 2, status: "Cancelada", receiptStatus: "Aprobado", paymentType: "Abono", paymentMedium: "Transferencia", value: 1200000, paid: 1200000, balance: 0, cancellationCause: "Cancelada por falta de pago", refundTreatment: "Valores abonados: $1.200.000 en tratamiento pendiente de devolución" },
+  { code: "RES-1846", tour: "Ruta Andina", departure: "18 sep 2026 · 06:30", travelers: 2, status: "Confirmada", receiptStatus: "Aprobado", financialStatus: "Pago completo", paymentType: "Pago total", paymentMedium: "Transferencia", value: 1299000, paid: 1299000, balance: 0, reprogrammingMark: "Pendiente de respuesta de reprogramación", originalDeparture: "18 sep 2026 · 06:30", proposedDeparture: "25 sep 2026 · 06:30", proposedTour: "Ruta Andina" },
+]);
+const CLIENT_REPROGRAM_RESPONSE_KEY = "multitour-reprogram-response";
+
+function getClientReprogramResponse() {
+  try { return JSON.parse(localStorage.getItem(CLIENT_REPROGRAM_RESPONSE_KEY) || "null"); } catch { return null; }
+}
+
+function setClientReprogramResponse(decision) {
+  const response = { code: "RES-1846", decision, respondedAt: new Date().toISOString() };
+  localStorage.setItem(CLIENT_REPROGRAM_RESPONSE_KEY, JSON.stringify(response));
+  return response;
+}
+
+function getClientDemoReservations() {
+  const response = getClientReprogramResponse();
+  return DEMO_RESERVATIONS.map((item) => {
+    if (item.code !== "RES-1846" || !response) return { ...item };
+    if (response.decision === "aceptar") return { ...item, departure: item.proposedDeparture, reprogrammingMark: "" };
+    const cancelled = { ...item, status: "Cancelada", reprogrammingMark: "", cancellationCause: "Cancelada por rechazo o vencimiento de reprogramación", refundTreatment: "Se devuelve el 100 % de los valores pagados y validados." };
+    delete cancelled.financialStatus;
+    return cancelled;
+  });
+}
+
+function formatClientAmount(value) {
+  return formatCOP(Number(value || 0));
+}
+
 const CLIENT_RESERVATION_STATUS_CLASS = {
   "Pendiente de pago": "is-pending",
   "Confirmada": "is-confirmed",
@@ -2546,39 +2668,63 @@ function setupClientReservationsScreen() {
   const list = document.querySelector("[data-reservations-list]");
   const empty = document.querySelector("[data-reservations-empty]");
   if (!list) return;
-  const history = getClientReservationHistory();
-  if (history.length === 0) {
-    list.hidden = true;
-    if (empty) empty.hidden = false;
-    return;
-  }
-  if (empty) empty.hidden = true;
-  list.hidden = false;
-  list.innerHTML = history
-    .map((item) => {
-      const status = normalizeClientReservationStatus(item.status);
-      const statusClass = CLIENT_RESERVATION_STATUS_CLASS[status] || "";
-      return `<article class="travel-dashboard-reservation-card">
-        <div class="travel-dashboard-reservation-main">
-          <div class="travel-dashboard-reservation-copy">
-            <strong>${escapeHtml(item.experience || "Reserva")}</strong>
-            <p>${escapeHtml(item.startDate || "")} - ${escapeHtml(item.endDate || "")}</p>
-            <small>Reserva: ${escapeHtml(item.code || "")}</small>
-          </div>
-          <div class="travel-dashboard-reservation-status">
-            <span class="travel-dashboard-status-badge operator-status ${statusClass}">${status}</span>
-            <small>Viajeros: ${escapeHtml(String(item.travelers || ""))}</small>
-            <div class="travel-dashboard-reservation-values"><strong>${escapeHtml(item.budget || item.finalValue || "")}</strong></div>
-          </div>
-        </div>
-      </article>`;
-    })
-    .join("");
+  const demo = getClientDemoReservations();
+  const stored = getClientReservationHistory().filter((item) => !demo.some((demoItem) => demoItem.code === item.code));
+  const history = [...demo, ...stored];
+  if (empty) empty.hidden = history.length > 0;
+  list.hidden = history.length === 0;
+  if (!history.length) return;
+  list.innerHTML = history.map((item) => {
+    const status = item.status || "Pendiente de pago";
+    const statusClass = CLIENT_RESERVATION_STATUS_CLASS[status] || "";
+    const proposal = item.code === "RES-1846" && item.reprogrammingMark === "Pendiente de respuesta de reprogramación";
+    const departureCopy = proposal ? `Salida vigente: ${escapeHtml(item.departure || "18 sep 2026 · 06:30")} (cancelada)` : `Salida: ${escapeHtml(item.departure || item.startDate || "Por definir")}`;
+    const proposalCopy = proposal ? `<small>Salida propuesta: ${escapeHtml(item.proposedDeparture)}</small>` : "";
+    const cancellationCopy = item.cancellationCause ? `<small>${escapeHtml(item.cancellationCause)}</small><small>${escapeHtml(item.refundTreatment)}</small>` : "";
+    return `<article class="travel-dashboard-reservation-card">
+      <div class="travel-dashboard-reservation-main"><div class="travel-dashboard-reservation-copy">
+        <strong>${escapeHtml(item.code)} · ${escapeHtml(item.tour || item.experience || "Reserva")}</strong>
+        <p>${departureCopy} · ${escapeHtml(String(item.travelers || 0))} viajeros</p>
+        ${proposalCopy}
+        <small>Tipo de pago: ${escapeHtml(item.paymentType || "Por definir")} · Medio de pago: ${escapeHtml(item.paymentMedium || item.method || "Por definir")}</small>
+        ${item.financialStatus ? `<small>Estado del comprobante: ${escapeHtml(item.receiptStatus || "Por definir")} · Situación financiera: ${escapeHtml(item.financialStatus)}</small>` : `<small>Estado del comprobante: ${escapeHtml(item.receiptStatus || "Por definir")}</small>`}
+        ${cancellationCopy}
+        ${proposal ? `<strong class="operator-status is-pending">${escapeHtml(item.reprogrammingMark)}</strong>` : ""}
+      </div><div class="travel-dashboard-reservation-status"><span class="travel-dashboard-status-badge operator-status ${statusClass}">${escapeHtml(status)}</span><strong>Valor: ${formatClientAmount(item.value || item.finalValue)}</strong><small>Saldo: ${formatClientAmount(item.balance)}</small></div></div>
+      ${proposal ? '<div class="travel-dashboard-reservation-actions"><a class="travel-dashboard-primary-action mt-btn mt-btn-primary" href="propuesta-reprogramacion.html?reserva=RES-1846&theme=platform">Responder propuesta</a></div>' : ""}
+    </article>`;
+  }).join("");
 }
-
 // "Mis pagos" del Cliente: SOLO informacion economica de sus propias reservas, sin
 // validar/rechazar soportes ni consultar pagos de otros clientes (esas acciones son del
 // Colaborador/Administrador, nunca del Cliente).
+function setupReprogrammingProposal() {
+  if (document.body.dataset.screen !== "client-reprogramming-proposal") return;
+  const reservation = getClientDemoReservations().find((item) => item.code === "RES-1846");
+  const params = new URLSearchParams(window.location.search);
+  let response = getClientReprogramResponse();
+  if (params.get("estado") === "vencido") response = setClientReprogramResponse("vencido");
+  const setText = (selector, value) => { const node = document.querySelector(selector); if (node) node.textContent = value; };
+  if (!reservation) return;
+  setText("[data-proposal-code]", reservation.code);
+  setText("[data-proposal-tour]", reservation.proposedTour);
+  setText("[data-proposal-original]", reservation.originalDeparture);
+  setText("[data-proposal-new]", reservation.proposedDeparture);
+  setText("[data-proposal-travelers]", `${reservation.travelers} viajeros`);
+  setText("[data-proposal-deadline]", "El plazo de respuesta es el menor entre 72 horas corridas, el tiempo restante del episodio de reprogramación y la hora de inicio de la salida propuesta; el episodio tiene un límite absoluto de 96 horas.");
+  const feedback = document.querySelector("[data-proposal-feedback]");
+  const actions = document.querySelector("[data-proposal-actions]");
+  const renderResponse = (current) => {
+    if (!current) return;
+    if (actions) actions.hidden = true;
+    const messages = { aceptar: "Propuesta aceptada. La reserva sigue Confirmada con la nueva salida.", rechazar: "Propuesta rechazada. La reserva queda Cancelada y se devuelve el 100 % de los valores pagados y validados.", vencido: "El plazo venció sin respuesta. La reserva queda Cancelada y se devuelve el 100 % de los valores pagados y validados." };
+    if (feedback) { feedback.textContent = messages[current.decision] || messages.vencido; feedback.className = "travel-transfer-reference-copy is-valid"; }
+  };
+  renderResponse(response);
+  document.querySelector("[data-proposal-accept]")?.addEventListener("click", () => { if (!getClientReprogramResponse()) { renderResponse(setClientReprogramResponse("aceptar")); } });
+  document.querySelector("[data-proposal-reject]")?.addEventListener("click", () => { if (!getClientReprogramResponse()) { renderResponse(setClientReprogramResponse("rechazar")); } });
+}
+
 function setupClientPaymentsScreen() {
   if (document.body.dataset.screen !== "client-payments") return;
   setupDashboardIdentity();
@@ -2715,6 +2861,46 @@ function setupCompanionsForm() {
     window.localStorage.setItem(companionsStorageKey, JSON.stringify(companions));
     window.location.href = withTheme("panel-cliente.html", getTheme());
   });
+}
+
+function setupDashboardNotifications() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const container = document.querySelector("[data-client-notifications]");
+  if (!container) return;
+  const response = getClientReprogramResponse();
+  const reservation = getClientDemoReservations().find((item) => item.code === "RES-1846");
+  if (response?.decision === "aceptar") {
+    container.innerHTML = "<p><strong>Reserva RES-1843:</strong> comprobante En validación. La revisión puede tardar hasta 24 horas.</p><p><strong>Reserva RES-1846:</strong> aceptaste la nueva salida y la reserva sigue Confirmada.</p>";
+  } else if (response?.decision === "rechazar" || response?.decision === "vencido") {
+    container.innerHTML = "<p><strong>Reserva RES-1843:</strong> comprobante En validación. La revisión puede tardar hasta 24 horas.</p><p><strong>Reserva RES-1846:</strong> la reserva está Cancelada y se devuelve el 100 % de los valores pagados y validados.</p>";
+  } else {
+    container.innerHTML = "<p><strong>Reserva RES-1843:</strong> comprobante En validación. La revisión puede tardar hasta 24 horas.</p><p><strong>Reserva RES-1846:</strong> la salida fue cancelada por una causa no atribuible al cliente. Hay una propuesta de nueva salida pendiente de tu respuesta dentro del plazo aplicable.</p><a class=\"travel-dashboard-section-action\" href=\"propuesta-reprogramacion.html?reserva=RES-1846&theme=platform\">Responder propuesta de reprogramación</a>";
+  }
+}
+
+function setupDashboardSearch() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const input = document.querySelector("#dashboard-search");
+  const button = document.querySelector("[data-dashboard-search-button]");
+  const feedback = document.querySelector("[data-dashboard-search-feedback]");
+  if (!input || !button) return;
+  const cards = () => [...document.querySelectorAll(".travel-dashboard-destination-card, .travel-dashboard-promo")];
+  const run = () => {
+    const term = input.value.trim().toLowerCase();
+    let visible = 0;
+    cards().forEach((card) => {
+      const matches = !term || card.textContent.toLowerCase().includes(term);
+      card.hidden = !matches;
+      if (matches) visible += 1;
+    });
+    if (feedback) {
+      feedback.hidden = !term || visible > 0;
+      feedback.textContent = term && visible === 0 ? `No encontramos resultados para ${input.value.trim()}.` : "";
+    }
+  };
+  button.addEventListener("click", run);
+  input.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); run(); } });
+  input.addEventListener("input", () => { if (!input.value.trim()) run(); });
 }
 
 function setupCatalogSearch() {
@@ -6691,7 +6877,7 @@ setupPasswordToggle();
 setupRoleSwitch();
 setupLoginForm(activeThemeConfig, activeTheme);
 setupSignupForm(activeTheme);
-setupRecoverForm(activeTheme);
+setupAccountRecovery(activeTheme);
 setupResetForm(activeTheme);
 setupPlatformScreens(activeTheme);
 setupGastronomyCatalog();
@@ -6708,6 +6894,9 @@ setupTourPaymentSuccess(activeTheme);
 setupTourPaymentFailed(activeTheme);
 setupTourPaymentTransfer(activeTheme);
 setupDashboardBooking();
+setupDashboardSearch();
+setupDashboardNotifications();
+setupReprogrammingProposal();
 setupClientReservationsScreen();
 setupClientPaymentsScreen();
 setupCompanionsForm();
@@ -6745,3 +6934,4 @@ setupOperatorDashboardRole();
 setupOperatorCollaborators();
 setupOperatorRegisterCollaborator();
 setupOperatorCollaboratorDetail();
+
