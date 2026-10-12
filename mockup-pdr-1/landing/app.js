@@ -52,6 +52,8 @@ const THEMES = {
     titles: {
       inicio: "Home | Multitour",
       "client-dashboard": "Panel cliente | Multitour",
+      "client-reservations": "Mis reservas | Multitour",
+      "client-payments": "Mis pagos | Multitour",
       tours: "Tours | Multitour",
       lodging: "Alojamiento | Multitour",
       gastronomy: "Gastronomia | Multitour",
@@ -68,8 +70,8 @@ const THEMES = {
       index: "Indice del Mockup | Multitour",
       login: "Login | Multitour",
       signup: "Crear cuenta | Multitour",
-      recover: "Recuperar contrasena | Multitour",
-      reset: "Nueva contrasena | Multitour",
+      recover: "Recuperar contraseña | Multitour",
+      reset: "Nueva contraseña | Multitour",
       "platform-admin": "Plataforma | Multitour",
       "platform-operators": "Operadores | Multitour",
       "platform-create": "Crear operador | Multitour",
@@ -130,6 +132,8 @@ const THEMES = {
     titles: {
       inicio: "Home | Travesia Natural",
       "client-dashboard": "Panel cliente | Travesia Natural",
+      "client-reservations": "Mis reservas | Travesia Natural",
+      "client-payments": "Mis pagos | Travesia Natural",
       tours: "Tours | Travesia Natural",
       lodging: "Alojamiento | Travesia Natural",
       gastronomy: "Gastronomia | Travesia Natural",
@@ -215,6 +219,7 @@ function applyRoutes(theme) {
     signup: "crear-cuenta.html",
     recover: "recuperar.html",
     reset: "nueva-contrasena.html",
+    clientReprogrammingProposal: "propuesta-reprogramacion.html",
     platformAdmin: "admin-plataforma.html",
     platformOperators: "admin-operadores.html",
     platformCreate: "admin-crear-operador.html",
@@ -296,53 +301,123 @@ function getUserInitials(name) {
 
 function hydrateStoredUser() {
   const profile = getStoredProfile();
-  if (!profile) return;
 
-  document.querySelectorAll("[data-user-avatar], [data-user-avatar-large]").forEach((node) => {
-    node.textContent = getUserInitials(profile.name);
-  });
-
-  const greetingNode = document.querySelector("[data-user-greeting]");
-  if (greetingNode) {
-    const firstName = String(profile.name || "").trim().split(/\s+/)[0] || "Fernanda";
-    greetingNode.textContent = `Hola, ${firstName}`;
+  // Avatar/saludo del header: mismo valor de referencia ya aprobado ("FN"/"Fernanda") como
+  // fallback cuando no hay perfil real guardado en este navegador (BACKEND/SESION
+  // FALTANTE: sin autenticacion real, no hay otro nombre posible para el saludo).
+  if (profile) {
+    document.querySelectorAll("[data-user-avatar], [data-user-avatar-large]").forEach((node) => {
+      node.textContent = getUserInitials(profile.name);
+    });
+    const greetingNode = document.querySelector("[data-user-greeting]");
+    if (greetingNode) {
+      const firstName = String(profile.name || "").trim().split(/\s+/)[0] || "Fernanda";
+      greetingNode.textContent = `Hola, ${firstName}`;
+    }
   }
 
-  const profileName = document.querySelector("[data-profile-name]");
-  if (profileName) profileName.textContent = profile.name;
-
+  // Mi perfil (Datos de la cuenta / Datos personales): a diferencia del saludo, aqui NUNCA
+  // se muestra un dato de ejemplo hardcodeado. Sin perfil real guardado, se informa
+  // "No registrado" en cada campo.
   const profileNameCard = document.querySelector("[data-profile-name-card]");
-  if (profileNameCard) profileNameCard.textContent = profile.name;
+  if (profileNameCard) profileNameCard.textContent = profile?.name || "No registrado";
 
   const profileEmail = document.querySelector("[data-profile-email]");
-  if (profileEmail) profileEmail.textContent = profile.email;
+  if (profileEmail) profileEmail.textContent = profile?.email || "No registrado";
 
   const profileNameInput = document.querySelector("[data-profile-name-input]");
-  if (profileNameInput) profileNameInput.value = profile.name;
+  if (profileNameInput) profileNameInput.value = profile?.name || "";
 
   const profileEmailInput = document.querySelector("[data-profile-email-input]");
-  if (profileEmailInput) profileEmailInput.value = profile.email;
-
-  const profilePhone = document.querySelector("[data-profile-phone]");
-  const formattedPhone = [profile.countryCode, profile.phone].filter(Boolean).join(" ");
-  if (profilePhone) profilePhone.textContent = formattedPhone;
+  if (profileEmailInput) profileEmailInput.value = profile?.email || "";
 
   const profilePhoneInput = document.querySelector("[data-profile-phone-input]");
-  if (profilePhoneInput) profilePhoneInput.value = formattedPhone;
+  if (profilePhoneInput) profilePhoneInput.value = profile?.phone || "";
+}
 
-  const profileCountry = document.querySelector("[data-profile-country]");
-  if (profileCountry) profileCountry.textContent = profile.countryCode;
+// "Mi perfil" -> Resumen: reservas activas, pagos pendientes y ultima reserva, todas
+// derivadas del MISMO historial/reserva actual ya usado por panel-cliente y mis-pagos
+// (multitour-client-reservations / multitour-dashboard-booking). Nunca cantidades
+// hardcodeadas.
+function setupProfileSummary() {
+  if (document.body.dataset.screen !== "profile") return;
 
-  const profileCountryInput = document.querySelector("[data-profile-country-input]");
-  if (profileCountryInput) profileCountryInput.value = profile.countryCode;
+  const history = getClientReservationHistory();
+  const activeCount = history.filter((item) => {
+    const status = normalizeClientReservationStatus(item.status);
+    return status !== "Finalizada" && status !== "Cancelada";
+  }).length;
+  const pendingPayments = history.filter((item) => {
+    if (item.paymentStatus) return item.paymentStatus !== "Pagado";
+    return normalizeClientReservationStatus(item.status) === "Pendiente de pago";
+  }).length;
 
-  const profileUpdated = document.querySelector("[data-profile-updated]");
-  if (profileUpdated) profileUpdated.textContent = profile.savedAt;
+  const activeNode = document.querySelector("[data-profile-active-reservations]");
+  if (activeNode) activeNode.textContent = String(activeCount);
 
-  const profileSummary = document.querySelector("[data-profile-summary]");
-  if (profileSummary) {
-    profileSummary.textContent = `Cuenta creada por ${profile.name}. Aqui puedes revisar la informacion registrada en el acceso del mockup.`;
+  const pendingNode = document.querySelector("[data-profile-pending-payments]");
+  if (pendingNode) pendingNode.textContent = String(pendingPayments);
+
+  let lastBooking = null;
+  try {
+    const raw = window.localStorage.getItem("multitour-dashboard-booking");
+    lastBooking = raw ? JSON.parse(raw) : null;
+  } catch {
+    lastBooking = null;
   }
+  const lastNode = document.querySelector("[data-profile-last-reservation]");
+  if (lastNode) lastNode.textContent = lastBooking ? `${lastBooking.experience} (${lastBooking.startDate})` : "No registrado";
+}
+
+// "Mi perfil" -> Seguridad -> Editar perfil: solo nombre y telefono son editables (unicos
+// campos del modelo/PDR realmente mutables para el Cliente). Rol, tenant e identificadores
+// internos nunca se exponen como editables aqui.
+function setupProfileEdit() {
+  if (document.body.dataset.screen !== "profile") return;
+
+  const toggle = document.querySelector("[data-profile-edit-toggle]");
+  const label = document.querySelector("[data-profile-edit-label]");
+  const nameInput = document.querySelector("[data-profile-name-input]");
+  const phoneInput = document.querySelector("[data-profile-phone-input]");
+  const feedback = document.querySelector("[data-profile-feedback]");
+  if (!toggle || !nameInput || !phoneInput) return;
+
+  let editing = false;
+
+  toggle.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    if (!editing) {
+      editing = true;
+      nameInput.removeAttribute("readonly");
+      phoneInput.removeAttribute("readonly");
+      nameInput.focus();
+      if (label) label.textContent = "Guardar cambios";
+      if (feedback) {
+        feedback.textContent = "";
+        feedback.className = "feedback";
+      }
+      return;
+    }
+
+    const current = getStoredProfile() || {};
+    const updated = {
+      ...current,
+      name: nameInput.value.trim() || current.name || "",
+      phone: phoneInput.value.trim(),
+    };
+    window.localStorage.setItem("multitour-user-profile", JSON.stringify(updated));
+
+    editing = false;
+    nameInput.setAttribute("readonly", "true");
+    phoneInput.setAttribute("readonly", "true");
+    if (label) label.textContent = "Editar perfil";
+    if (feedback) {
+      feedback.textContent = "Perfil actualizado en esta simulación.";
+      feedback.className = "feedback is-success";
+    }
+    hydrateStoredUser();
+  });
 }
 
 function setupPasswordToggle() {
@@ -366,7 +441,7 @@ function getMvpPasswordPolicyError(password) {
   const hasSpecialCharacter = /[^A-Za-z0-9\s]/.test(password);
 
   if (hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSpecialCharacter) return "";
-  return "La contrasena debe tener minimo 8 caracteres, una mayuscula, una minuscula, un numero y un caracter especial.";
+  return "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.";
 }
 
 function setupLoginForm(themeConfig, theme) {
@@ -393,7 +468,15 @@ function setupLoginForm(themeConfig, theme) {
       setOperatorRole(staffRole === "colaborador" ? "colaborador" : "admin");
     }
 
-    setFeedback("login", themeConfig.feedback.success, "is-success");
+    // BUG/UX corregido: el mensaje de exito estaba redactado para el ingreso de plataforma
+    // ("...para la operacion de la plataforma"), incluso cuando el perfil activo era
+    // Cliente. Ahora el texto depende del perfil realmente seleccionado.
+    const successMessage = activeRole === "platform-admin"
+      ? themeConfig.feedback.success
+      : activeRole === "staff"
+        ? "Inicio de sesion simulado (vista de referencia). Ingresando al portal del operador..."
+        : "Inicio de sesion simulado (vista de referencia). Ingresando a tu panel de cliente...";
+    setFeedback("login", successMessage, "is-success");
 
     window.setTimeout(() => {
       const nextPath = activeRole === "platform-admin" ? "admin-plataforma.html" : activeRole === "staff" ? "admin-operador.html" : "panel-cliente.html";
@@ -408,11 +491,21 @@ function setupLoginForm(themeConfig, theme) {
 // Administrador (linea 102/112/114/116/566/689).
 const OPERATOR_ROLE_KEY = "multitour-operator-role";
 
-// Restriccion base (PDR linea 114/554): el Colaborador operativo solo puede validar o
-// rechazar soportes de transferencia cuando el tenant lo habilite expresamente para ese
-// rol. Ningun tenant lo ha habilitado en este entorno local (no existe parametrizacion de
-// tenant real todavia): por defecto queda deshabilitado, no se inventa una habilitacion.
-const OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT = false;
+// BUG corregido: antes era una constante fija (siempre false), sin ninguna forma de que el
+// Administrador la habilitara. Restriccion base (PDR linea 114/554): el Colaborador
+// operativo solo puede validar o rechazar soportes de transferencia cuando el tenant lo
+// habilite expresamente; por defecto sigue deshabilitado, pero ahora es un parametro real
+// que el Administrador puede activar (Colaboradores). Mismo mecanismo/clave ya usado en el
+// Portal Angular.
+const OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT_KEY = "multitour-collaborator-can-validate-support";
+
+function getOperatorCollaboratorCanValidateSupport() {
+  try { return localStorage.getItem(OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT_KEY) === "true"; } catch { return false; }
+}
+
+function setOperatorCollaboratorCanValidateSupport(value) {
+  try { localStorage.setItem(OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT_KEY, value ? "true" : "false"); } catch { /* no-op */ }
+}
 
 function getOperatorRole() {
   try {
@@ -484,7 +577,7 @@ function setupOperatorDashboardRole() {
   // habilito al Colaborador para validar soportes; nunca habilita la accion sin permiso.
   setText(
     "[data-dashboard-pagos-label]",
-    OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT ? "Pagos y soportes por validar" : "Pagos pendientes de seguimiento",
+    getOperatorCollaboratorCanValidateSupport() ? "Pagos y soportes por validar" : "Pagos pendientes de seguimiento",
   );
   // Mismo criterio ya usado en Pagos: un soporte deja de estar pendiente cuando su
   // decision registrada (o su estado por defecto) queda en Pagado, Parcial o Rechazado.
@@ -558,6 +651,24 @@ function setupOperatorCollaborators() {
       })
       .join("");
   }
+
+  // BUG corregido: la validacion/rechazo de soportes por el Colaborador operativo era una
+  // constante fija (siempre deshabilitada, sin forma de que el Administrador la activara).
+  const supportStatus = document.querySelector("[data-collaborator-support-status]");
+  const supportToggle = document.querySelector("[data-toggle-collaborator-support]");
+  const renderSupportPermission = () => {
+    const enabled = getOperatorCollaboratorCanValidateSupport();
+    if (supportStatus) {
+      supportStatus.textContent = enabled ? "Habilitado" : "Deshabilitado";
+      supportStatus.className = `operator-status ${enabled ? "is-confirmed" : "is-cancelled"}`;
+    }
+    if (supportToggle) supportToggle.textContent = enabled ? "Deshabilitar" : "Habilitar";
+  };
+  renderSupportPermission();
+  supportToggle?.addEventListener("click", () => {
+    setOperatorCollaboratorCanValidateSupport(!getOperatorCollaboratorCanValidateSupport());
+    renderSupportPermission();
+  });
 }
 
 // PDR linea 129: nombre completo, correo electronico, contrasena inicial y confirmacion
@@ -685,61 +796,64 @@ function setupRoleSwitch() {
   });
 }
 
-function setupRecoverForm(theme) {
-  const form = document.querySelector('[data-form="recover"]');
-  if (!form) return;
-
-  const identifyStep = form.querySelector('[data-recover-step="identify"]');
-  const resetStep = form.querySelector('[data-recover-step="reset"]');
-  const submitLabel = form.querySelector("[data-recover-submit] span");
-  const emailStatus = form.querySelector("[data-recover-email-status]");
-  let isVerificationStep = false;
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    if (!isVerificationStep) {
-      const email = form.querySelector("#recover-email");
-      if (!email.value.trim()) {
-        setFeedback("recover", "Completa el correo electronico para continuar.", "is-error");
+function setupAccountRecovery(theme) {
+  const recoverForm = document.querySelector("[data-recover-form]");
+  if (recoverForm) {
+    const email = recoverForm.querySelector("[name=\"email\"]");
+    const feedback = recoverForm.querySelector("[data-recover-feedback]");
+    const simulateLink = recoverForm.querySelector("[data-recover-simulate]");
+    recoverForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!email?.value.trim() || !email.validity.valid) {
+        if (feedback) feedback.textContent = "Ingresa un correo electrónico válido para continuar.";
         return;
       }
+      if (feedback) feedback.textContent = "Si existe una cuenta con ese correo, enviaremos un enlace de un solo uso que vence en 30 minutos.";
+      if (simulateLink) simulateLink.hidden = false;
+    });
+  }
 
-      isVerificationStep = true;
-      identifyStep.hidden = true;
-      resetStep.hidden = false;
-      emailStatus.textContent = `Ingresa el codigo de verificacion asociado a ${email.value.trim()}.`;
-      submitLabel.textContent = "Guardar nueva contrasena";
-      setFeedback("recover", "", "");
-      form.querySelector("#recover-code")?.focus();
+  const resetForm = document.querySelector("[data-reset-form]");
+  if (!resetForm) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const state = params.get("estado");
+  const feedback = resetForm.querySelector("[data-reset-feedback]");
+  const loginLink = resetForm.querySelector("[data-reset-login]");
+  const requestNewLink = resetForm.querySelector("[data-reset-request-new]");
+  const password = resetForm.querySelector("[name=\"password\"]");
+  const confirm = resetForm.querySelector("[name=\"password-confirmation\"]");
+
+  if (state === "vencido" || state === "usado") {
+    if (feedback) feedback.textContent = state === "vencido"
+      ? "Este enlace de recuperación venció. Solicita uno nuevo para continuar."
+      : "Este enlace de recuperación ya fue usado. Solicita uno nuevo para continuar.";
+    resetForm.hidden = true;
+    if (requestNewLink) requestNewLink.hidden = false;
+    return;
+  }
+
+  resetForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = password?.value.trim() || "";
+    const confirmation = confirm?.value.trim() || "";
+    if (!value || !confirmation) {
+      if (feedback) feedback.textContent = "Completa ambos campos para continuar.";
       return;
     }
-
-    const code = form.querySelector("#recover-code");
-    const password = form.querySelector("#recover-password");
-    const confirm = form.querySelector("#recover-confirm");
-
-    if (!code.value.trim() || !password.value.trim() || !confirm.value.trim()) {
-      setFeedback("recover", "Completa el codigo y la nueva contrasena para continuar.", "is-error");
+    if (value !== confirmation) {
+      if (feedback) feedback.textContent = "Las contraseñas no coinciden.";
       return;
     }
-
-    const passwordPolicyError = getMvpPasswordPolicyError(password.value);
-    if (passwordPolicyError) {
-      setFeedback("recover", passwordPolicyError, "is-error");
+    const policyError = getMvpPasswordPolicyError(value);
+    if (policyError) {
+      if (feedback) feedback.textContent = policyError;
       return;
     }
-
-    if (password.value !== confirm.value) {
-      setFeedback("recover", "Las contrasenas no coinciden.", "is-error");
-      return;
-    }
-
-    setFeedback("recover", "La nueva contrasena se guardo en esta simulacion.", "is-success");
-
-    window.setTimeout(() => {
-      window.location.href = withTheme("login.html", theme);
-    }, 900);
+    if (feedback) feedback.textContent = "Tu contraseña fue actualizada. Se cerraron las sesiones activas.";
+    const submitButton = resetForm.querySelector("button[type=submit]");
+    if (submitButton) submitButton.hidden = true;
+    if (loginLink) loginLink.hidden = false;
   });
 }
 
@@ -1095,413 +1209,122 @@ function setupTourBookingLinks(theme) {
   });
 }
 
+// BUG corregido: Gastronomía/Restaurantes mostraban tarjetas globales hardcodeadas
+// (Pujol, El Califa, Cicatriz, "Plato del día" fijo) sin relacion con el tenant actual.
+// Ahora se renderizan desde los establecimientos asociados (restaurant) y el catalogo de
+// Alimentación reales, con estado vacio explicito cuando no hay datos (nunca demo de relleno).
+function setupGastronomyCatalog() {
+  const screen = document.body.dataset.screen;
+  if (screen !== "gastronomy" && screen !== "restaurants") return;
+
+  const restaurants = getOperatorActiveAssociatedEstablishments("restaurant");
+
+  const restaurantCardMarkup = (establishment) => `
+    <div class="travel-tour-media restaurant-media-one"${establishment.image ? ` style="background-image:url('${establishment.image.replace(/'/g, "%27")}');background-size:cover;background-position:center;"` : ""}></div>
+    <div class="travel-tour-body">
+      <strong>${escapeHtml(establishment.name)}</strong>
+      <span class="travel-tour-location">Restaurante asociado</span>
+      <div class="travel-tour-meta">
+        <div></div>
+        <a class="travel-tour-detail-link" href="detalle-gastronomia.html" data-venue-link="${escapeHtml(establishment.id)}" data-source-screen="${screen}">Ver detalles</a>
+      </div>
+    </div>
+  `;
+  const restaurantCard = (establishment) =>
+    `<article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(establishment.name.toLowerCase())} restaurante">${restaurantCardMarkup(establishment)}</article>`;
+
+  if (screen === "restaurants") {
+    const restaurantGrid = document.querySelector("[data-restaurant-grid]");
+    if (restaurantGrid) {
+      restaurantGrid.innerHTML = restaurants.length
+        ? restaurants.map(restaurantCard).join("")
+        : '<p class="travel-dashboard-copy" data-restaurant-empty>No hay restaurantes asociados activos en este momento.</p>';
+    }
+    return;
+  }
+
+  // "Todos" (sin ?filter) combina Alimentación + Restaurantes asociados en UNA sola grilla
+  // (lado a lado, misma seccion); "Platos del día" (?filter=food) muestra SOLO Alimentación.
+  // Alimentación y Restaurantes son conceptos distintos (PDR v1.7.1): nunca se reclasifica
+  // un registro, solo se decide cuales se incluyen segun el filtro activo.
+  const activeFilter = new URLSearchParams(window.location.search).get("filter") === "food" ? "food" : "all";
+  document.querySelectorAll("[data-filter-tab]").forEach((tab) => {
+    tab.classList.toggle("is-active", tab.dataset.filterTab === activeFilter);
+  });
+
+  const foodOptions = getOperatorActiveFoodOptions();
+  const foodCard = (option) => `
+    <article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(option.name.toLowerCase())} plato del dia alimentacion">
+      <div class="travel-tour-media restaurant-media-three"></div>
+      <div class="travel-tour-body">
+        <strong>${escapeHtml(option.name)}</strong>
+        <span class="travel-tour-location">${option.restaurant ? `Restaurante asociado: ${escapeHtml(option.restaurant)}` : "Alimentación"}</span>
+        <div class="travel-catalog-tags"><span>Alimentación</span>${option.validity ? `<span>Vigente: ${escapeHtml(option.validity)}</span>` : ""}</div>
+        <div class="travel-tour-meta">
+          <div><small>Tarifa</small><em>${escapeHtml(option.tariff)}</em></div>
+          <a class="travel-tour-detail-link" href="#platos-del-dia">Ver detalles</a>
+        </div>
+      </div>
+    </article>
+  `;
+
+  const cards = foodOptions.map(foodCard);
+  if (activeFilter === "all") cards.push(...restaurants.map(restaurantCard));
+
+  const gastronomyGrid = document.querySelector("[data-gastronomy-grid]");
+  if (gastronomyGrid) {
+    gastronomyGrid.innerHTML = cards.length
+      ? cards.join("")
+      : `<p class="travel-dashboard-copy" data-gastronomy-empty>${activeFilter === "food" ? "No hay opciones de alimentación disponibles en este momento." : "No hay opciones disponibles en este momento."}</p>`;
+  }
+}
+
+// Mismo patron ya aprobado en setupGastronomyCatalog (Restaurantes asociados): Alojamiento
+// solo debe representar el establecimiento hotel asociado, activo, nunca habitaciones ni
+// disponibilidad inventadas.
+function setupLodgingCatalog() {
+  if (document.body.dataset.screen !== "lodging") return;
+
+  const hotels = getOperatorActiveAssociatedEstablishments("hotel");
+
+  const hotelCard = (establishment) => `
+    <article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(establishment.name.toLowerCase())} hotel">
+      <div class="travel-tour-media lodging-media-one"${establishment.image ? ` style="background-image:url('${establishment.image.replace(/'/g, "%27")}');background-size:cover;background-position:center;"` : ""}></div>
+      <div class="travel-tour-body">
+        <strong>${escapeHtml(establishment.name)}</strong>
+        <span class="travel-tour-location">Hotel asociado</span>
+        ${establishment.description ? `<p class="travel-dashboard-copy">${escapeHtml(establishment.description)}</p>` : ""}
+      </div>
+    </article>
+  `;
+
+  const hotelGrid = document.querySelector("[data-hotel-grid]");
+  if (hotelGrid) {
+    hotelGrid.innerHTML = hotels.length
+      ? hotels.map(hotelCard).join("")
+      : '<p class="travel-dashboard-copy" data-hotel-empty>No hay hoteles asociados activos en este momento.</p>';
+  }
+}
+
 function setupGastronomyDetail(theme) {
   if (document.body.dataset.screen !== "gastronomy-detail") return;
-
-  const venues = {
-    maison: {
-      detailTitle: "Restaurant Details",
-      name: "La Maison Botanica",
-      category: "Alta cocina",
-      rating: "4.8",
-      location: "Roma Norte, CDMX",
-      description:
-        "Una experiencia gastronomica sin precedentes donde la tradicion se encuentra con la vanguardia. Nuestro chef disena menus de temporada que celebran los ingredientes locales de la mas alta calidad, presentados con elegancia y servicio impecable.",
-      price: formatCOPRange(180000, 320000),
-      reviewScore: "4.8 ★★★★☆",
-      reviewCount: "Basado en 342 opiniones",
-      features: ["Cava de vinos", "Terraza", "Chef de autor"],
-      menu: [
-        {
-          title: "Crudo de res wagyu",
-          body: "Con emulsion de trufa negra, yema curada y crujiente de alcaparras.",
-          price: formatCOP(180000),
-        },
-        {
-          title: "Robalo sellado",
-          body: "Pure de coliflor ahumada, esparragos de mar y beurre blanc de citricos.",
-          price: formatCOP(232000),
-        },
-        {
-          title: "Milhojas de avellana",
-          body: "Crema diplomatca de praline, caramelo salado y helado de vainilla.",
-          price: formatCOP(96000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cafe: {
-      name: "Cafe de Origen",
-      category: "Cafeteria de especialidad",
-      rating: "4.9",
-      location: "Polanco, CDMX",
-      description:
-        "Un espacio luminoso y tranquilo para disfrutar cafe de origen, reposteria artesanal y encuentros de media tarde con una experiencia cercana y contemporanea.",
-      price: formatCOPRange(32000, 78000),
-      schedule: "7:00 am - 8:00 pm",
-      ambience: "Calido y minimalista",
-      ideal: "Desayunos, reuniones y trabajo remoto",
-      features: ["Cafe de especialidad", "Brunch", "Pet friendly"],
-      menu: [
-        {
-          title: "Flat white de la casa",
-          body: "Cafe de origen colombiano con leche texturizada y perfil achocolatado.",
-          price: formatCOP(18000),
-        },
-        {
-          title: "Toast de aguacate",
-          body: "Pan de masa madre, huevo poche y mezcla de semillas tostadas.",
-          price: formatCOP(42000),
-        },
-        {
-          title: "Cheesecake de guayaba",
-          body: "Porción artesanal con base crocante y coulis ligero.",
-          price: formatCOP(24000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    bar: {
-      name: "Barra Mistica",
-      category: "Bar de autor",
-      rating: "4.6",
-      location: "Condesa, CDMX",
-      description:
-        "Cocteleria creativa, musica en vivo y una barra protagonista para noches sociales con energia, puesta en escena y una carta disenada para compartir.",
-      price: formatCOPRange(55000, 140000),
-      schedule: "6:00 pm - 2:00 am",
-      ambience: "Vibrante y nocturno",
-      ideal: "Salidas con amigos y after office",
-      features: ["Mixologia", "Musica en vivo", "Reservas privadas"],
-      menu: [
-        {
-          title: "Coctel negroni ahumado",
-          body: "Gin botanico, vermut infusionado y toque ahumado en mesa.",
-          price: formatCOP(64000),
-        },
-        {
-          title: "Tacos de pork belly",
-          body: "Tres piezas con encurtidos, salsa de chile dulce y hierbas frescas.",
-          price: formatCOP(72000),
-        },
-        {
-          title: "Tabla de quesos y charcuteria",
-          body: "Selección para compartir con panes artesanales y frutos secos.",
-          price: formatCOP(112000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  };
-
-  Object.assign(venues.maison, {
-    reviewScore: "4.8 *****",
-  });
-
-  Object.assign(venues.cafe, {
-    detailTitle: "Cafe Details",
-    description:
-      "Un espacio luminoso y acogedor donde el cafe de origen y la reposteria artesanal protagonizan una experiencia ideal para desayunos, reuniones o una pausa tranquila en la ciudad.",
-    reviewScore: "4.9 *****",
-    reviewCount: "Basado en 218 opiniones",
-    menu: [
-      {
-        title: "Flat white de la casa",
-        body: "Cafe de origen colombiano con leche texturizada y perfil achocolatado.",
-        price: formatCOP(18000),
-      },
-      {
-        title: "Toast de aguacate",
-        body: "Pan de masa madre, huevo poche y mezcla de semillas tostadas.",
-        price: formatCOP(42000),
-      },
-      {
-        title: "Cheesecake de guayaba",
-        body: "Porcion artesanal con base crocante y coulis ligero.",
-        price: formatCOP(24000),
-      },
-    ],
-  });
-
-  Object.assign(venues.bar, {
-    detailTitle: "Bar Details",
-    description:
-      "Cocteleria creativa, musica en vivo y una barra protagonista para noches sociales con energia. La propuesta mezcla autor, atmosfera y una carta pensada para compartir.",
-    reviewScore: "4.6 ****",
-    reviewCount: "Basado en 187 opiniones",
-    menu: [
-      {
-        title: "Coctel negroni ahumado",
-        body: "Gin botanico, vermut infusionado y toque ahumado en mesa.",
-        price: formatCOP(64000),
-      },
-      {
-        title: "Tacos de pork belly",
-        body: "Tres piezas con encurtidos, salsa de chile dulce y hierbas frescas.",
-        price: formatCOP(72000),
-      },
-      {
-        title: "Tabla de quesos y charcuteria",
-        body: "Seleccion para compartir con panes artesanales y frutos secos.",
-        price: formatCOP(112000),
-      },
-    ],
-  });
-
-  Object.assign(venues, {
-    pujol: {
-      detailTitle: "Restaurant Details",
-      name: "Pujol",
-      category: "Alta cocina",
-      rating: "4.8",
-      location: "Polanco, CDMX",
-      description:
-        "Una propuesta de alta cocina mexicana contemporanea con ingredientes estacionales, tecnica precisa y una narrativa culinaria enfocada en producto, origen y experiencia.",
-      price: formatCOP(220000),
-      reviewScore: "4.8 *****",
-      reviewCount: "Basado en 426 opiniones",
-      features: ["Alta cocina", "Mexicana", "Menu degustacion"],
-      menu: [
-        {
-          title: "Mole madre",
-          body: "Preparacion insignia con recambio de temporada y acompanamientos del dia.",
-          price: formatCOP(180000),
-        },
-        {
-          title: "Pesca del pacifico",
-          body: "Coccion precisa con salsa de maiz tierno y vegetales braseados.",
-          price: formatCOP(208000),
-        },
-        {
-          title: "Postre de cacao",
-          body: "Texturas de chocolate mexicano, crema ligera y sal de vainilla.",
-          price: formatCOP(76000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    califa: {
-      detailTitle: "Restaurant Details",
-      name: "El Califa",
-      category: "Comida local",
-      rating: "4.6",
-      location: "Condesa, CDMX",
-      description:
-        "Un lugar vibrante para disfrutar tacos, brasas y cocina urbana con un ambiente relajado, servicio agil y sabores reconocibles que invitan a compartir.",
-      price: formatCOP(40000),
-      reviewScore: "4.6 ****",
-      reviewCount: "Basado en 301 opiniones",
-      features: ["Tacos", "Comida local", "Casual"],
-      menu: [
-        {
-          title: "Taco de rib eye",
-          body: "Tortilla recien hecha, carne a la brasa y salsa tatemada.",
-          price: formatCOP(44000),
-        },
-        {
-          title: "Costra especial",
-          body: "Queso dorado, carne al carbon y guacamole fresco.",
-          price: formatCOP(56000),
-        },
-        {
-          title: "Agua fresca del dia",
-          body: "Preparacion natural con fruta de temporada.",
-          price: formatCOP(20000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cicatriz: {
-      detailTitle: "Cafe Details",
-      name: "Cicatriz",
-      category: "Cafeteria",
-      rating: "4.9",
-      location: "Juarez, CDMX",
-      description:
-        "Una cafeteria casual con cocina ligera, cafe bien ejecutado y una atmosfera tranquila para encuentros creativos, desayunos y pausas largas durante el dia.",
-      price: formatCOP(38000),
-      reviewScore: "4.9 *****",
-      reviewCount: "Basado en 264 opiniones",
-      features: ["Cafeteria", "Casual", "Brunch"],
-      menu: [
-        {
-          title: "Bowl de temporada",
-          body: "Verduras asadas, grano base, aderezo de citricos y hierbas frescas.",
-          price: formatCOP(52000),
-        },
-        {
-          title: "Sandwich artesanal",
-          body: "Pan de masa madre, queso suave, vegetales y mantequilla especiada.",
-          price: formatCOP(48000),
-        },
-        {
-          title: "Latte de especialidad",
-          body: "Cafe de origen con leche texturizada y perfil balanceado.",
-          price: formatCOP(28000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    speakeasy: {
-      detailTitle: "Bar Details",
-      name: "The Speakeasy",
-      category: "Mixologia",
-      rating: "4.8",
-      location: "Roma Norte, CDMX",
-      description:
-        "Un bar de atmosfera intima con cocteleria clasica reinterpretada, musica suave y una barra protagonista pensada para encuentros de noche.",
-      price: formatCOP(68000),
-      reviewScore: "4.8 *****",
-      reviewCount: "Basado en 196 opiniones",
-      features: ["Mixologia", "Cocktail bar", "Lounge"],
-      menu: [
-        {
-          title: "Old fashioned ahumado",
-          body: "Bourbon, bitters aromaticos y toque de humo servido en mesa.",
-          price: formatCOP(60000),
-        },
-        {
-          title: "Trio de sliders",
-          body: "Mini burgers de la casa con cebolla caramelizada y encurtidos.",
-          price: formatCOP(68000),
-        },
-        {
-          title: "Tabla de charcuteria",
-          body: "Quesos maduros, embutidos artesanales y pan tostado.",
-          price: formatCOP(84000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    rooftop: {
-      detailTitle: "Bar Details",
-      name: "Rooftop Lounge",
-      category: "Terraza",
-      rating: "4.6",
-      location: "Polanco, CDMX",
-      description:
-        "Terraza elevada con vista urbana, cocteleria refrescante y una experiencia social pensada para atardeceres y noches largas.",
-      price: formatCOP(95000),
-      reviewScore: "4.6 ****",
-      reviewCount: "Basado en 241 opiniones",
-      features: ["Rooftop", "Vista panoramica", "DJ set"],
-      menu: [
-        {
-          title: "Spritz citrico",
-          body: "Espumoso, licor de naranja y notas herbales sobre hielo.",
-          price: formatCOP(56000),
-        },
-        {
-          title: "Tostadas de atun",
-          body: "Atun marinado, aguacate y chile suave en base crujiente.",
-          price: formatCOP(72000),
-        },
-        {
-          title: "Tabla mediterranea",
-          body: "Hummus, aceitunas, queso suave y pan pita caliente.",
-          price: formatCOP(88000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    lupulo: {
-      detailTitle: "Bar Details",
-      name: "Lupulo Club",
-      category: "Craft beer",
-      rating: "4.7",
-      location: "Juarez, CDMX",
-      description:
-        "Espacio relajado enfocado en cerveza artesanal, taps rotativos y cocina de acompanamiento en un ambiente casual y conversable.",
-      price: formatCOP(49000),
-      reviewScore: "4.7 *****",
-      reviewCount: "Basado en 154 opiniones",
-      features: ["Craft beer", "Tap room", "Casual"],
-      menu: [
-        {
-          title: "Flight de la casa",
-          body: "Cuatro estilos de cerveza artesanal seleccionados por temporada.",
-          price: formatCOP(48000),
-        },
-        {
-          title: "Pretzel caliente",
-          body: "Acompanado de mostaza especiada y dip de queso.",
-          price: formatCOP(36000),
-        },
-        {
-          title: "Fish and chips",
-          body: "Filete crocante con papas doradas y salsa tartara.",
-          price: formatCOP(64000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1436076863939-06870fe779c2?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    "luna-cafe": {
-      detailTitle: "Cafe Details",
-      name: "Luna Cafe",
-      category: "Brunch",
-      rating: "4.7",
-      location: "Roma Sur, CDMX",
-      description:
-        "Una cafeteria luminosa con desayunos extendidos, reposteria artesanal y cafe de especialidad pensada para reuniones tranquilas y jornadas flexibles.",
-      price: formatCOP(36000),
-      reviewScore: "4.7 *****",
-      reviewCount: "Basado en 188 opiniones",
-      features: ["Brunch", "Especialidad", "Pasteleria"],
-      menu: [
-        {
-          title: "Toast de ricotta",
-          body: "Pan artesanal con ricotta batida, frutas frescas y miel suave.",
-          price: formatCOP(44000),
-        },
-        {
-          title: "Cold brew citrico",
-          body: "Cafe infusionado en frio con notas de naranja y azucar ligera.",
-          price: formatCOP(24000),
-        },
-        {
-          title: "Rol de canela",
-          body: "Horneado del dia con glaseado tenue y mantequilla especiada.",
-          price: formatCOP(20000),
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  });
 
   const params = new URLSearchParams(window.location.search);
   const venueKey = params.get("venue");
   const sourceKey = params.get("source") || "gastronomy";
-  const venue = venues[venueKey] || venues.maison;
+  const isLodging = sourceKey === "lodging" || venueKey === "hotel-mirador";
+  // BUG corregido: esta pantalla mostraba un establecimiento fijo (o "La Maison Botanica"
+  // como fallback) con menu/calificacion/resenas inventados. Ahora busca el establecimiento
+  // asociado REAL por id; si no existe o ya no esta activo, se informa en vez de inventar uno.
+  const establishment = getOperatorActiveAssociatedEstablishments(isLodging ? "hotel" : "restaurant").find(
+    (item) => item.id === venueKey,
+  ) || (venueKey === "hotel-mirador" ? {
+    name: "Ecohotel Mirador",
+    description: "Contacto: reservas@ecohotelmirador.co · +57 300 555 0184",
+  } : venueKey === "sabores-montana" ? {
+    name: "Sabores de la Montaña",
+    description: "Contacto: reservas@saboresmontana.co · +57 310 555 0220 · Plaza principal, local 4",
+  } : null);
   const themeConfig = THEMES[theme];
   const sourceMap = {
     gastronomy: {
@@ -1512,217 +1335,112 @@ function setupGastronomyDetail(theme) {
       path: "restaurantes.html",
       label: "Volver a restaurantes",
     },
+    lodging: {
+      path: "alojamiento.html",
+      label: "Volver a alojamiento",
+    },
   };
   const sourceConfig = sourceMap[sourceKey] || sourceMap.gastronomy;
 
-  document.title = `${venue.name} | ${themeConfig.titlePrefix}`;
-
   const backLink = document.querySelector(".travel-tours-back");
-  if (backLink) {
-    backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
-  }
+  if (backLink) backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
 
   const backLabel = document.querySelector("[data-detail-back-label]");
-  if (backLabel) {
-    backLabel.textContent = sourceConfig.label;
+  if (backLabel) backLabel.textContent = sourceConfig.label;
+
+  if (!establishment) {
+    document.title = `Establecimiento no disponible | ${themeConfig.titlePrefix}`;
+    document.querySelector("[data-venue-field=detailTitle]")?.replaceChildren(document.createTextNode("Establecimiento no disponible"));
+    document.querySelector("[data-venue-field=name]")?.replaceChildren(document.createTextNode("Establecimiento no disponible"));
+    document.querySelector("[data-venue-field=description]")?.replaceChildren(document.createTextNode("Este establecimiento ya no está activo o no existe."));
+    const intro = document.querySelector(".travel-detail-intro");
+    if (intro) intro.innerHTML = '<div class="travel-detail-copy"><h1>Establecimiento no disponible</h1><div class="travel-detail-description">Este establecimiento ya no está activo o no existe.</div></div>';
+    document.querySelector(".travel-detail-gallery")?.remove();
+    document.querySelectorAll(".travel-detail-section").forEach((section) => section.remove());
+    document.querySelector(".travel-detail-sticky-bar")?.remove();
+    return;
   }
 
+  const categoryLabel = isLodging ? "Alojamiento asociado" : "Restaurante asociado";
+  document.title = `${establishment.name} | ${themeConfig.titlePrefix}`;
+
+  const fieldValues = {
+    detailTitle: categoryLabel,
+    name: establishment.name,
+    category: categoryLabel,
+    description: establishment.description || "Sin información adicional registrada.",
+  };
   document.querySelectorAll("[data-venue-field]").forEach((node) => {
     const key = node.dataset.venueField;
-    if (venue[key]) node.textContent = venue[key];
+    if (fieldValues[key] !== undefined) node.textContent = fieldValues[key];
   });
 
-  const featureNode = document.querySelector("[data-venue-features]");
-  if (featureNode) {
-    featureNode.innerHTML = venue.features
-      .map((feature) => `<span>${feature}</span>`)
-      .join("");
-  }
+  // No hay rating/reseñas/menu/precio en el modelo de establecimiento asociado: se retiran
+  // esos bloques en vez de inventar valores (ver detalle-gastronomia.html).
+  document.querySelector("[data-venue-field=\"rating\"]")?.remove();
+  document.querySelector(".travel-detail-location-row")?.remove();
+  document.querySelector("[data-venue-features]")?.closest(".travel-detail-section")?.remove();
+  document.querySelector("[data-venue-menu]")?.closest(".travel-detail-section")?.remove();
+  document.querySelector(".travel-detail-review-card")?.closest(".travel-detail-section")?.remove();
 
-  const menuNode = document.querySelector("[data-venue-menu]");
-  if (menuNode) {
-    menuNode.innerHTML = venue.menu
-      .map(
-        (item) => `
-          <article class="travel-detail-menu-item">
-            <div>
-              <strong>${item.title}</strong>
-              <p>${item.body}</p>
+  const heroNode = document.querySelector('[data-venue-image="hero"]');
+  if (heroNode) {
+    heroNode.style.gridColumn = "1 / -1";
+    if (establishment.image) heroNode.style.backgroundImage = `url("${establishment.image.replace(/"/g, "%22")}")`;
+  }
+}
+
+// BUG corregido: "Explorar/Tours" mostraba 4 tarjetas globales hardcodeadas (con
+// "3 dias/2 noches" y otras caracteristicas turisticas inventadas) sin relacion con el
+// catalogo real ni con su estado activo/vigente. Ahora se renderiza desde el catalogo REAL
+// de Tours (mismo usado en Detalle del tour / Reservar), con estado vacio explicito cuando
+// no hay datos.
+function setupToursCatalog() {
+  if (document.body.dataset.screen !== "tours") return;
+  const services = getOperatorActiveTourServices();
+  const tours = Object.values(services);
+  const mediaClasses = ["tour-media-one", "tour-media-two", "tour-media-three", "tour-media-four"];
+
+  const card = (tour, index) => {
+    const finalPrice = tour.price * (1 - tour.discount);
+    const mediaClass = mediaClasses[index % mediaClasses.length];
+    return `
+      <article class="travel-tour-card" data-search-card data-search-terms="${escapeHtml(tour.name.toLowerCase())}">
+        <div class="travel-tour-media ${mediaClass}">
+          ${tour.discount ? `<span class="travel-tour-discount-tag">${Math.round(tour.discount * 100)}% de descuento</span>` : ""}
+          ${tour.image ? `<img class="gastronomy-card-image" src="${tour.image.replace(/"/g, "%22")}" alt="Imagen de ${escapeHtml(tour.name)}" />` : ""}
+        </div>
+        <div class="travel-tour-body">
+          <strong>${escapeHtml(tour.name)}</strong>
+          <div class="travel-tour-meta">
+            <div class="travel-tour-price">
+              ${tour.discount ? `<small class="travel-tour-price-before">Antes: <del>${formatCOP(tour.price)}</del></small>` : ""}
+              <small>Desde</small>
+              <em>${formatCOP(finalPrice)}</em>
             </div>
-            <span>${item.price}</span>
-          </article>
-        `,
-      )
-      .join("");
-  }
+            <a class="travel-tour-detail-link" href="detalle-tour.html" data-tour-link="${escapeHtml(tour.key)}" data-source-screen="tours">Ver detalle</a>
+          </div>
+        </div>
+      </article>
+    `;
+  };
 
-  document.querySelectorAll("[data-venue-image]").forEach((node) => {
-    const key = node.dataset.venueImage;
-    if (venue[key]) node.style.backgroundImage = venue[key];
-  });
+  const grid = document.querySelector("[data-tours-grid]");
+  if (grid) {
+    grid.innerHTML = tours.length
+      ? tours.map(card).join("")
+      : '<p class="travel-dashboard-copy" data-tours-empty>No hay tours disponibles en este momento.</p>';
+  }
 }
 
 function setupTourDetail(theme) {
   if (document.body.dataset.screen !== "tour-detail") return;
 
-  const tours = {
-    mountains: {
-      detailTitle: "Detalle del tour",
-      name: "Tour destino ejemplo - Montañas",
-      category: "Naturaleza y trekking",
-      location: "Sierra alta, ruta panorámica",
-      description:
-        "Una salida inmersiva para descubrir paisajes abiertos, caminar con guía local y combinar aventura, descanso y momentos de contemplación en una ruta pensada para viajeros activos.",
-      price: 1039200,
-      originalPrice: 1299000,
-      discountLabel: "20% de descuento",
-      availability: "Selecciona una salida disponible para reservar.",
-      departures: [
-        { date: "15 sep 2026", status: "Disponible", tone: "available" },
-        { date: "22 sep 2026", status: "Pocos cupos", tone: "limited" },
-        { date: "29 sep 2026", status: "Disponible", tone: "available" },
-      ],
-      features: ["Guía local", "Traslados", "Snacks", "Paradas panorámicas"],
-      itinerary: [
-        {
-          title: "Dia 1 · Llegada y activacion",
-          body: "Recepción, briefing inicial y recorrido de reconocimiento con vista al valle.",
-          price: "Tarde",
-        },
-        {
-          title: "Dia 2 · Ruta principal",
-          body: "Caminata guiada por senderos de montaña con descansos y puntos fotográficos.",
-          price: "Día completo",
-        },
-        {
-          title: "Dia 3 · Cierre flexible",
-          body: "Mañana libre, recomendaciones del guía y retorno programado.",
-          price: "Mañana",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cenotes: {
-      detailTitle: "Detalle del tour",
-      name: "Aventura en cenotes ocultos",
-      category: "Naturaleza y agua",
-      location: "Ruta selvática, península",
-      description:
-        "Experiencia de un día para explorar cenotes poco concurridos, nadar en aguas cristalinas y vivir un recorrido fresco, guiado y seguro.",
-      price: 520000,
-      availability: "Selecciona una salida disponible para reservar.",
-      departures: [
-        { date: "12 sep 2026", status: "Disponible", tone: "available" },
-        { date: "19 sep 2026", status: "Disponible", tone: "available" },
-        { date: "26 sep 2026", status: "Sin cupo", tone: "unavailable" },
-      ],
-      features: ["Guía experto", "Equipo básico", "Entrada incluida", "Snack ligero"],
-      itinerary: [
-        {
-          title: "Salida temprana",
-          body: "Encuentro con el grupo, traslado y contexto de seguridad antes del ingreso.",
-          price: "8:00 am",
-        },
-        {
-          title: "Circuito de cenotes",
-          body: "Recorrido por dos o tres puntos naturales con tiempo para nadar y descansar.",
-          price: "Mediodía",
-        },
-        {
-          title: "Regreso",
-          body: "Cierre de experiencia con hidratación y retorno al punto de salida.",
-          price: "4:00 pm",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cultural: {
-      detailTitle: "Detalle del tour",
-      name: "Recorrido cultural e histórico",
-      category: "Ciudad y patrimonio",
-      location: "Centro histórico",
-      description:
-        "Una experiencia breve para conocer hitos patrimoniales, relatos locales y rincones emblematicos con una narrativa clara y cercana.",
-      price: 349000,
-      availability: "Selecciona una salida disponible para reservar.",
-      departures: [
-        { date: "16 sep 2026", status: "Disponible", tone: "available" },
-        { date: "23 sep 2026", status: "Disponible", tone: "available" },
-        { date: "30 sep 2026", status: "Disponible", tone: "available" },
-      ],
-      features: ["Guía cultural", "Paradas clave", "Acceso peatonal", "Tiempo libre"],
-      itinerary: [
-        {
-          title: "Inicio en plaza central",
-          body: "Presentación del recorrido y contexto histórico general de la zona.",
-          price: "10:00 am",
-        },
-        {
-          title: "Recorrido guiado",
-          body: "Visita a calles icónicas, fachadas relevantes y puntos de interpretación.",
-          price: "Medio día",
-        },
-        {
-          title: "Cierre recomendado",
-          body: "Sugerencias para continuar explorando por cuenta propia o almorzar cerca.",
-          price: "1:00 pm",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    rafting: {
-      detailTitle: "Detalle del tour",
-      name: "Rafting y acampada extrema",
-      category: "Aventura y río",
-      location: "Cañón del Río Bravo",
-      description:
-        "Plan de dos días para viajeros que buscan adrenalina, río, campamento y una operación guiada con enfoque en seguridad y experiencia outdoor.",
-      price: 799000,
-      availability: "Selecciona una salida disponible para reservar.",
-      isRisk: true,
-      departures: [
-        { date: "13 sep 2026", status: "Pocos cupos", tone: "limited" },
-        { date: "20 sep 2026", status: "Sin cupo", tone: "unavailable" },
-        { date: "27 sep 2026", status: "Disponible", tone: "available" },
-      ],
-      features: ["Rafting guiado", "Campamento", "Equipo técnico", "Cena al aire libre"],
-      itinerary: [
-        {
-          title: "Dia 1 · Ingreso y descenso",
-          body: "Registro, equipamiento, charla de seguridad y primer tramo de rafting.",
-          price: "Dia 1",
-        },
-        {
-          title: "Noche de campamento",
-          body: "Montaje de campamento, cena compartida y descanso junto al río.",
-          price: "Noche",
-        },
-        {
-          title: "Dia 2 · Segundo tramo y salida",
-          body: "Continuación del recorrido, cierre del circuito y retorno al punto base.",
-          price: "Dia 2",
-        },
-      ],
-      hero:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.08), rgba(20, 28, 32, 0.18)), url(\"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80\")",
-      side:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.06), rgba(20, 28, 32, 0.16)), url(\"https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  };
-
   const params = new URLSearchParams(window.location.search);
   const tourKey = params.get("tour");
   const sourceKey = params.get("source") || "tours";
-  const tour = tours[tourKey] || tours.mountains;
+  const services = getOperatorActiveTourServices();
+  const tour = (tourKey && services[tourKey]) || null;
   const themeConfig = THEMES[theme];
   const sourceMap = {
     tours: {
@@ -1736,187 +1454,128 @@ function setupTourDetail(theme) {
   };
   const sourceConfig = sourceMap[sourceKey] || sourceMap.tours;
 
-  document.title = `${tour.name} | ${themeConfig.titlePrefix}`;
-
   const backLink = document.querySelector(".travel-tours-back");
-  if (backLink) {
-    backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
-  }
+  if (backLink) backLink.setAttribute("href", withTheme(sourceConfig.path, theme));
 
   const backLabel = document.querySelector("[data-tour-back-label]");
-  if (backLabel) {
-    backLabel.textContent = sourceConfig.label;
+  if (backLabel) backLabel.textContent = sourceConfig.label;
+
+  // BUG corregido: esta pantalla mostraba SIEMPRE un tour fijo (con itinerario, "lo que
+  // incluye" y "salidas disponibles" inventados) sin validar si el tour realmente existe,
+  // esta activo y vigente. Ahora se resuelve desde el catalogo REAL (activo + vigente); si
+  // no existe, se informa en vez de mostrar un tour de relleno.
+  if (!tour) {
+    document.title = `Tour no disponible | ${themeConfig.titlePrefix}`;
+    const intro = document.querySelector(".travel-detail-intro");
+    if (intro) intro.innerHTML = '<div class="travel-detail-copy"><h1>Tour no disponible</h1><div class="travel-detail-description">Este tour ya no está activo, vigente, o no existe.</div></div>';
+    document.querySelector(".travel-detail-main")?.querySelectorAll(".travel-detail-section, [data-tour-risk-note]").forEach((node) => node.remove());
+    document.querySelector(".travel-detail-summary-card")?.remove();
+    return;
   }
+
+  document.title = `${tour.name} | ${themeConfig.titlePrefix}`;
 
   document.querySelectorAll("[data-tour-field]").forEach((node) => {
     const key = node.dataset.tourField;
-    if (tour[key]) node.textContent = tour[key];
+    if (key === "detailTitle") node.textContent = "Detalle del tour";
+    if (key === "name") node.textContent = tour.name;
   });
 
   const priceFinalNode = document.querySelector("[data-tour-price-final]");
   const priceBeforeNode = document.querySelector("[data-tour-price-before]");
   const discountNode = document.querySelector("[data-tour-discount]");
-  if (priceFinalNode) priceFinalNode.textContent = `Desde: ${formatCOP(tour.price)}`;
+  const finalPrice = tour.price * (1 - tour.discount);
+  if (priceFinalNode) priceFinalNode.textContent = `Desde: ${formatCOP(finalPrice)}`;
   if (priceBeforeNode) {
-    priceBeforeNode.textContent = `Antes: ${formatCOP(tour.originalPrice)}`;
-    priceBeforeNode.hidden = !tour.originalPrice;
+    priceBeforeNode.textContent = `Antes: ${formatCOP(tour.price)}`;
+    priceBeforeNode.hidden = !tour.discount;
   }
   if (discountNode) {
-    discountNode.textContent = tour.discountLabel || "";
-    discountNode.hidden = !tour.discountLabel;
+    discountNode.textContent = tour.discount ? `${Math.round(tour.discount * 100)}% de descuento` : "";
+    discountNode.hidden = !tour.discount;
   }
 
-  const featureNode = document.querySelector("[data-tour-features]");
-  if (featureNode) {
-    const features = tour.features || [];
-    featureNode.closest(".travel-detail-section").hidden = !features.length;
-    featureNode.innerHTML = features
-      .map((feature) => `<span>${feature}</span>`)
-      .join("");
-  }
+  // Vigencia, capacidad y restricciones como bloques informativos (PDR v1.7.1): mismos
+  // valores ya usados en el paso de reserva (create-reservation / reservar-tour), solo con
+  // mejor jerarquia visual aqui. Capacidad/restricciones solo se muestran cuando el dato
+  // realmente existe (no todo tour dinamico las tiene, y los 4 tours base del catalogo no
+  // las modelan): nunca se inventa un valor de relleno.
+  const validityCard = `<div class="travel-detail-info-card"><span>Vigencia</span><strong>${formatOperatorDate(tour.start)} - ${formatOperatorDate(tour.end)}</strong></div>`;
+  const capacityCard = tour.capacity != null
+    ? `<div class="travel-detail-info-card"><span>Capacidad</span><strong>Hasta ${tour.capacity} viajeros</strong></div>`
+    : "";
+  const restrictionsCard = tour.restrictions
+    ? `<div class="travel-detail-info-card"><span>Restricciones</span><strong>${escapeHtml(tour.restrictions)}</strong></div>`
+    : "";
 
-  const itineraryNode = document.querySelector("[data-tour-itinerary]");
-  if (itineraryNode) {
-    const itinerary = tour.itinerary || [];
-    itineraryNode.closest(".travel-detail-section").hidden = !itinerary.length;
-    itineraryNode.innerHTML = itinerary
-      .map(
-        (item) => `
-          <article class="travel-detail-menu-item">
-            <div>
-              <strong>${item.title}</strong>
-              <p>${item.body}</p>
-            </div>
-            <span>${item.price}</span>
-          </article>
-        `,
-      )
-      .join("");
-  }
+  const infoGrid = document.querySelector("[data-tour-info-grid]");
+  if (infoGrid) infoGrid.innerHTML = validityCard + capacityCard + restrictionsCard;
 
-  const departuresNode = document.querySelector("[data-tour-departures]");
-  const bookingButton = document.querySelector("[data-tour-booking-button]");
-  const availabilityNode = document.querySelector('[data-tour-field="availability"]');
-  let selectedDeparture = null;
+  const summaryInfo = document.querySelector("[data-tour-summary-info]");
+  if (summaryInfo) summaryInfo.innerHTML = validityCard + capacityCard;
 
-  const syncBookingButton = () => {
-    if (!bookingButton) return;
-    bookingButton.disabled = !selectedDeparture;
-    bookingButton.textContent = selectedDeparture ? "Reservar tour" : "Selecciona una salida";
-    if (availabilityNode) {
-      availabilityNode.textContent = selectedDeparture
-        ? `Salida seleccionada: ${selectedDeparture}. Puedes continuar con la reserva.`
-        : tour.availability;
+  // Servicio relacionado real: solo Transporte (RN-TRA-001/002), cuando el Administrador
+  // realmente lo asocio a este Tour. Hospedaje y Alimentacion no tienen una relacion real
+  // por Tour en el catalogo actual: no se inventan aqui (se ofrecen aparte, solo cuando
+  // aplica, en el paso de reserva).
+  const relatedSection = document.querySelector("[data-tour-related-section]");
+  const relatedTags = document.querySelector("[data-tour-related]");
+  if (relatedSection && relatedTags) {
+    if (tour.associatedTransport) {
+      relatedSection.hidden = false;
+      relatedTags.innerHTML = `<span>Transporte incluido: ${escapeHtml(tour.associatedTransport.name)} (${escapeHtml(tour.associatedTransport.route)})</span>`;
+    } else {
+      relatedSection.hidden = true;
+      relatedTags.innerHTML = "";
     }
-  };
+  }
 
-  if (departuresNode) {
-    departuresNode.innerHTML = (tour.departures || [])
-      .map(
-        (departure) => {
-          const isUnavailable = departure.tone === "unavailable";
-          return `
-          <button
-            type="button"
-            class="travel-detail-departure is-${departure.tone}"
-            data-tour-departure="${departure.date}"
-            aria-pressed="false"
-            ${isUnavailable ? "disabled" : ""}
-          >
-            <strong>${departure.date}</strong>
-            <span>${departure.status}</span>
-          </button>
-        `;
-        },
-      )
-      .join("");
+  // Modalidades de pago realmente habilitadas para este tour (Fase 1: Transferencia,
+  // Efectivo, Abono, segun corresponda). Solo mejora de presentacion, misma lista real ya
+  // usada en el paso de reserva.
+  const paymentsNode = document.querySelector("[data-tour-payments]");
+  if (paymentsNode) paymentsNode.innerHTML = (tour.payments || []).map((method) => `<span>${escapeHtml(method)}</span>`).join("");
 
-    departuresNode.querySelectorAll("[data-tour-departure]").forEach((departureButton) => {
-      departureButton.addEventListener("click", () => {
-        const departureDate = departureButton.dataset.tourDeparture;
-        selectedDeparture = selectedDeparture === departureDate ? null : departureDate;
-        departuresNode.querySelectorAll("[data-tour-departure]").forEach((node) => {
-          node.classList.toggle("is-selected", selectedDeparture === node.dataset.tourDeparture);
-          node.setAttribute("aria-pressed", String(selectedDeparture === node.dataset.tourDeparture));
-        });
-        syncBookingButton();
-      });
+  // Condiciones de reserva reales del tour, en un bloque destacado.
+  const conditionsNode = document.querySelector("[data-tour-conditions]");
+  if (conditionsNode) conditionsNode.innerHTML = (tour.conditions || []).map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
+
+  const availabilityNode = document.querySelector('[data-tour-field="availability"]');
+  if (availabilityNode) availabilityNode.textContent = `Vigente del ${formatOperatorDate(tour.start)} al ${formatOperatorDate(tour.end)}.`;
+
+  const bookingButton = document.querySelector("[data-tour-booking-button]");
+  if (bookingButton) {
+    bookingButton.disabled = false;
+    bookingButton.textContent = "Reservar tour";
+    bookingButton.addEventListener("click", () => {
+      window.location.href = `${withTheme("reservar-tour.html", theme)}&tour=${encodeURIComponent(tour.key)}&source=${encodeURIComponent(sourceKey)}`;
     });
   }
 
-  syncBookingButton();
-  bookingButton?.addEventListener("click", () => {
-    if (!selectedDeparture) return;
-    window.location.href = `${withTheme("reservar-tour.html", theme)}&tour=${encodeURIComponent(tourKey || "mountains")}&source=tour-detail&departure=${encodeURIComponent(selectedDeparture)}`;
-  });
-
   const riskNote = document.querySelector("[data-tour-risk-note]");
-  if (riskNote) riskNote.hidden = !tour.isRisk;
+  if (riskNote) riskNote.hidden = !tour.risk;
 
-  document.querySelectorAll("[data-tour-image]").forEach((node) => {
-    const key = node.dataset.tourImage;
-    if (tour[key]) node.style.backgroundImage = tour[key];
-  });
+  // No hay imagenes comerciales de stock reales por Tour: solo un recurso creado
+  // dinamicamente en "Nuevo servicio" puede traer una imagen real cargada por el
+  // Administrador. Si no existe, no se reserva espacio para ninguna imagen (evita el
+  // espacio vacio que dejaba la galeria anterior en tours sin imagen real).
+  const summaryImage = document.querySelector("[data-tour-summary-image]");
+  if (summaryImage) {
+    if (tour.image) {
+      summaryImage.hidden = false;
+      summaryImage.style.backgroundImage = `url("${tour.image.replace(/"/g, "%22")}")`;
+    } else {
+      summaryImage.hidden = true;
+    }
+  }
 }
 
 function setupTourBooking(theme) {
   if (document.body.dataset.screen !== "tour-booking") return;
 
-  const tours = {
-    mountains: {
-      name: "Tour destino ejemplo - montañas",
-      category: "Naturaleza y trekking",
-      unitProjectedValue: 1299000,
-      discountRate: 0.2,
-      conditions: [],
-      departures: [
-        { date: "2026-09-15", label: "15 sep 2026", capacity: 10 },
-        { date: "2026-09-22", label: "22 sep 2026", capacity: 2 },
-        { date: "2026-09-29", label: "29 sep 2026", capacity: 8 },
-      ],
-    },
-    cenotes: {
-      name: "Aventura en cenotes ocultos",
-      category: "Naturaleza y agua",
-      unitProjectedValue: 520000,
-      discountRate: 0,
-      conditions: [],
-      departures: [
-        { date: "2026-09-12", label: "12 sep 2026", capacity: 8 },
-        { date: "2026-09-19", label: "19 sep 2026", capacity: 8 },
-        { date: "2026-09-26", label: "26 sep 2026", capacity: 0 },
-      ],
-    },
-    cultural: {
-      name: "Recorrido cultural e histórico",
-      category: "Ciudad y patrimonio",
-      unitProjectedValue: 349000,
-      discountRate: 0,
-      conditions: [],
-      departures: [
-        { date: "2026-09-16", label: "16 sep 2026", capacity: 14 },
-        { date: "2026-09-23", label: "23 sep 2026", capacity: 14 },
-        { date: "2026-09-30", label: "30 sep 2026", capacity: 14 },
-      ],
-    },
-    rafting: {
-      name: "Rafting y acampada extrema",
-      category: "Aventura y río",
-      unitProjectedValue: 799000,
-      discountRate: 0,
-      conditions: [],
-      departures: [
-        { date: "2026-09-13", label: "13 sep 2026", capacity: 2 },
-        { date: "2026-09-20", label: "20 sep 2026", capacity: 0 },
-        { date: "2026-09-27", label: "27 sep 2026", capacity: 6 },
-      ],
-    },
-  };
-
   const params = new URLSearchParams(window.location.search);
-  const tourKey = params.get("tour") || "mountains";
-  const selectedDeparture = params.get("departure");
-  const tour = tours[tourKey] || tours.mountains;
+  const tourKey = params.get("tour") || "";
+  const tour = getOperatorActiveTourService(tourKey);
   const backLink = document.querySelector("[data-tour-booking-back]");
   const bookingName = document.querySelector("[data-booking-tour-name]");
   const bookingCategory = document.querySelector("[data-booking-tour-category]");
@@ -1934,32 +1593,52 @@ function setupTourBooking(theme) {
   const daysContainer = document.querySelector("[data-booking-days]");
   const monthNavButtons = document.querySelectorAll("[data-booking-month-nav]");
   const checkoutStorageKey = "multitour-tour-checkout";
-  const monthFormatter = new Intl.DateTimeFormat("es-CO", {
-    month: "long",
-    year: "numeric",
-  });
-  const monthFromDateKey = (dateKey) => new Date(`${dateKey}T12:00:00`);
-  const dateKeyFromDate = (date) => date.toISOString().slice(0, 10);
-  const availableMonths = Array.from(
-    new Set(tour.departures.map((departure) => departure.date.slice(0, 7))),
-  ).map((monthKey) => monthFromDateKey(`${monthKey}-01`));
-  const selectedFromDetail = tour.departures.find(
-    (departure) => departure.label === selectedDeparture && departure.capacity > 0,
-  );
-  let selectedDate = (selectedFromDetail || tour.departures.find((departure) => departure.capacity > 0))?.date;
-  let monthIndex = Math.max(
-    0,
-    availableMonths.findIndex((month) => dateKeyFromDate(month) === selectedDate?.slice(0, 7) + "-01"),
-  );
-  let travelers = 2;
 
   if (backLink) {
     backLink.setAttribute("href", `${withTheme("detalle-tour.html", theme)}&tour=${encodeURIComponent(tourKey)}&source=tours`);
   }
 
+  if (!tour) {
+    if (bookingName) bookingName.textContent = "Tour no disponible";
+    if (bookingCategory) bookingCategory.textContent = "Este tour ya no está activo, vigente, o no existe.";
+    document.querySelector(".travel-booking-calendar")?.closest(".travel-booking-card")?.remove();
+    document.querySelectorAll("[data-counter]").forEach((counter) => counter.closest(".travel-booking-card")?.remove());
+    if (continueButton) continueButton.disabled = true;
+    return;
+  }
+
+  const monthFormatter = new Intl.DateTimeFormat("es-CO", { month: "long", year: "numeric" });
+  const monthFromDateKey = (dateKey) => new Date(`${dateKey}T12:00:00`);
+  const dateKeyFromDate = (date) => date.toISOString().slice(0, 10);
+
+  // PDR v1.7.1: el rango seleccionable es EXCLUSIVAMENTE la vigencia real del servicio
+  // (vigenciaDesde <= fecha <= vigenciaHasta, ambas inclusive), nunca una lista de salidas
+  // programadas aparte. La capacidad aplica a la CANTIDAD DE VIAJEROS, no a un cupo por
+  // fecha especifica (ese concepto no esta modelado en el catalogo real).
+  const startMonthKey = tour.start.slice(0, 7);
+  const endMonthKey = tour.end.slice(0, 7);
+  const availableMonths = [];
+  let cursor = monthFromDateKey(`${startMonthKey}-01`);
+  const endCursor = monthFromDateKey(`${endMonthKey}-01`);
+  while (dateKeyFromDate(cursor).slice(0, 7) <= dateKeyFromDate(endCursor).slice(0, 7)) {
+    availableMonths.push(cursor);
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+  }
+
+  let selectedDate = tour.start;
+  let monthIndex = 0;
+  let travelers = 1;
+
+  // Cupo maximo reservable: el del servicio (cuando esta parametrizado) y, si tiene
+  // transporte asociado, tambien el de ese transporte — el MENOR de ambos aplica (ej. Tour
+  // permite 60 y transporte permite 50 => maximo 50).
+  const maxByService = tour.capacity != null ? tour.capacity : Infinity;
+  const maxByTransport = tour.associatedTransport?.capacity != null ? tour.associatedTransport.capacity : Infinity;
+  const maxTravelers = Math.min(maxByService, maxByTransport);
+
   if (bookingName) bookingName.textContent = tour.name;
-  if (bookingCategory) bookingCategory.textContent = tour.category;
-  if (bookingPrice) bookingPrice.textContent = `Desde ${formatCOP(tour.unitProjectedValue * (1 - tour.discountRate))}`;
+  if (bookingCategory) bookingCategory.textContent = `Vigente del ${formatOperatorDate(tour.start)} al ${formatOperatorDate(tour.end)}.`;
+  if (bookingPrice) bookingPrice.textContent = `Desde ${formatCOP(tour.price * (1 - tour.discount))}`;
   if (conditionsList) {
     const conditions = tour.conditions || [];
     conditionsList.innerHTML = conditions.map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
@@ -1968,24 +1647,26 @@ function setupTourBooking(theme) {
   }
 
   const renderSummary = () => {
-    const departure = tour.departures.find((item) => item.date === selectedDate);
-    const projectedValue = tour.unitProjectedValue * travelers;
-    const discountValue = Math.round(projectedValue * tour.discountRate);
+    const withinValidity = Boolean(selectedDate && selectedDate >= tour.start && selectedDate <= tour.end);
+    const projectedValue = tour.price * travelers;
+    const discountValue = Math.round(projectedValue * tour.discount);
     const finalValue = projectedValue - discountValue;
-    const hasCapacity = Boolean(departure && travelers <= departure.capacity);
+    const hasCapacity = Number.isFinite(maxTravelers) ? travelers <= maxTravelers : true;
 
     if (projectedValueNode) projectedValueNode.textContent = formatCOP(projectedValue);
     if (discountBlock) discountBlock.hidden = discountValue === 0;
     if (discountValueNode) discountValueNode.textContent = `- ${formatCOP(discountValue)}`;
     if (finalValueNode) finalValueNode.textContent = formatCOP(finalValue);
-    if (bookingSelection) bookingSelection.textContent = `${departure?.label || "Sin salida seleccionada"} - ${travelers} viajeros`;
+    if (bookingSelection) bookingSelection.textContent = `${selectedDate ? formatOperatorDate(selectedDate) : "Sin fecha seleccionada"} - ${travelers} ${travelers === 1 ? "viajero" : "viajeros"}`;
     if (capacityMessage) {
-      capacityMessage.textContent = hasCapacity
-        ? "Disponibilidad validada para la cantidad de viajeros seleccionada."
-        : "La cantidad seleccionada supera la disponibilidad de esta salida.";
-      capacityMessage.classList.toggle("is-error", !hasCapacity);
+      capacityMessage.textContent = !withinValidity
+        ? "Selecciona una fecha dentro de la vigencia del servicio."
+        : hasCapacity
+          ? "Disponibilidad validada para la cantidad de viajeros seleccionada."
+          : `La cantidad seleccionada supera la capacidad disponible (${maxTravelers} viajeros).`;
+      capacityMessage.classList.toggle("is-error", !withinValidity || !hasCapacity);
     }
-    if (continueButton) continueButton.disabled = !hasCapacity;
+    if (continueButton) continueButton.disabled = !withinValidity || !hasCapacity;
   };
 
   const renderCalendar = () => {
@@ -1996,10 +1677,7 @@ function setupTourBooking(theme) {
     const totalDays = new Date(year, month + 1, 0).getDate();
     const label = monthFormatter.format(activeMonth);
 
-    if (monthLabel) {
-      monthLabel.textContent = label.charAt(0).toUpperCase() + label.slice(1);
-    }
-
+    if (monthLabel) monthLabel.textContent = label.charAt(0).toUpperCase() + label.slice(1);
     if (!daysContainer) return;
     daysContainer.innerHTML = "";
 
@@ -2010,24 +1688,19 @@ function setupTourBooking(theme) {
     }
 
     for (let day = 1; day <= totalDays; day += 1) {
-      const button = document.createElement("button");
       const date = new Date(year, month, day, 12);
       const dateKey = dateKeyFromDate(date);
-      const departure = tour.departures.find((item) => item.date === dateKey);
+      const withinValidity = dateKey >= tour.start && dateKey <= tour.end;
+      const button = document.createElement("button");
       button.type = "button";
       button.className = "travel-booking-day";
       button.dataset.dateKey = dateKey;
       button.textContent = String(day);
-      button.disabled = !departure || departure.capacity === 0;
-      button.setAttribute(
-        "aria-label",
-        departure ? `${departure.label}: ${departure.capacity ? "disponible" : "sin cupo"}` : `${day}: sin salida disponible`,
-      );
-      if (departure?.capacity === 0) button.classList.add("is-unavailable");
-      if (dateKey === selectedDate) {
-        button.classList.add("is-active");
-      }
-      if (departure && departure.capacity > 0) {
+      button.disabled = !withinValidity;
+      button.setAttribute("aria-label", withinValidity ? `${dateKey}: dentro de la vigencia` : `${dateKey}: fuera de la vigencia del servicio`);
+      if (!withinValidity) button.classList.add("is-unavailable");
+      if (dateKey === selectedDate) button.classList.add("is-active");
+      if (withinValidity) {
         button.addEventListener("click", () => {
           selectedDate = dateKey;
           renderCalendar();
@@ -2056,6 +1729,7 @@ function setupTourBooking(theme) {
   document.querySelectorAll("[data-counter]").forEach((counter) => {
     const valueNode = counter.querySelector("[data-counter-value]");
     const type = counter.dataset.counter;
+    valueNode.textContent = String(travelers);
 
     counter.querySelectorAll("[data-counter-action]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -2071,15 +1745,17 @@ function setupTourBooking(theme) {
 
   if (continueButton) {
     continueButton.addEventListener("click", () => {
-      const departure = tour.departures.find((item) => item.date === selectedDate);
-      if (!departure || travelers > departure.capacity) return;
-      const projectedValue = tour.unitProjectedValue * travelers;
-      const discountValue = Math.round(projectedValue * tour.discountRate);
+      const withinValidity = selectedDate >= tour.start && selectedDate <= tour.end;
+      const hasCapacity = Number.isFinite(maxTravelers) ? travelers <= maxTravelers : true;
+      if (!withinValidity || !hasCapacity) return;
+      const projectedValue = tour.price * travelers;
+      const discountValue = Math.round(projectedValue * tour.discount);
       const finalValue = projectedValue - discountValue;
       const booking = {
         experience: tour.name,
-        startDate: departure.label,
-        endDate: departure.label,
+        startDate: formatOperatorDate(selectedDate),
+        endDate: formatOperatorDate(selectedDate),
+        isoDate: selectedDate,
         travelers: String(travelers),
         budget: formatCOP(finalValue),
         projectedValue,
@@ -2089,7 +1765,10 @@ function setupTourBooking(theme) {
         savedAt: new Date().toLocaleDateString("es-CO"),
         unitPrice: finalValue / travelers,
         tourKey,
-        category: tour.category,
+        risk: tour.risk,
+        payments: tour.payments,
+        conditions: tour.conditions,
+        transportSelected: tour.associatedTransport ? `${tour.associatedTransport.name} — ${tour.associatedTransport.route}` : "",
       };
       window.localStorage.setItem(checkoutStorageKey, JSON.stringify(booking));
       window.location.href = `${withTheme("finalizar-reserva.html", theme)}&tour=${encodeURIComponent(tourKey)}`;
@@ -2103,34 +1782,11 @@ function setupTourBooking(theme) {
 function setupTourCheckout(theme) {
   if (document.body.dataset.screen !== "tour-checkout") return;
 
-  const tours = {
-    mountains: {
-      name: "Tour destino ejemplo - montañas",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cenotes: {
-      name: "Aventura en cenotes ocultos",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    cultural: {
-      name: "Recorrido cultural e histórico",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80\")",
-    },
-    rafting: {
-      name: "Rafting y acampada extrema",
-      image:
-        "linear-gradient(180deg, rgba(20, 28, 32, 0.04), rgba(20, 28, 32, 0.12)), url(\"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80\")",
-    },
-  };
-
   const storageKey = "multitour-dashboard-booking";
   const checkoutStorageKey = "multitour-tour-checkout";
   const successStorageKey = "multitour-payment-success";
   const params = new URLSearchParams(window.location.search);
-  const fallbackTourKey = params.get("tour") || "mountains";
+  const fallbackTourKey = params.get("tour") || "";
   let booking = null;
 
   try {
@@ -2141,10 +1797,7 @@ function setupTourCheckout(theme) {
   }
 
   const tourKey = booking?.tourKey || fallbackTourKey;
-  const tour = tours[tourKey] || tours.mountains;
-  const subtotal = Number(booking?.unitPrice || 1299000) * Number(booking?.travelers || 2);
-  const taxes = Math.round(subtotal * 0.08);
-  const total = subtotal + taxes;
+  const tour = getOperatorActiveTourService(tourKey);
 
   const backLink = document.querySelector("[data-tour-checkout-back]");
   if (backLink) {
@@ -2154,107 +1807,292 @@ function setupTourCheckout(theme) {
     );
   }
 
-  const imageNode = document.querySelector("[data-checkout-image]");
-  if (imageNode) imageNode.style.backgroundImage = tour.image;
-
-  const nameNode = document.querySelector("[data-checkout-tour-name]");
-  if (nameNode) nameNode.textContent = booking?.experience || tour.name;
-
-  const dateNode = document.querySelector("[data-checkout-date]");
-  if (dateNode) dateNode.textContent = booking?.startDate || "15 sep 2026";
-
-  const guestsNode = document.querySelector("[data-checkout-guests]");
-  if (guestsNode) {
-    const guestCount = Number(booking?.travelers || 2);
-    guestsNode.textContent = `${guestCount} ${guestCount === 1 ? "viajero" : "viajeros"}`;
+  // BUG corregido: sin un borrador real de reserva (ej. acceso directo a esta URL), esta
+  // pantalla simulaba una reserva de relleno (2 viajeros, 15 sep 2026, etc.). Ahora se
+  // informa en vez de inventar datos.
+  if (!booking) {
+    const content = document.querySelector(".travel-checkout-content");
+    if (content) content.innerHTML = '<p class="travel-dashboard-copy">No hay una reserva en curso. Vuelve a Explorar para seleccionar un tour.</p>';
+    document.querySelector(".travel-booking-sticky-bar")?.remove();
+    return;
   }
 
+  const travelers = Number(booking.travelers || 1);
+  const projectedValue = Number(booking.projectedValue || 0);
+  const discountValue = Number(booking.discountValue || 0);
+  const finalValue = Number(booking.finalValue ?? projectedValue - discountValue);
+
+  const imageNode = document.querySelector("[data-checkout-image]");
+  if (imageNode && tour?.image) imageNode.style.backgroundImage = `url("${tour.image.replace(/"/g, "%22")}")`;
+
+  const nameNode = document.querySelector("[data-checkout-tour-name]");
+  if (nameNode) nameNode.textContent = booking.experience;
+
+  const dateNode = document.querySelector("[data-checkout-date]");
+  if (dateNode) dateNode.textContent = booking.startDate;
+
+  const guestsNode = document.querySelector("[data-checkout-guests]");
+  if (guestsNode) guestsNode.textContent = `${travelers} ${travelers === 1 ? "viajero" : "viajeros"}`;
+
   const subtotalLabelNode = document.querySelector("[data-checkout-subtotal-label]");
-  if (subtotalLabelNode) subtotalLabelNode.textContent = `Precio base x${booking?.travelers || 2}`;
+  if (subtotalLabelNode) subtotalLabelNode.textContent = `Precio base x${travelers}`;
 
   const subtotalNode = document.querySelector("[data-checkout-subtotal]");
-  if (subtotalNode) subtotalNode.textContent = formatCOP(subtotal);
+  if (subtotalNode) subtotalNode.textContent = formatCOP(projectedValue);
 
-  const taxesNode = document.querySelector("[data-checkout-taxes]");
-  if (taxesNode) taxesNode.textContent = formatCOP(taxes);
+  // PDR v1.7.1: sin "Impuestos y seguro" (no hay parametrizacion respaldada para ese
+  // cargo); el resumen usa unicamente valor proyectado, descuentos aplicables y valor final.
+  const discountRow = document.querySelector("[data-checkout-discount-row]");
+  const discountNode = document.querySelector("[data-checkout-discount]");
+  if (discountRow) discountRow.hidden = discountValue === 0;
+  if (discountNode) discountNode.textContent = `-${formatCOP(discountValue)}`;
 
   const totalNode = document.querySelector("[data-checkout-total]");
-  if (totalNode) totalNode.textContent = formatCOP(total);
+  if (totalNode) totalNode.textContent = formatCOP(finalValue);
 
   const totalStickyNode = document.querySelector("[data-checkout-total-sticky]");
-  if (totalStickyNode) totalStickyNode.textContent = formatCOP(total);
+  if (totalStickyNode) totalStickyNode.textContent = formatCOP(finalValue);
 
   const selectionNode = document.querySelector("[data-checkout-selection]");
-  if (selectionNode) selectionNode.textContent = `${booking?.startDate || "15 sep 2026"} - ${booking?.travelers || 2} viajeros`;
+  if (selectionNode) selectionNode.textContent = `${booking.startDate} - ${travelers} ${travelers === 1 ? "viajero" : "viajeros"}`;
 
   const codeNode = document.querySelector("[data-checkout-code]");
-  if (codeNode) codeNode.textContent = booking?.code || "Borrador";
+  if (codeNode) codeNode.textContent = booking.code || "Borrador";
 
-  document.querySelectorAll("[data-payment-option]").forEach((option) => {
-    const input = option.querySelector('input[type="radio"]');
-    if (!input) return;
+  // Titular: se prellena el nombre con el mismo perfil local ya usado para el saludo del
+  // panel cliente (multitour-user-profile), sin inventar un mecanismo de sesion nuevo.
+  const holderNameInput = document.querySelector("[data-checkout-holder-name]");
+  if (holderNameInput) {
+    try {
+      const profile = JSON.parse(localStorage.getItem("multitour-user-profile") || "null");
+      if (profile?.name) holderNameInput.value = profile.name;
+    } catch {
+      /* sin perfil guardado: se deja vacio para que el cliente lo complete */
+    }
+  }
+  const holderDocumentInput = document.querySelector("[data-checkout-holder-document]");
+  const holderPhoneInput = document.querySelector("[data-checkout-holder-phone]");
+  const holderEmailInput = document.querySelector("[data-checkout-holder-email]");
+  const holderBirthDateInput = document.querySelector("[data-checkout-holder-birthdate]");
 
-    const syncState = () => {
-      option.classList.toggle("is-active", input.checked);
-    };
+  // Viajeros (PDR: total viajeros = titular + acompañantes). Mismos campos minimos ya
+  // respaldados por el modelo/PDR (nombre, documento, fecha de nacimiento), iguales a los
+  // que ya usa el Portal (create-reservation.component.ts).
+  const companionsCount = Math.max(0, travelers - 1);
+  const companionsCountNode = document.querySelector("[data-checkout-companions-count]");
+  if (companionsCountNode) {
+    companionsCountNode.textContent =
+      companionsCount === 0
+        ? "No requiere acompañantes"
+        : `${companionsCount} acompañante${companionsCount === 1 ? "" : "s"} requerido${companionsCount === 1 ? "" : "s"}`;
+  }
+  const companionsContainer = document.querySelector("[data-checkout-companions]");
+  if (companionsContainer) {
+    companionsContainer.innerHTML = Array.from(
+      { length: companionsCount },
+      (_, index) => `
+        <article class="travel-companion-card">
+          <div class="travel-checkout-section-title"><h2>Acompañante ${index + 1}</h2></div>
+          <div class="travel-companion-grid">
+            <label>Nombre completo<input type="text" required data-companion-name="${index}" placeholder="Nombre completo" /></label>
+            <label>Documento de identidad<input type="text" required data-companion-document="${index}" placeholder="Documento" /></label>
+            <label>Fecha de nacimiento<input type="date" required data-companion-birthdate="${index}" /></label>
+          </div>
+        </article>
+      `,
+    ).join("");
+  }
 
-    input.addEventListener("change", () => {
-      document.querySelectorAll("[data-payment-option]").forEach((node) => {
-        node.classList.remove("is-active");
-      });
-      syncState();
-    });
+  // Requisitos de actividad de riesgo (RN-597): solo si el servicio esta marcado como
+  // actividad de riesgo, para el titular y cada acompañante. Nunca se aplica a servicios
+  // que no sean de riesgo.
+  const riskSection = document.querySelector("[data-checkout-risk-section]");
+  const riskFieldsContainer = document.querySelector("[data-checkout-risk-fields]");
+  if (riskSection) riskSection.hidden = !booking.risk;
+  if (booking.risk && riskFieldsContainer) {
+    const people = ["Titular", ...Array.from({ length: companionsCount }, (_, index) => `Acompañante ${index + 1}`)];
+    riskFieldsContainer.innerHTML = people
+      .map(
+        (label, index) => `
+          <article class="travel-companion-card">
+            <div class="travel-checkout-section-title"><h2>${label}</h2></div>
+            <div class="travel-companion-grid">
+              <label>Tipo de sangre<input type="text" required data-risk-blood="${index}" placeholder="Ej. O+" /></label>
+              <label>Contacto de emergencia<input type="text" required data-risk-emergency="${index}" placeholder="Nombre y teléfono" /></label>
+            </div>
+            <label>Restricciones físicas o movilidad reducida<textarea required data-risk-restrictions="${index}" placeholder="Indica restricciones o escribe Ninguna."></textarea></label>
+            <label class="travel-checkout-consent"><input type="checkbox" required data-risk-consent="${index}" /> Consentimiento informado o exoneración registrado.</label>
+          </article>
+        `,
+      )
+      .join("");
+  }
 
-    syncState();
-  });
+  // Condiciones de reserva: las mismas condiciones reales del tour ya resueltas en el paso
+  // anterior (nunca un texto generico distinto al parametrizado).
+  const conditionsListNode = document.querySelector("[data-checkout-conditions-list]");
+  if (conditionsListNode) {
+    conditionsListNode.innerHTML = (booking.conditions || []).map((condition) => `<li>${escapeHtml(condition)}</li>`).join("");
+  }
 
+  // PDR v1.9: tipo y medio de pago son campos independientes; ambos quedan habilitados en esta demo.
+  const paymentConfig = { types: ["Pago total", "Abono"], media: ["Transferencia", "Efectivo"] };
+  const depositFields = document.querySelector("[data-checkout-deposit-fields]");
+  const syncPaymentCopy = () => {
+    const selectedType = document.querySelector('input[name="payment-type"]:checked')?.value || "";
+    const selectedMedium = document.querySelector('input[name="payment-medium"]:checked')?.value || "";
+    document.querySelectorAll("[data-payment-type-option]").forEach((option) => { option.hidden = !paymentConfig.types.includes(option.dataset.paymentTypeValue); });
+    document.querySelectorAll("[data-payment-medium-option]").forEach((option) => { option.hidden = !paymentConfig.media.includes(option.dataset.paymentMediumValue); });
+    if (depositFields) depositFields.hidden = selectedType !== "deposit";
+    const depositHint = depositFields?.querySelector("[data-checkout-deposit-hint]");
+    if (depositHint) depositHint.textContent = selectedType === "deposit" ? "El abono mínimo se calcula sobre el valor final después de aplicar descuentos. El saldo pendiente se calcula con base en el valor efectivamente abonado." : "";
+    const cashHint = document.querySelector("[data-checkout-cash-hint]");
+    if (cashHint) cashHint.hidden = selectedMedium !== "cash";
+    const transferHint = document.querySelector("[data-checkout-transfer-hint]");
+    if (transferHint) transferHint.hidden = selectedMedium !== "bank";
+    const payButton = document.querySelector("[data-checkout-pay]");
+    if (payButton) payButton.textContent = selectedMedium === "bank" ? "Continuar al pago" : selectedMedium === "cash" ? "Confirmar reserva" : "Continuar";
+  };
+  document.querySelectorAll('input[name="payment-type"], input[name="payment-medium"]').forEach((input) => input.addEventListener("change", syncPaymentCopy));
+  const firstType = document.querySelector('input[name="payment-type"]');
+  const firstMedium = document.querySelector('input[name="payment-medium"]');
+  if (firstType) firstType.checked = true;
+  if (firstMedium) firstMedium.checked = true;
+  syncPaymentCopy();
+
+  const feedbackNode = document.querySelector("[data-checkout-feedback]");
   const payButton = document.querySelector("[data-checkout-pay]");
   if (!payButton) return;
 
+  const normalizeDoc = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+
   payButton.addEventListener("click", () => {
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "bank";
+    const selectedType = document.querySelector('input[name="payment-type"]:checked')?.value || "";
+    const selectedMedium = document.querySelector('input[name="payment-medium"]:checked')?.value || "";
+    const conditionsAccepted = Boolean(document.querySelector("[data-checkout-conditions-accept]")?.checked);
+    const holderName = holderNameInput?.value.trim() || "";
+    const holderDocument = holderDocumentInput?.value.trim() || "";
+    const holderPhone = holderPhoneInput?.value.trim() || "";
+    const holderEmail = holderEmailInput?.value.trim() || "";
+    const holderBirthDate = holderBirthDateInput?.value || "";
+    const termsAccepted = Boolean(document.querySelector("[data-checkout-terms-accept]")?.checked);
+
+    const companions = Array.from({ length: companionsCount }, (_, index) => ({
+      name: document.querySelector(`[data-companion-name="${index}"]`)?.value.trim() || "",
+      document: document.querySelector(`[data-companion-document="${index}"]`)?.value.trim() || "",
+      birthDate: document.querySelector(`[data-companion-birthdate="${index}"]`)?.value || "",
+    }));
+
+    if (!holderName || !holderDocument || !holderPhone || !holderEmail || !holderBirthDate) {
+      if (feedbackNode) feedbackNode.textContent = "Completa nombre, documento, teléfono, correo y fecha de nacimiento del titular.";
+      return;
+    }
+    if (companions.some((companion) => !companion.name || !companion.document || !companion.birthDate)) {
+      if (feedbackNode) feedbackNode.textContent = "Completa los datos de todos los acompañantes.";
+      return;
+    }
+    const allDocs = [holderDocument, ...companions.map((companion) => companion.document)].map(normalizeDoc).filter(Boolean);
+    if (allDocs.some((doc, index) => allDocs.indexOf(doc) !== index)) {
+      if (feedbackNode) feedbackNode.textContent = "El documento del titular y los acompañantes debe ser único dentro de la reserva.";
+      return;
+    }
+    if (booking.risk) {
+      const peopleCount = 1 + companionsCount;
+      for (let index = 0; index < peopleCount; index += 1) {
+        const blood = document.querySelector(`[data-risk-blood="${index}"]`)?.value.trim();
+        const emergency = document.querySelector(`[data-risk-emergency="${index}"]`)?.value.trim();
+        const restrictions = document.querySelector(`[data-risk-restrictions="${index}"]`)?.value.trim();
+        const consent = document.querySelector(`[data-risk-consent="${index}"]`)?.checked;
+        if (!blood || !emergency || !restrictions || !consent) {
+          if (feedbackNode) feedbackNode.textContent = "Completa los requisitos de actividad de riesgo para cada viajero.";
+          return;
+        }
+      }
+    }
+    if (!termsAccepted) {
+      if (feedbackNode) feedbackNode.textContent = "Debes aceptar los términos y condiciones para continuar.";
+      return;
+    }
+    if (!conditionsAccepted) {
+      if (feedbackNode) feedbackNode.textContent = "Debes aceptar las condiciones aplicables para continuar.";
+      return;
+    }
+    if (!selectedType || !selectedMedium) {
+      if (feedbackNode) feedbackNode.textContent = "Selecciona el tipo y el medio de pago.";
+      return;
+    }
+
+    let depositAmount = 0;
+    if (selectedType === "deposit") {
+      depositAmount = Number(document.querySelector("[data-checkout-deposit-amount]")?.value || 0);
+      if (!depositAmount || depositAmount <= 0 || depositAmount > finalValue) {
+        if (feedbackNode) feedbackNode.textContent = "Ingresa un monto de abono válido (mayor a cero y hasta el valor final).";
+        return;
+      }
+    }
+
     const finalBooking = {
-      experience: booking?.experience || tour.name,
-      startDate: booking?.startDate || "15 sep 2026",
-      endDate: booking?.endDate || booking?.startDate || "15 sep 2026",
-      travelers: booking?.travelers || "2",
-      budget: formatCOP(total),
-      code: booking?.code || `#RES-${Date.now().toString().slice(-6)}`,
+      experience: booking.experience,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      travelers: String(travelers),
+      budget: formatCOP(finalValue),
+      projectedValue: formatCOP(projectedValue),
+      discountValue: discountValue ? `-${formatCOP(discountValue)}` : "$0",
+      finalValue: formatCOP(finalValue),
+      code: booking.code || `#RES-${Date.now().toString().slice(-6)}`,
       savedAt: new Date().toLocaleDateString("es-CO"),
-      status: "Confirmada",
       tourKey,
+      holderDocument,
+      companions,
+      transportSelected: booking.transportSelected || "",
+      method: selectedMedium === "bank" ? "Transferencia" : "Efectivo",
+      paymentType: selectedType === "deposit" ? "Abono" : "Pago total",
+      paymentMedium: selectedMedium === "bank" ? "Transferencia" : "Efectivo",
+      holderPhone,
+      holderEmail,
+      holderBirthDate,
     };
 
-    if (selectedMethod === "bank") {
-      window.localStorage.setItem(successStorageKey, JSON.stringify(finalBooking));
+    // PDR v1.7.1 (lineas 628-630): ninguna modalidad confirma la reserva automaticamente al
+    // crearla. Transferencia requiere soporte + validacion operativa; Efectivo requiere
+    // condicion parametrizada o dinero recibido; Abono requiere el abono minimo
+    // parametrizado. Sin esas condiciones cumplidas aqui, la reserva queda Pendiente de pago.
+    if (selectedMedium === "bank") {
+      const pendingBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago", receiptStatus: "En validación", financialStatus: "Sin pago" };
+      window.localStorage.setItem(successStorageKey, JSON.stringify(pendingBooking));
+      window.localStorage.setItem(storageKey, JSON.stringify(pendingBooking));
+      recordClientReservation(pendingBooking);
       window.localStorage.removeItem(checkoutStorageKey);
       window.location.href = `${withTheme("pago-transferencia.html", theme)}&tour=${encodeURIComponent(tourKey)}`;
       return;
     }
 
-    if (selectedMethod === "cash") {
-      const cashBooking = {
-        ...finalBooking,
-        status: "Pendiente pago en efectivo",
-      };
+    if (selectedMedium === "cash") {
+      const cashBooking = { ...finalBooking, status: "Pendiente de pago", paymentStatus: "Sin pago", financialStatus: "Sin pago" };
       window.localStorage.setItem(storageKey, JSON.stringify(cashBooking));
+      recordClientReservation(cashBooking);
       window.localStorage.removeItem(checkoutStorageKey);
       window.location.href = withTheme("panel-cliente.html", theme);
       return;
     }
 
-    if (selectedMethod === "deposit") {
-      const depositBooking = {
-        ...finalBooking,
-        status: "Pendiente pago de abono",
-      };
-      window.localStorage.setItem(storageKey, JSON.stringify(depositBooking));
-      window.localStorage.removeItem(checkoutStorageKey);
-      window.location.href = withTheme("panel-cliente.html", theme);
-      return;
-    }
-
-    window.localStorage.setItem(storageKey, JSON.stringify(finalBooking));
+    const depositBooking = {
+      ...finalBooking,
+      status: "Pendiente de pago",
+      paymentStatus: "Parcial",
+      receiptStatus: "Aprobado",
+      financialStatus: "Parcial",
+      paid: formatCOP(depositAmount),
+      balance: formatCOP(finalValue - depositAmount),
+      paymentHistory: [{ amount: depositAmount, date: new Date().toISOString() }],
+    };
+    window.localStorage.setItem(storageKey, JSON.stringify(depositBooking));
+    recordClientReservation(depositBooking);
     window.localStorage.removeItem(checkoutStorageKey);
     window.location.href = withTheme("panel-cliente.html", theme);
   });
@@ -2385,6 +2223,19 @@ function setupTourPaymentFailed(theme) {
 
   if (retryLink) retryLink.setAttribute("href", checkoutHref);
   if (methodLink) methodLink.setAttribute("href", checkoutHref);
+
+  if (booking?.paymentMethod === "bank" || booking?.method === "Transferencia" || params.get("origin") === "transfer" || params.has("motivo")) {
+    const rejected = params.get("motivo") === "rechazado";
+    const title = rejected ? "Comprobante rechazado" : "Comprobante no recibido";
+    document.title = `${title} | ${THEMES[theme].titlePrefix}`;
+    document.querySelector("[data-failed-title]")?.replaceChildren(document.createTextNode(title));
+    const statusNode = document.querySelector("[data-failed-status]");
+    const message = document.querySelector("[data-failed-message]");
+    if (statusNode) statusNode.textContent = rejected ? "Rechazado" : "Error técnico";
+    if (message) message.textContent = rejected
+      ? "El comprobante fue rechazado. Revisa el estado de tu reserva."
+      : "No pudimos recibir o procesar el comprobante. Revisa el archivo e inténtalo de nuevo; el estado de la reserva sigue pendiente de pago.";
+  }
 }
 
 function setupTourPaymentTransfer(theme) {
@@ -2393,7 +2244,7 @@ function setupTourPaymentTransfer(theme) {
   const successStorageKey = "multitour-payment-success";
   const storageKey = "multitour-dashboard-booking";
   const params = new URLSearchParams(window.location.search);
-  const fallbackTourKey = params.get("tour") || "mountains";
+  const fallbackTourKey = params.get("tour") || "";
   let booking = null;
 
   try {
@@ -2404,11 +2255,6 @@ function setupTourPaymentTransfer(theme) {
   }
 
   const tourKey = booking?.tourKey || fallbackTourKey;
-  const totalNode = document.querySelector("[data-transfer-total]");
-  if (totalNode) totalNode.textContent = booking?.budget || formatCOP(2806000);
-
-  const codeNode = document.querySelector("[data-transfer-code]");
-  if (codeNode) codeNode.textContent = booking?.code || "#RES-000000";
 
   const backLink = document.querySelector("[data-transfer-back]");
   if (backLink) {
@@ -2418,29 +2264,194 @@ function setupTourPaymentTransfer(theme) {
     );
   }
 
+  if (!booking) {
+    const content = document.querySelector(".travel-checkout-content");
+    if (content) content.innerHTML = '<p class="travel-dashboard-copy">No hay una reserva pendiente de transferencia. Vuelve a Explorar para crear una reserva.</p>';
+    return;
+  }
+
+  const totalNode = document.querySelector("[data-transfer-total]");
+  if (totalNode) totalNode.textContent = booking.budget;
+
+  const codeNode = document.querySelector("[data-transfer-code]");
+  if (codeNode) codeNode.textContent = booking.code || "#RES-000000";
+
+  // Datos bancarios: unica fuente configurada (TENANT_BANK_ACCOUNT), nunca texto fijo
+  // repetido en el HTML.
+  const bankNode = document.querySelector("[data-transfer-bank]");
+  if (bankNode) bankNode.textContent = TENANT_BANK_ACCOUNT.bank;
+  const accountTypeNode = document.querySelector("[data-transfer-account-type]");
+  if (accountTypeNode) accountTypeNode.textContent = TENANT_BANK_ACCOUNT.accountType;
+  const accountNumberNode = document.querySelector("[data-transfer-account-number]");
+  if (accountNumberNode) accountNumberNode.textContent = TENANT_BANK_ACCOUNT.accountNumber;
+  const holderNode = document.querySelector("[data-transfer-holder]");
+  if (holderNode) holderNode.textContent = TENANT_BANK_ACCOUNT.holder;
+  const taxIdNode = document.querySelector("[data-transfer-tax-id]");
+  if (taxIdNode) taxIdNode.textContent = TENANT_BANK_ACCOUNT.taxId;
+
   const uploadButton = document.querySelector("[data-transfer-upload]");
   if (!uploadButton) return;
 
+  const fileInput = document.querySelector("[data-transfer-file-input]");
+  const feedback = document.querySelector("[data-transfer-file-feedback]");
+  const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+  const allowedExtension = /\.(pdf|jpe?g|png)$/i;
+  const validateFile = () => {
+    const file = fileInput?.files?.[0];
+    if (!file) {
+      if (feedback) feedback.textContent = "Selecciona un comprobante para continuar.";
+      return false;
+    }
+    if (!allowedTypes.includes(file.type) || !allowedExtension.test(file.name) || file.size > 5 * 1024 * 1024) {
+      if (feedback) feedback.textContent = "El comprobante debe ser PDF, JPG, JPEG o PNG y no superar 5 MB.";
+      return false;
+    }
+    if (feedback) feedback.textContent = "Archivo válido. El comprobante quedará En validación hasta su revisión.";
+    return true;
+  };
+  fileInput?.addEventListener("change", validateFile);
+
+  // BUG corregido: subir el comprobante NO confirma el pago automaticamente (PDR linea 628:
+  // requiere ademas validacion operativa de recepcion). La reserva queda registrada con
+  // estado economico "En validación" hasta esa validacion.
   uploadButton.addEventListener("click", () => {
+    if (!validateFile()) return;
     const pendingBooking = {
-      experience: booking?.experience || "Reserva pendiente",
-      startDate: booking?.startDate || "15 sep 2026",
-      endDate: booking?.endDate || booking?.startDate || "15 sep 2026",
-      travelers: booking?.travelers || "2",
-      budget: booking?.budget || formatCOP(2806000),
-      code: booking?.code || `#RES-${Date.now().toString().slice(-6)}`,
+      ...booking,
       savedAt: new Date().toLocaleDateString("es-CO"),
-      status: "Pendiente por validar",
-      tourKey,
+      status: "Pendiente de pago",
+      paymentStatus: "En validación",
     };
 
     window.localStorage.setItem(storageKey, JSON.stringify(pendingBooking));
+    recordClientReservation(pendingBooking);
     window.location.href = withTheme("panel-cliente.html", theme);
   });
 }
 
+// Historial propio del Cliente (RN vocabulario de estados de reserva: Pendiente de pago /
+// Confirmada / En ejecucion / Finalizada / Cancelada). Reutiliza el MISMO mecanismo local
+// ya usado por el flujo de checkout (multitour-dashboard-booking = reserva mas reciente);
+// esto solo agrega que cada reserva completada quede tambien visible en un historial propio
+// ("Ver mis reservas"), en vez de perderse al sobrescribirse con la siguiente.
+const CLIENT_RESERVATIONS_HISTORY_KEY = "multitour-client-reservations";
+const CLIENT_RESERVATION_STATES = ["Pendiente de pago", "Confirmada", "En ejecución", "Finalizada", "Cancelada"];
+
+function normalizeClientReservationStatus(rawStatus) {
+  const exact = CLIENT_RESERVATION_STATES.find((state) => state.toLowerCase() === String(rawStatus || "").toLowerCase());
+  if (exact) return exact;
+  if (String(rawStatus || "").toLowerCase().includes("pendiente")) return "Pendiente de pago";
+  return "Confirmada";
+}
+
+function getClientReservationHistory() {
+  try { return JSON.parse(localStorage.getItem(CLIENT_RESERVATIONS_HISTORY_KEY) || "[]"); } catch { return []; }
+}
+
+function recordClientReservation(booking) {
+  if (!booking || !booking.code) return;
+  const history = getClientReservationHistory();
+  const normalized = { ...booking, status: normalizeClientReservationStatus(booking.status) };
+  const index = history.findIndex((item) => item.code === normalized.code);
+  if (index === -1) history.unshift(normalized); else history[index] = normalized;
+  localStorage.setItem(CLIENT_RESERVATIONS_HISTORY_KEY, JSON.stringify(history));
+}
+
+// BUG corregido: esta pantalla es la PLANTILLA GENERICA multitenant (no la de un tenant
+// especifico). Antes se resolvia "el primer tenant Activo configurado", lo que en la
+// practica mostraba el nombre de CUALQUIER tenant creado en Plataforma (ej. uno de prueba),
+// como si fuera la identidad real del cliente autenticado. No existe hoy una sesion de
+// cliente que indique a que tenant pertenece, asi que mostrar un tenant "adivinado" es tan
+// incorrecto como hardcodear uno fijo. Se mantiene el placeholder literal hasta que exista
+// una sesion real de Cliente que resuelva su tenant e identidad visual configurada.
+function resolveClientTenantName() {
+  return "Multi Tour";
+}
+
+function setupDashboardIdentity() {
+  const brand = document.querySelector("[data-tenant-brand]");
+  if (brand) brand.textContent = resolveClientTenantName();
+}
+
+// BUG/UX corregido: la accion rapida "Gastronomía" afirmaba "Explora opciones
+// gastronómicas disponibles" aunque el catalogo de Alimentación tuviera 0 activos. Ahora
+// se oculta cuando no hay ningun servicio de Alimentación activo, usando la MISMA fuente
+// ya usada por el contador de "Catálogos" del Administrador (nunca datos demo inventados).
+function setupDashboardQuickActions() {
+  const gastronomyCard = document.querySelector('[data-action="gastronomy"]');
+  if (gastronomyCard) gastronomyCard.hidden = getOperatorCatalogActiveCount("alimentacion-catalog-panel") === 0;
+}
+
+// Descuentos vigentes (RF-005A): misma fuente real que Descuentos del Administrador
+// (getOperatorDiscounts), filtrando solo activos y dentro de vigencia hoy. Nunca una lista
+// hardcodeada independiente.
+function setupDashboardPromotions() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const container = document.querySelector(".travel-dashboard-promos");
+  if (!container) return;
+  const services = getOperatorCatalogServiceOptions();
+  const today = OPERATOR_TODAY_DATE;
+  const vigentes = getOperatorDiscounts().filter(
+    (discount) => discount.active && (!discount.start || discount.start <= today) && (!discount.end || discount.end >= today),
+  );
+  if (vigentes.length === 0) {
+    container.innerHTML = '<p class="travel-dashboard-copy">No hay descuentos vigentes en este momento.</p>';
+    return;
+  }
+  container.innerHTML = vigentes
+    .map((discount) => {
+      const label = discount.serviceLabel || services.find((service) => service.key === discount.service)?.label || discount.service;
+      const validUntil = discount.end ? `Válido hasta ${formatOperatorDate(discount.end)}` : "Vigencia activa";
+      return `<article class="travel-dashboard-promo promo-cyan"><span class="travel-dashboard-promo-tag">${discount.percentage}% de descuento</span><strong>${escapeHtml(label)}</strong><p>${escapeHtml(validUntil)}</p><a href="tours.html" data-route="tours">Ver detalle</a></article>`;
+    })
+    .join("");
+}
+
+// Experiencias destacadas (RF-004): misma fuente real que Catálogos del Administrador
+// (OPERATOR_CATALOG_DEFAULTS + getOperatorCatalog), filtrando solo tours activos y dentro
+// de su vigencia hoy. Nunca una segunda lista hardcodeada distinta al catalogo real.
+function setupDashboardRecommendations() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const container = document.querySelector(".travel-dashboard-recommendations");
+  if (!container) return;
+  const today = OPERATOR_TODAY_DATE;
+  const tourCatalogId = "catalogo-catalog-panel";
+  const withinValidity = (startText, endText) => {
+    const start = parseOperatorDate(startText);
+    const end = parseOperatorDate(endText) || start;
+    return Boolean(start) && today >= start && today <= (end || start);
+  };
+  const cards = [];
+  OPERATOR_CATALOG_DEFAULTS[tourCatalogId].records.forEach((record) => {
+    if (!resolveOperatorServiceActive(tourCatalogId, record.key, record.active)) return;
+    const fields = getOperatorServiceFields(tourCatalogId, record.key) || record.fields;
+    const [start, end] = (fields.validity || "").split(" - ");
+    if (!withinValidity(start, end)) return;
+    cards.push({ name: fields.name || record.key, tariff: fields.tariff || "Por configurar" });
+  });
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "tour" || !resolveOperatorServiceActive(tourCatalogId, resource.id, resource.active)) return;
+    if (!(today >= resource.start && today <= resource.end)) return;
+    cards.push({ name: resource.name, tariff: formatCOP(resource.price) });
+  });
+  if (cards.length === 0) {
+    container.innerHTML = '<p class="travel-dashboard-copy">No hay experiencias disponibles en este momento.</p>';
+    return;
+  }
+  container.innerHTML = cards
+    .map(
+      (card, index) => `<article class="travel-dashboard-destination-card"><div class="travel-dashboard-destination-media dashboard-media-${index % 2 === 0 ? "one" : "two"}"></div><div class="travel-dashboard-destination-body"><strong>${escapeHtml(card.name)}</strong><div class="travel-dashboard-destination-meta"><small>Desde</small><em>${escapeHtml(card.tariff)}</em></div><a href="tours.html" data-route="tours">Ver detalle</a></div></article>`,
+    )
+    .join("");
+}
+
 function setupDashboardBooking() {
   if (document.body.dataset.screen !== "client-dashboard") return;
+
+  setupDashboardIdentity();
+  setupDashboardPromotions();
+  setupDashboardRecommendations();
+  setupDashboardQuickActions();
 
   const form = document.querySelector("[data-booking-form]");
   const clearButton = document.querySelector("[data-booking-clear]");
@@ -2481,9 +2492,45 @@ function setupDashboardBooking() {
     }
   };
 
+  // "Continuar pago" (accion rapida) solo debe aparecer cuando exista una reserva propia
+  // realmente pendiente de pago: nunca como decoracion fija sin importar el estado real.
+  const continuePaymentCard = document.querySelector('[data-action="continue-payment"]');
+  const syncContinuePayment = (booking) => {
+    if (!continuePaymentCard) return;
+    const status = booking ? normalizeClientReservationStatus(booking.status) : null;
+    const isPending = status === "Pendiente de pago";
+    continuePaymentCard.hidden = !isPending;
+    if (isPending) continuePaymentCard.setAttribute("href", `${withTheme("finalizar-reserva.html", getTheme())}&tour=${encodeURIComponent(booking.tourKey || "")}`);
+  };
+
   const renderBooking = (booking) => {
-    if (!booking) {
-      experienceNode.textContent = "Aún no tienes una reserva en curso";
+    // Una reserva ya Finalizada o Cancelada no debe mostrarse como "activa" en este
+    // resumen (aunque si sigue disponible en el historial de "Ver mis reservas").
+    const status = booking ? normalizeClientReservationStatus(booking.status) : null;
+    const isActiveBooking = Boolean(booking) && status !== "Finalizada" && status !== "Cancelada";
+    syncContinuePayment(isActiveBooking ? booking : null);
+
+    if (!isActiveBooking) {
+      const demoActive = getClientDemoReservations().filter((item) => ["Pendiente de pago", "Confirmada"].includes(item.status));
+      if (demoActive.length) {
+        const pending = demoActive.filter((item) => item.status === "Pendiente de pago").length;
+        const confirmed = demoActive.filter((item) => item.status === "Confirmada").length;
+        experienceNode.textContent = demoActive.length + (demoActive.length === 1 ? " reserva activa" : " reservas activas");
+        datesNode.textContent = [pending ? pending + " Pendiente de pago" : "", confirmed ? confirmed + " Confirmada" : ""].filter(Boolean).join(" · ");
+        codeNode.textContent = demoActive.map((item) => item.code).join(" · ");
+        codeNode.hidden = false;
+        statusBlock.hidden = false;
+        statusNode.textContent = "Consulta en Mis reservas";
+        travelersNode.textContent = "Reservas propias";
+        projectedValueNode.textContent = "";
+        finalValueNode.textContent = "";
+        discountValueNode.hidden = true;
+        sectionAction.hidden = true;
+        bookingCard.classList.remove("is-empty");
+        setAction(primaryAction, "Ver mis reservas", "mis-reservas.html", "clientReservations");
+        return;
+      }
+      experienceNode.textContent = "No tienes reservas activas";
       datesNode.textContent = "Explora el catálogo y selecciona los servicios para comenzar una nueva reserva.";
       codeNode.hidden = true;
       statusBlock.hidden = true;
@@ -2492,7 +2539,6 @@ function setupDashboardBooking() {
       setAction(primaryAction, "Crear reserva", "tours.html", "tours");
       return;
     }
-
     experienceNode.textContent = booking.experience;
     datesNode.textContent = `${formatDate(booking.startDate)} - ${formatDate(booking.endDate)}`;
     codeNode.textContent = `Reserva: ${booking.code}`;
@@ -2500,7 +2546,7 @@ function setupDashboardBooking() {
     statusBlock.hidden = false;
     sectionAction.hidden = false;
     bookingCard.classList.remove("is-empty");
-    statusNode.textContent = booking.status || "Pendiente de pago";
+    statusNode.textContent = status;
     travelersNode.textContent = `Viajeros: ${booking.travelers}`;
     projectedValueNode.textContent = `Valor proyectado: ${formatValue(booking.projectedValue || booking.budget)}`;
     finalValueNode.textContent = `Valor final: ${formatValue(booking.finalValue || booking.budget)}`;
@@ -2527,6 +2573,7 @@ function setupDashboardBooking() {
 
   const writeBooking = (booking) => {
     window.localStorage.setItem(storageKey, JSON.stringify(booking));
+    recordClientReservation(booking);
     renderBooking(booking);
   };
 
@@ -2567,6 +2614,148 @@ function setupDashboardBooking() {
       renderBooking(null);
     });
   }
+}
+
+// Fuente única de reservas de demostración del portal cliente (Bloque A).
+// El Bloque B podrá reutilizarla para alinear las pantallas administrativas.
+const DEMO_RESERVATIONS = Object.freeze([
+  { code: "RES-1843", tour: "Ruta Andina", departure: "18 sep 2026 · 06:30", travelers: 2, status: "Pendiente de pago", receiptStatus: "En validación", financialStatus: "Sin pago", paymentType: "Pago total", paymentMedium: "Transferencia", value: 1299000, paid: 0, balance: 1299000, reprogrammingMark: "" },
+  { code: "RES-1844", tour: "Tour de ejemplo", departure: "20 sep 2026 · 07:00", travelers: 2, status: "Confirmada", receiptStatus: "Aprobado", financialStatus: "Abono recibido", paymentType: "Abono", paymentMedium: "Transferencia", value: 300000, paid: 100000, balance: 200000, reprogrammingMark: "" },
+  { code: "RES-1845", tour: "Ruta Andina", departure: "22 sep 2026 · 06:30", travelers: 2, status: "Cancelada", receiptStatus: "Aprobado", paymentType: "Abono", paymentMedium: "Transferencia", value: 1200000, paid: 1200000, balance: 0, cancellationCause: "Cancelada por falta de pago", financialStatus: "Parcial", refundTreatment: "Valores abonados: $1.200.000 en tratamiento pendiente de devolución" },
+  { code: "RES-1846", tour: "Ruta Andina", departure: "18 sep 2026 · 06:30", travelers: 2, status: "Confirmada", receiptStatus: "Aprobado", financialStatus: "Pago completo", paymentType: "Pago total", paymentMedium: "Transferencia", value: 1299000, paid: 1299000, balance: 0, reprogrammingMark: "Pendiente de respuesta de reprogramación", originalDeparture: "18 sep 2026 · 06:30", proposedDeparture: "25 sep 2026 · 06:30", proposedTour: "Ruta Andina" },
+]);
+const CLIENT_REPROGRAM_RESPONSE_KEY = "multitour-reprogram-response";
+
+function getClientReprogramResponse() {
+  try { return JSON.parse(localStorage.getItem(CLIENT_REPROGRAM_RESPONSE_KEY) || "null"); } catch { return null; }
+}
+
+function setClientReprogramResponse(decision) {
+  const response = { code: "RES-1846", decision, respondedAt: new Date().toISOString() };
+  localStorage.setItem(CLIENT_REPROGRAM_RESPONSE_KEY, JSON.stringify(response));
+  return response;
+}
+
+function getClientDemoReservations() {
+  const response = getClientReprogramResponse();
+  return DEMO_RESERVATIONS.map((item) => {
+    if (item.code !== "RES-1846" || !response) return { ...item };
+    if (response.decision === "aceptar") return { ...item, departure: item.proposedDeparture, reprogrammingMark: "" };
+    const cancelled = { ...item, status: "Cancelada", reprogrammingMark: "", cancellationCause: "Cancelada por rechazo o vencimiento de reprogramación", refundTreatment: "Se devuelve el 100 % de los valores pagados y validados." };
+    delete cancelled.financialStatus;
+    return cancelled;
+  });
+}
+
+function formatClientAmount(value) {
+  return formatCOP(Number(value || 0));
+}
+
+const CLIENT_RESERVATION_STATUS_CLASS = {
+  "Pendiente de pago": "is-pending",
+  "Confirmada": "is-confirmed",
+  "En ejecución": "is-execution",
+  "Finalizada": "is-finalized",
+  "Cancelada": "is-cancelled",
+};
+
+// "Ver mis reservas" (histórico propio del Cliente): SOLO sus propias reservas ya
+// registradas via el checkout (recordClientReservation), nunca reservas de otro cliente ni
+// de otro tenant (mismo almacenamiento local por navegador, sin mezclar datos globales).
+function setupClientReservationsScreen() {
+  if (document.body.dataset.screen !== "client-reservations") return;
+  setupDashboardIdentity();
+  const list = document.querySelector("[data-reservations-list]");
+  const empty = document.querySelector("[data-reservations-empty]");
+  if (!list) return;
+  const demo = getClientDemoReservations();
+  const stored = getClientReservationHistory().filter((item) => !demo.some((demoItem) => demoItem.code === item.code));
+  const history = [...demo, ...stored];
+  if (empty) empty.hidden = history.length > 0;
+  list.hidden = history.length === 0;
+  if (!history.length) return;
+  list.innerHTML = history.map((item) => {
+    const status = item.status || "Pendiente de pago";
+    const statusClass = CLIENT_RESERVATION_STATUS_CLASS[status] || "";
+    const proposal = item.code === "RES-1846" && item.reprogrammingMark === "Pendiente de respuesta de reprogramación";
+    const departureCopy = proposal ? `Salida vigente: ${escapeHtml(item.departure || "18 sep 2026 · 06:30")} (cancelada)` : `Salida: ${escapeHtml(item.departure || item.startDate || "Por definir")}`;
+    const proposalCopy = proposal ? `<small>Salida propuesta: ${escapeHtml(item.proposedDeparture)}</small>` : "";
+    const cancellationCopy = item.cancellationCause ? `<small>${escapeHtml(item.cancellationCause)}</small><small>${escapeHtml(item.refundTreatment)}</small>` : "";
+    return `<article class="travel-dashboard-reservation-card">
+      <div class="travel-dashboard-reservation-main"><div class="travel-dashboard-reservation-copy">
+        <strong>${escapeHtml(item.code)} · ${escapeHtml(item.tour || item.experience || "Reserva")}</strong>
+        <p>${departureCopy} · ${escapeHtml(String(item.travelers || 0))} viajeros</p>
+        ${proposalCopy}
+        <small>Tipo de pago: ${escapeHtml(item.paymentType || "Por definir")} · Medio de pago: ${escapeHtml(item.paymentMedium || item.method || "Por definir")}</small>
+        ${item.financialStatus ? `<small>Estado del comprobante: ${escapeHtml(item.receiptStatus || "Por definir")} · Situación financiera: ${escapeHtml(item.financialStatus)}</small>` : `<small>Estado del comprobante: ${escapeHtml(item.receiptStatus || "Por definir")}</small>`}
+        ${cancellationCopy}
+        ${proposal ? `<strong class="operator-status is-pending">${escapeHtml(item.reprogrammingMark)}</strong>` : ""}
+      </div><div class="travel-dashboard-reservation-status"><span class="travel-dashboard-status-badge operator-status ${statusClass}">${escapeHtml(status)}</span><strong>Valor: ${formatClientAmount(item.value || item.finalValue)}</strong><small>Saldo: ${formatClientAmount(item.balance)}</small></div></div>
+      ${proposal ? '<div class="travel-dashboard-reservation-actions"><a class="travel-dashboard-primary-action mt-btn mt-btn-primary" href="propuesta-reprogramacion.html?reserva=RES-1846&theme=platform">Responder propuesta</a></div>' : ""}
+    </article>`;
+  }).join("");
+}
+// "Mis pagos" del Cliente: SOLO informacion economica de sus propias reservas, sin
+// validar/rechazar soportes ni consultar pagos de otros clientes (esas acciones son del
+// Colaborador/Administrador, nunca del Cliente).
+function setupReprogrammingProposal() {
+  if (document.body.dataset.screen !== "client-reprogramming-proposal") return;
+  const reservation = getClientDemoReservations().find((item) => item.code === "RES-1846");
+  const params = new URLSearchParams(window.location.search);
+  let response = getClientReprogramResponse();
+  if (params.get("estado") === "vencido") response = setClientReprogramResponse("vencido");
+  const setText = (selector, value) => { const node = document.querySelector(selector); if (node) node.textContent = value; };
+  if (!reservation) return;
+  setText("[data-proposal-code]", reservation.code);
+  setText("[data-proposal-tour]", reservation.proposedTour);
+  setText("[data-proposal-original]", reservation.originalDeparture);
+  setText("[data-proposal-new]", reservation.proposedDeparture);
+  setText("[data-proposal-travelers]", `${reservation.travelers} viajeros`);
+  setText("[data-proposal-deadline]", "El plazo de respuesta es el menor entre 72 horas corridas, el tiempo restante del episodio de reprogramación y la hora de inicio de la salida propuesta; el episodio tiene un límite absoluto de 96 horas.");
+  const feedback = document.querySelector("[data-proposal-feedback]");
+  const actions = document.querySelector("[data-proposal-actions]");
+  const renderResponse = (current) => {
+    if (!current) return;
+    if (actions) actions.hidden = true;
+    const messages = { aceptar: "Propuesta aceptada. La reserva sigue Confirmada con la nueva salida.", rechazar: "Propuesta rechazada. La reserva queda Cancelada y se devuelve el 100 % de los valores pagados y validados.", vencido: "El plazo venció sin respuesta. La reserva queda Cancelada y se devuelve el 100 % de los valores pagados y validados." };
+    if (feedback) { feedback.textContent = messages[current.decision] || messages.vencido; feedback.className = "travel-transfer-reference-copy is-valid"; }
+  };
+  renderResponse(response);
+  document.querySelector("[data-proposal-accept]")?.addEventListener("click", () => { if (!getClientReprogramResponse()) { renderResponse(setClientReprogramResponse("aceptar")); } });
+  document.querySelector("[data-proposal-reject]")?.addEventListener("click", () => { if (!getClientReprogramResponse()) { renderResponse(setClientReprogramResponse("rechazar")); } });
+}
+
+function setupClientPaymentsScreen() {
+  if (document.body.dataset.screen !== "client-payments") return;
+  setupDashboardIdentity();
+  const list = document.querySelector("[data-payments-list]");
+  const empty = document.querySelector("[data-payments-empty]");
+  if (!list) return;
+  const history = getClientReservationHistory();
+  if (history.length === 0) {
+    list.hidden = true;
+    if (empty) empty.hidden = false;
+    return;
+  }
+  if (empty) empty.hidden = true;
+  list.hidden = false;
+  list.innerHTML = history
+    .map((item) => {
+      const status = normalizeClientReservationStatus(item.status);
+      return `<article class="travel-dashboard-reservation-card">
+        <div class="travel-dashboard-reservation-main">
+          <div class="travel-dashboard-reservation-copy">
+            <strong>${escapeHtml(item.experience || "Reserva")}</strong>
+            <small>Reserva: ${escapeHtml(item.code || "")}</small>
+          </div>
+          <div class="travel-dashboard-reservation-status">
+            <span class="travel-dashboard-status-badge">${status}</span>
+            <div class="travel-dashboard-reservation-values"><strong>${escapeHtml(item.budget || item.finalValue || "")}</strong></div>
+          </div>
+        </div>
+      </article>`;
+    })
+    .join("");
 }
 
 function setupCompanionsForm() {
@@ -2674,20 +2863,60 @@ function setupCompanionsForm() {
   });
 }
 
+function setupDashboardNotifications() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const container = document.querySelector("[data-client-notifications]");
+  if (!container) return;
+  const response = getClientReprogramResponse();
+  const reservation = getClientDemoReservations().find((item) => item.code === "RES-1846");
+  if (response?.decision === "aceptar") {
+    container.innerHTML = "<p><strong>Reserva RES-1843:</strong> comprobante En validación. La revisión puede tardar hasta 24 horas.</p><p><strong>Reserva RES-1846:</strong> aceptaste la nueva salida y la reserva sigue Confirmada.</p>";
+  } else if (response?.decision === "rechazar" || response?.decision === "vencido") {
+    container.innerHTML = "<p><strong>Reserva RES-1843:</strong> comprobante En validación. La revisión puede tardar hasta 24 horas.</p><p><strong>Reserva RES-1846:</strong> la reserva está Cancelada y se devuelve el 100 % de los valores pagados y validados.</p>";
+  } else {
+    container.innerHTML = "<p><strong>Reserva RES-1843:</strong> comprobante En validación. La revisión puede tardar hasta 24 horas.</p><p><strong>Reserva RES-1846:</strong> la salida fue cancelada por una causa no atribuible al cliente. Hay una propuesta de nueva salida pendiente de tu respuesta dentro del plazo aplicable.</p><a class=\"travel-dashboard-section-action\" href=\"propuesta-reprogramacion.html?reserva=RES-1846&theme=platform\">Responder propuesta de reprogramación</a>";
+  }
+}
+
+function setupDashboardSearch() {
+  if (document.body.dataset.screen !== "client-dashboard") return;
+  const input = document.querySelector("#dashboard-search");
+  const button = document.querySelector("[data-dashboard-search-button]");
+  const feedback = document.querySelector("[data-dashboard-search-feedback]");
+  if (!input || !button) return;
+  const cards = () => [...document.querySelectorAll(".travel-dashboard-destination-card, .travel-dashboard-promo")];
+  const run = () => {
+    const term = input.value.trim().toLowerCase();
+    let visible = 0;
+    cards().forEach((card) => {
+      const matches = !term || card.textContent.toLowerCase().includes(term);
+      card.hidden = !matches;
+      if (matches) visible += 1;
+    });
+    if (feedback) {
+      feedback.hidden = !term || visible > 0;
+      feedback.textContent = term && visible === 0 ? `No encontramos resultados para ${input.value.trim()}.` : "";
+    }
+  };
+  button.addEventListener("click", run);
+  input.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); run(); } });
+  input.addEventListener("input", () => { if (!input.value.trim()) run(); });
+}
+
 function setupCatalogSearch() {
-  const supportedScreens = new Set(["tours", "gastronomy", "restaurants", "bars", "cafes"]);
+  const supportedScreens = new Set(["tours", "gastronomy", "restaurants", "lodging", "bars", "cafes"]);
   const screen = document.body.dataset.screen;
   if (!supportedScreens.has(screen)) return;
 
   const searchInput = document.querySelector("[data-catalog-search]");
   const searchButton = document.querySelector("[data-catalog-search-button]");
-  const grid =
-    document.querySelector(".travel-restaurant-grid") ||
-    document.querySelector(".travel-tours-grid");
+  // Gastronomía ("Todos") ahora combina dos grids independientes (platos del día +
+  // restaurantes asociados): se buscan tarjetas en TODOS los grids presentes, no solo el primero.
+  const grids = Array.from(document.querySelectorAll(".travel-restaurant-grid, .travel-tours-grid"));
 
-  if (!searchInput || !grid) return;
+  if (!searchInput || !grids.length) return;
 
-  const cards = Array.from(grid.querySelectorAll("[data-search-card], .travel-tour-card"));
+  const cards = grids.flatMap((grid) => Array.from(grid.querySelectorAll("[data-search-card], .travel-tour-card")));
   if (!cards.length) return;
 
   const emptyState = document.createElement("div");
@@ -2704,7 +2933,7 @@ function setupCatalogSearch() {
     <p>${emptyHint}</p>
     <button type="button">Limpiar búsqueda</button>
   `;
-  grid.insertAdjacentElement("afterend", emptyState);
+  grids[grids.length - 1].insertAdjacentElement("afterend", emptyState);
   const clearButton = emptyState.querySelector("button");
 
   const normalize = (value) =>
@@ -2837,6 +3066,22 @@ function setOperatorPaymentSupportState(code, state) {
   localStorage.setItem(OPERATOR_PAYMENT_SUPPORT_STATE_KEY, JSON.stringify(all));
 }
 
+// Trazabilidad de abonos (CORREGIR: la relacion economica no es consistente si un monto
+// representa el total acumulado sin desglose). Cada pago/abono realmente registrado queda
+// como un movimiento propio, append-only, nunca se reemplaza por un unico numero.
+const OPERATOR_PAYMENT_MOVEMENTS_KEY = "multitour-payment-movements";
+
+function getOperatorPaymentMovements(code) {
+  try { return (JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_MOVEMENTS_KEY) || "{}"))[code] || []; } catch { return []; }
+}
+
+function addOperatorPaymentMovement(code, amount, method) {
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_MOVEMENTS_KEY) || "{}"); } catch { all = {}; }
+  all[code] = [...(all[code] || []), { amount, method, registeredAt: new Date().toISOString() }];
+  localStorage.setItem(OPERATOR_PAYMENT_MOVEMENTS_KEY, JSON.stringify(all));
+}
+
 function getOperatorPaymentSupportLog() {
   try { return JSON.parse(localStorage.getItem(OPERATOR_PAYMENT_SUPPORT_LOG_KEY) || "[]"); } catch { return []; }
 }
@@ -2851,8 +3096,29 @@ function appendOperatorPaymentSupportLog(entry) {
 function setupOperatorPayments() {
   if (document.body.dataset.screen !== "operator-payments") return;
   const supportState = getOperatorPaymentSupportState();
+  let draft = null;
+  try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
   document.querySelectorAll("[data-payment-row]").forEach((row) => {
     const code = row.dataset.paymentRow;
+    // BUG corregido: "Valor pendiente" para seguimiento (follow-up) leia la reserva base
+    // sin aplicar la decision de soporte de pago ya validada (ej. RES-1837 seguia
+    // mostrando $800.000/"Saldo pendiente" aunque ya estuviera Pagada). Ahora se resuelve
+    // con la MISMA fuente que Detalle/Gestion de pago, y si ya quedo liquidada (saldo $0,
+    // Pagado), la fila deja de aparecer como pago pendiente.
+    if (row.querySelector("[data-register-followup]")) {
+      const base = OPERATOR_RESERVATIONS[code];
+      let reservation = code && draft?.code === code ? draft : base ? { ...base, code } : null;
+      const decision = supportState[code];
+      if (reservation && decision && (decision.status === "Pagado" || decision.status === "Parcial")) {
+        reservation = { ...reservation, paid: decision.paid, balance: decision.balance, payment: decision.status };
+      }
+      if (reservation && reservation.payment === "Pagado" && reservation.balance === "$0") {
+        row.hidden = true;
+        return;
+      }
+      const amountCell = row.querySelector("[data-payment-row-amount]");
+      if (amountCell && reservation) amountCell.textContent = reservation.balance;
+    }
     const decision = supportState[code];
     if (!decision) return;
     const statusEl = row.querySelector("[data-payment-row-status]");
@@ -2864,8 +3130,13 @@ function setupOperatorPayments() {
     if (actionCell) actionCell.innerHTML = "";
     row.dataset.paymentPending = "false";
   });
+  // Regla (PDR linea 554): "Validar soporte" solo se ofrece cuando el tenant habilito ese
+  // flujo para el Colaborador operativo; sin ese permiso, la columna Accion nunca queda
+  // vacia y en su lugar consulta el mismo soporte en modo solo lectura (misma pantalla).
+  const collaboratorCanValidate = !isOperatorColaborador() || getOperatorCollaboratorCanValidateSupport();
   document.querySelectorAll("[data-validate-support]").forEach((button) => {
     const code = button.dataset.validateSupport;
+    if (!collaboratorCanValidate) button.textContent = "Ver soporte";
     button.addEventListener("click", () => {
       window.location.href = withTheme(`admin-validar-soporte.html?reservation=${code}`, getTheme());
     });
@@ -2879,6 +3150,18 @@ function setupOperatorPayments() {
   document.querySelector("[data-consult-refund-requests]")?.addEventListener("click", () => {
     window.location.href = withTheme("admin-solicitudes-devolucion.html", getTheme());
   });
+
+  // Regla (RF-015A/RF-015B): esta pantalla es compartida; el Colaborador operativo consulta
+  // y ejecuta lo ya autorizado, nunca decide validaciones o autorizaciones nuevas. El
+  // Administrador conserva exactamente el texto e interacciones ya aprobados.
+  if (isOperatorColaborador()) {
+    const heroBody = document.querySelector("[data-payments-hero-body]");
+    if (heroBody) heroBody.textContent = "Consulta pagos, registra seguimientos y recepciones operativas, y ejecuta devoluciones previamente autorizadas cuando corresponda.";
+    const refundTitle = document.querySelector("[data-refund-panel-title]");
+    if (refundTitle) refundTitle.textContent = "Devoluciones autorizadas";
+    const refundCopy = document.querySelector("[data-refund-panel-copy]");
+    if (refundCopy) refundCopy.textContent = "Consulta las devoluciones autorizadas por el Administrador y registra la salida de dinero cuando corresponda.";
+  }
   const counter = document.querySelector(".operator-panel-head .operator-status.is-pending");
   const panel = counter?.closest(".operator-panel");
   const pendingRows = Array.from(panel?.querySelectorAll("[data-payment-row]") || []).filter((row) => row.dataset.paymentPending !== "false");
@@ -2950,19 +3233,34 @@ function renderSupportPreview(form, filename) {
 function setupOperatorValidateSupport() {
   if (document.body.dataset.screen !== "operator-validate-support") return;
   // Restriccion base (PDR linea 114/554): el Colaborador operativo solo puede validar o
-  // rechazar soportes de transferencia cuando el tenant lo habilite expresamente.
-  if (isOperatorColaborador() && !OPERATOR_COLLABORATOR_CAN_VALIDATE_SUPPORT) {
-    guardOperatorAdminOnlyScreen("admin-pagos.html");
-    return;
+  // rechazar soportes de transferencia cuando el tenant lo habilite expresamente. Sin ese
+  // permiso, la MISMA pantalla se reutiliza como consulta de solo lectura: cambia titulo,
+  // encabezado y oculta motivo/Aprobar/Rechazar (no se inventa una pantalla nueva).
+  const readOnlyForRole = isOperatorColaborador() && !getOperatorCollaboratorCanValidateSupport();
+  const titleEl = document.querySelector("[data-validate-title]");
+  const headingEl = document.querySelector("[data-validate-heading]");
+  if (readOnlyForRole) {
+    if (titleEl) titleEl.textContent = "Ver soporte";
+    if (headingEl) headingEl.textContent = "Consulta del comprobante de pago";
   }
+
   const code = new URLSearchParams(window.location.search).get("reservation") || "";
   const record = OPERATOR_PAYMENT_SUPPORT_RECORDS[code];
   const reservation = OPERATOR_RESERVATIONS[code];
   const form = document.querySelector("[data-validate-support-form]");
   const feedback = document.querySelector("[data-validate-feedback]");
+  const reasonField = form?.querySelector("[data-validate-reason-field]");
+  const approveButton = form?.querySelector("[data-validate-approve]");
+  const rejectButton = form?.querySelector("[data-validate-reject]");
   // El boton "Ver soporte" queda excluido: revisar el comprobante debe seguir disponible
   // aunque el soporte ya haya sido decidido o no se encuentre la reserva.
   const disableAll = () => form?.querySelectorAll("input, textarea, button:not([data-validate-support-view])").forEach((el) => { el.disabled = true; });
+
+  if (readOnlyForRole) {
+    if (reasonField) reasonField.hidden = true;
+    if (approveButton) approveButton.hidden = true;
+    if (rejectButton) rejectButton.hidden = true;
+  }
 
   if (!record || !reservation) {
     if (feedback) feedback.textContent = "No se encontró el soporte de pago seleccionado. Vuelve a Pagos e ingresa nuevamente por Validar soporte.";
@@ -2979,6 +3277,12 @@ function setupOperatorValidateSupport() {
   form.querySelector("[data-validate-status]").value = currentStatus;
   renderSupportPreview(form, record.support);
 
+  if (readOnlyForRole) {
+    if (feedback) feedback.textContent = "Consulta de solo lectura: el Colaborador operativo no tiene permiso para validar este soporte.";
+    disableAll();
+    return;
+  }
+
   if (existingState) {
     if (feedback) {
       const decidedLabel = existingState.status === "Rechazado" ? "rechazado" : "validado";
@@ -2989,8 +3293,6 @@ function setupOperatorValidateSupport() {
   }
 
   const reasonInput = form.querySelector("[data-validate-reason]");
-  const approveButton = form.querySelector("[data-validate-approve]");
-  const rejectButton = form.querySelector("[data-validate-reject]");
 
   const decide = (action) => {
     const reason = reasonInput.value.trim();
@@ -3038,29 +3340,53 @@ function setupOperatorPaymentFollowup() {
   if (document.body.dataset.screen !== "operator-payment-followup") return;
   const code = new URLSearchParams(window.location.search).get("reservation") || "";
   const record = OPERATOR_PAYMENT_SUPPORT_RECORDS[code];
-  const reservation = OPERATOR_RESERVATIONS[code];
+  // BUG corregido: leia la reserva base sin resolver su estado economico REAL (soporte de
+  // pago validado / draft de Gestion de pago), la MISMA fuente ya usada en Detalle de
+  // reserva. Sin esto, una reserva ya liquidada seguia mostrando el saldo/estado viejo.
+  let draft = null;
+  try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
+  const base = OPERATOR_RESERVATIONS[code];
+  let reservation = code && draft?.code === code ? draft : base ? { ...base, code } : null;
+  const supportDecision = reservation ? getOperatorPaymentSupportState()[code] : null;
+  if (reservation && supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+    reservation = { ...reservation, paid: supportDecision.paid, balance: supportDecision.balance, payment: supportDecision.status };
+  }
   const form = document.querySelector("[data-followup-form]");
   const feedback = document.querySelector("[data-followup-feedback]");
 
-  if (!record || !reservation) {
+  if (!reservation) {
     if (feedback) feedback.textContent = "No se encontró el pago seleccionado. Vuelve a Pagos e ingresa nuevamente por Registrar seguimiento.";
     form?.querySelectorAll("input, textarea, button").forEach((el) => { el.disabled = true; });
     return;
   }
 
+  // Regla (CORREGIR): saldo $0 y Pagado = ya no es un pago pendiente; solo se consulta el
+  // historial existente, no se admite una nueva nota de seguimiento de "pago pendiente".
+  const isSettled = reservation.payment === "Pagado" && reservation.balance === "$0";
+
   form.querySelector("[data-followup-code]").value = `#${code}`;
-  form.querySelector("[data-followup-customer]").value = record.customer;
-  form.querySelector("[data-followup-method]").value = record.method;
-  form.querySelector("[data-followup-amount]").value = record.amount;
+  form.querySelector("[data-followup-customer]").value = reservation.customer || record?.customer || "";
+  form.querySelector("[data-followup-method]").value = reservation.method || record?.method || "";
+  form.querySelector("[data-followup-amount]").value = reservation.paid || "";
   form.querySelector("[data-followup-balance]").value = reservation.balance;
-  form.querySelector("[data-followup-status]").value = record.status;
+  form.querySelector("[data-followup-status]").value = reservation.payment || record?.status || "";
   // No existe hoy parametrizacion de tiempos (Configurar pagos) confirmada en el PDR ni en el
   // catalogo actual: se informa explicitamente en vez de inventar un plazo o vigencia.
   form.querySelector("[data-followup-deadline]").value = "Sin parametrización de plazo definida para esta modalidad.";
 
   const noteInput = form.querySelector("[data-followup-note]");
+  const noteField = noteInput?.closest("[data-followup-entry]") || noteInput?.closest("label");
+  const deadlineField = form.querySelector("[data-followup-deadline]")?.closest("label");
+  const submitButton = form.querySelector('button[type="submit"]');
   const historyBody = document.querySelector("[data-followup-history]");
   const emptyNote = document.querySelector("[data-followup-empty]");
+
+  if (isSettled) {
+    if (feedback) feedback.textContent = "Esta reserva ya está pagada: solo puedes consultar el historial de seguimientos existente.";
+    if (noteField) noteField.hidden = true;
+    if (deadlineField) deadlineField.hidden = true;
+    if (submitButton) submitButton.hidden = true;
+  }
 
   const renderHistory = () => {
     const entries = getOperatorPaymentFollowupsForCode(code);
@@ -3073,6 +3399,8 @@ function setupOperatorPaymentFollowup() {
   };
   renderHistory();
 
+  if (isSettled) return;
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const note = noteInput.value.trim();
@@ -3082,9 +3410,11 @@ function setupOperatorPaymentFollowup() {
       return;
     }
     const now = new Date();
+    // BUG corregido: el actor quedaba fijo en "Administrador del operador" sin importar
+    // quien ejecuto realmente la accion; ahora usa el rol autenticado real.
     appendOperatorPaymentFollowup(code, {
       note,
-      actor: "Administrador del operador",
+      actor: getOperatorRoleLabel(),
       date: now.toISOString().slice(0, 10),
       time: now.toTimeString().slice(0, 5),
     });
@@ -3133,10 +3463,13 @@ function setupOperatorRefundRequests() {
   if (tbody) {
     tbody.innerHTML = list
       .map((request) => {
+        // Regla (PDR linea 566): autorizar/rechazar es exclusivo del Administrador. El
+        // Colaborador operativo nunca ve esa etiqueta como si pudiera decidir; para el mismo
+        // estado solo puede consultar (la pantalla de detalle ya oculta el panel de decision).
         const actionLabel = request.pendingCalculation
           ? "Consultar detalle"
           : request.status === "Pendiente de autorización"
-            ? "Autorizar devolución"
+            ? (isOperatorColaborador() ? "Consultar detalle" : "Autorizar devolución")
             : request.status === "Autorizada"
               ? "Registrar ejecución"
               : "Consultar detalle";
@@ -3182,7 +3515,9 @@ function setupOperatorRefundDetail() {
     setText("[data-refund-amount]", current.amount);
     setText("[data-refund-decision-note-display]", current.authorizationNote || current.rejectionReason || "No aplica");
     setText("[data-refund-owner]", current.executedBy || current.rejectedBy || current.authorizedBy || "Sin responsable asignado");
-    setText("[data-refund-date]", current.requestedAt);
+    // Regla (PDR linea 566): toda devolucion registra su fecha; una vez ejecutada, la fecha
+    // relevante es la de la ejecucion real (no la fecha original de la solicitud).
+    setText("[data-refund-date]", current.executedAt ? new Date(current.executedAt).toLocaleString("es-CO") : current.requestedAt);
     setText("[data-refund-method]", current.exitMethod || "No aplica");
     setText("[data-refund-cash-movement]", current.cashMovementRef || "No aplica");
     setText("[data-refund-status]", current.status);
@@ -3612,6 +3947,22 @@ function resolveOperatorReservationForOperation(code) {
     reservation = { ...reservation, service: modification.service, date: modification.date, travelers: modification.travelers, companions: modification.companions };
   }
 
+  // Regla: la condicion de ejecucion depende del estado economico REAL de la reserva. Si el
+  // soporte de pago ya fue decidido (Validar soporte), se refleja aqui con la MISMA regla ya
+  // aprobada en Gestion de pago (saldo en 0 -> Confirmada; saldo pendiente -> sigue Pendiente
+  // de pago), para que "Registrar ejecución" se habilite cuando corresponda.
+  const supportDecision = getOperatorPaymentSupportState()[code];
+  if (supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+    reservation = {
+      ...reservation,
+      paid: supportDecision.paid,
+      balance: supportDecision.balance,
+      payment: supportDecision.status,
+      status: supportDecision.status === "Pagado" ? "Confirmada" : "Pendiente de pago",
+      statusClass: supportDecision.status === "Pagado" ? "is-confirmed" : "is-pending",
+    };
+  }
+
   const cancellation = getOperatorReservationCancellation(code);
   if (cancellation) {
     reservation = { ...reservation, status: "Cancelada", statusClass: "is-cancelled", execution: "No ejecutada" };
@@ -3620,9 +3971,22 @@ function resolveOperatorReservationForOperation(code) {
 
   const execution = getOperatorReservationExecution(code);
   if (execution) {
-    reservation = { ...reservation, status: "En ejecución", statusClass: "is-execution", execution: "En ejecución" };
+    reservation = execution.finalized
+      ? { ...reservation, status: "Finalizada", statusClass: "is-finalized", execution: "Finalizada" }
+      : { ...reservation, status: "En ejecución", statusClass: "is-execution", execution: "En ejecución" };
   }
   return reservation;
+}
+
+// Finalizar ejecución (Seccion 16 "Reserva": transicion En ejecucion a Finalizada). No
+// modifica precio, descuentos, pagos ni saldo: solo cierra la ejecucion y su trazabilidad
+// (responsable y fecha/hora).
+function finalizeOperatorReservationExecution(code, actor) {
+  const execution = getOperatorReservationExecution(code);
+  if (!execution || execution.finalized) return null;
+  const finalized = { ...execution, finalized: true, finalizedAt: new Date().toISOString(), finalizedBy: actor };
+  setOperatorReservationExecution(code, finalized);
+  return finalized;
 }
 
 // Regla 1 (CORREGIR): el contador de "próximas" sale siempre de las ejecuciones
@@ -3662,9 +4026,11 @@ function setupOperatorOperation() {
           // Regla 5: mientras la reserva no cumpla la condicion de pago vigente
           // (Confirmada), no se permite iniciar ejecucion; se mantiene "Ver pagos".
           const canExecute = reservation.statusClass === "is-confirmed";
+          // Regla (CORREGIR): "Ver pagos" debe conservar el ID de la reserva seleccionada,
+          // abriendo su Gestion de pago real (nunca la lista generica sin contexto).
           const action = canExecute
             ? `<a href="${withTheme(`admin-registrar-ejecucion.html?reservation=${reservation.code}`, getTheme())}">Registrar ejecución</a>`
-            : `<a href="admin-pagos.html" data-route="operatorPayments">Ver pagos</a>`;
+            : `<a href="${withTheme(`admin-gestion-pago.html?reservation=${reservation.code}`, getTheme())}">Ver pagos</a>`;
           return `<tr><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>#${escapeHtml(reservation.code)} · ${reservation.travelers} viajeros</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td>${action}</td></tr>`;
         })
         .join("");
@@ -3684,7 +4050,8 @@ function setupOperatorOperation() {
           const executedText = execution.served ? `${execution.executed} viajeros` : "No prestado";
           const causalText = execution.causal || "—";
           const detailHref = withTheme(`admin-detalle-reserva.html?reservation=${code}`, getTheme());
-          return `<tr><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${execution.reserved} viajeros</td><td>${escapeHtml(executedText)}</td><td>${escapeHtml(causalText)}</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td><a href="${detailHref}">Ver detalle</a></td></tr>`;
+          const finalizeAction = execution.finalized ? "" : ` · <button type="button" class="operator-row-toggle" data-finalize-execution="${escapeHtml(code)}">Finalizar ejecución</button>`;
+          return `<tr><td>#${escapeHtml(code)}</td><td>${escapeHtml(reservation.date)}</td><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${execution.reserved} viajeros</td><td>${escapeHtml(executedText)}</td><td>${escapeHtml(causalText)}</td><td><span class="operator-status ${escapeHtml(reservation.statusClass)}">${escapeHtml(reservation.status)}</span></td><td>${escapeHtml(execution.registeredBy || "—")}</td><td><a href="${detailHref}">Ver detalle</a>${finalizeAction}</td></tr>`;
         })
         .join("");
     }
@@ -3714,6 +4081,20 @@ function setupOperatorOperation() {
   renderExecutions();
   renderCostExecutionOptions();
   renderCostAvailability();
+
+  // Finalizar ejecución: accesible desde "Ejecuciones registradas" para cualquier
+  // ejecucion En ejecucion. No modifica precio/descuentos/pagos/saldo, solo el estado
+  // operativo y su trazabilidad (responsable + fecha/hora).
+  document.querySelector("[data-operation-executions]")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-finalize-execution]");
+    if (!button) return;
+    const code = button.dataset.finalizeExecution;
+    finalizeOperatorReservationExecution(code, getOperatorRoleLabel());
+    renderUpcoming();
+    renderExecutions();
+    renderCostExecutionOptions();
+    renderCostAvailability();
+  });
 
   const costForm = document.querySelector("[data-cost-form]");
   const costFeedback = document.querySelector("[data-cost-feedback]");
@@ -3943,6 +4324,27 @@ function setupOperatorReservations() {
       const balanceCell = row.querySelector("td:nth-child(5)");
       if (balanceCell) balanceCell.textContent = modification.balance;
     }
+    // BUG corregido: el listado no reflejaba una decision de soporte de pago ya validada ni
+    // una ejecucion/finalizacion ya registrada, por lo que podia mostrar un estado distinto
+    // al de Operación/Detalle para la MISMA reserva (misma fuente/claves que ambas pantallas).
+    const supportDecision = getOperatorPaymentSupportState()[code];
+    if (supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+      const statusEl = row.querySelector(".operator-status");
+      const balanceCell = row.querySelector("td:nth-child(5)");
+      if (statusEl) {
+        statusEl.textContent = supportDecision.status === "Pagado" ? "Confirmada" : "Pendiente de pago";
+        statusEl.className = `operator-status ${supportDecision.status === "Pagado" ? "is-confirmed" : "is-pending"}`;
+      }
+      if (balanceCell) balanceCell.textContent = supportDecision.balance;
+    }
+    const execution = getOperatorReservationExecution(code);
+    if (execution) {
+      const statusEl = row.querySelector(".operator-status");
+      if (statusEl) {
+        if (execution.finalized) { statusEl.textContent = "Finalizada"; statusEl.className = "operator-status is-finalized"; }
+        else { statusEl.textContent = "En ejecución"; statusEl.className = "operator-status is-execution"; }
+      }
+    }
     // Una cancelacion registrada (RF-008A/linea 972) siempre deja la reserva en "Cancelada",
     // tenga o no dinero pagado que devolver: nunca debe seguir mostrandose en un estado
     // anterior como "En ejecucion".
@@ -3995,6 +4397,18 @@ function resolveOperatorServiceActive(catalogId, recordKey, defaultActive) {
   return stored ? stored === "active" : defaultActive;
 }
 
+// Mismo conteo ya usado por el contador de "Catálogos" del Administrador (base + dinamicos
+// reales, ambos resueltos con resolveOperatorServiceActive): se reutiliza aqui para el
+// Panel Cliente en vez de inventar un algoritmo o fuente distinta.
+function getOperatorCatalogActiveCount(catalogId) {
+  const entry = OPERATOR_CATALOG_DEFAULTS[catalogId];
+  const baseActiveCount = entry ? entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length : 0;
+  const dynamicActiveCount = getOperatorCatalog().filter(
+    (item) => OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type] === catalogId && resolveOperatorServiceActive(catalogId, item.id, item.active),
+  ).length;
+  return baseActiveCount + dynamicActiveCount;
+}
+
 const OPERATOR_SERVICE_FIELDS_KEY = "multitour-service-fields";
 
 function getOperatorServiceFieldsMap() {
@@ -4010,25 +4424,6 @@ function setOperatorServiceFields(catalogId, recordKey, fields) {
   map[catalogId] = map[catalogId] || {};
   map[catalogId][recordKey] = fields;
   localStorage.setItem(OPERATOR_SERVICE_FIELDS_KEY, JSON.stringify(map));
-}
-
-// Salidas reales configuradas por servicio (RF-007/linea 452: distintas de la vigencia
-// comercial). Fuente unica reutilizada por Crear reserva: cuando el Administrador agrega o
-// elimina una salida aqui, Crear reserva lo refleja automaticamente sin duplicar la lista.
-const OPERATOR_SERVICE_DEPARTURES_KEY = "multitour-service-departures";
-
-function getOperatorServiceDeparturesMap() {
-  try { return JSON.parse(localStorage.getItem(OPERATOR_SERVICE_DEPARTURES_KEY) || "{}"); } catch { return {}; }
-}
-
-function getOperatorServiceDepartures(serviceKey) {
-  return getOperatorServiceDeparturesMap()[serviceKey] || null;
-}
-
-function setOperatorServiceDepartures(serviceKey, dates) {
-  const map = getOperatorServiceDeparturesMap();
-  map[serviceKey] = dates;
-  localStorage.setItem(OPERATOR_SERVICE_DEPARTURES_KEY, JSON.stringify(map));
 }
 
 // Espejo de los registros demo ya definidos en cada HTML de "Gestionar <catalogo>",
@@ -4079,10 +4474,225 @@ const OPERATOR_CATALOG_DEFAULTS = {
     cardIndex: 3,
     backHref: "admin-gestionar-transporte.html",
     records: [
-      { key: "Transporte programado", active: true, fields: { name: "Transporte programado", capacity: "14", tariff: "Por configurar", cost: "Por configurar", policy: "Sin apartamiento previo", validity: "Por configurar" } },
+      // AJUSTE: sin capacidad demo hardcodeada ("14"). La capacidad es exclusivamente
+      // parametrizable por el Administrador (Configurar transporte); "Por configurar"
+      // hasta que la defina, igual que tarifa/costo/vigencia.
+      { key: "Transporte programado", active: true, fields: { name: "Transporte programado", route: "Por configurar", capacity: "Por configurar", tariff: "Por configurar", cost: "Por configurar", policy: "Sin apartamiento previo", validity: "Por configurar" } },
     ],
   },
 };
+
+// Vinculo Tour -> Transporte (Nuevo servicio, "Incluye transporte"). RN-TRA-002: la
+// tarifa por persona puede ser propia de CADA tour ("tariffOverride"), sin sobrescribir la
+// tarifa generica del recurso de Transporte para otros tours que lo usen sin su propia
+// tarifa. Mismo mecanismo/clave ya usado y aprobado en el Portal Angular.
+const OPERATOR_TOUR_TRANSPORT_LINKS_KEY = "multitour-tour-transport-links";
+
+function getOperatorTourTransportLinks() {
+  try { return JSON.parse(localStorage.getItem(OPERATOR_TOUR_TRANSPORT_LINKS_KEY) || "{}"); } catch { return {}; }
+}
+
+function setOperatorTourTransportLink(tourKey, transportKey, tariffOverride) {
+  const links = getOperatorTourTransportLinks();
+  if (transportKey) {
+    links[tourKey] = { transportKey, tariffOverride: tariffOverride > 0 ? tariffOverride : undefined };
+  } else {
+    delete links[tourKey];
+  }
+  localStorage.setItem(OPERATOR_TOUR_TRANSPORT_LINKS_KEY, JSON.stringify(links));
+}
+
+// Transportes realmente disponibles para asociar a un Tour: solo activos y vigentes,
+// igual que Gestionar transporte. Nunca se hardcodea un transporte nuevo aqui; si no hay
+// tarifa/capacidad parametrizada, se mantiene "Por configurar".
+function getOperatorActiveTransportOptions() {
+  const options = [];
+  const defaultRecord = OPERATOR_CATALOG_DEFAULTS["transporte-catalog-panel"]?.records[0];
+  if (defaultRecord && resolveOperatorServiceActive("transporte-catalog-panel", defaultRecord.key, defaultRecord.active)) {
+    const fields = getOperatorServiceFields("transporte-catalog-panel", defaultRecord.key) || defaultRecord.fields;
+    options.push({
+      key: defaultRecord.key,
+      name: fields.name || defaultRecord.key,
+      route: (fields.route || "").trim() || "Por configurar",
+      price: parseCOP(fields.tariff),
+      capacity: parseCOP(fields.capacity) || null,
+      cost: parseCOP(fields.cost),
+    });
+  }
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "transport" || !resource.active) return;
+    options.push({
+      key: resource.id,
+      name: resource.name,
+      route: (resource.route || "").trim() || "Por configurar",
+      price: resource.price,
+      capacity: resource.capacity,
+      cost: resource.cost || 0,
+    });
+  });
+  return options;
+}
+
+function getOperatorTransportOptionByKey(key) {
+  return getOperatorActiveTransportOptions().find((option) => option.key === key) || null;
+}
+
+// RN-TRA-002: si este Tour tiene tarifa propia (tariffOverride), se antepone a la tarifa
+// generica del transporte, sin modificarla para otros tours que usen el mismo recurso.
+function getOperatorTourTransport(tourKey) {
+  const link = getOperatorTourTransportLinks()[tourKey];
+  if (!link) return null;
+  const option = getOperatorTransportOptionByKey(link.transportKey);
+  if (!option) return null;
+  return link.tariffOverride != null ? { ...option, price: link.tariffOverride } : option;
+}
+
+// PDR v1.7.1 (flujo de reserva del Cliente): catalogo REAL de Tours (activo + vigente).
+// El PDR no modela una lista independiente de "salidas": la disponibilidad de fecha depende
+// exclusivamente de la vigencia (start/end) ya parametrizada del servicio, nunca de fechas
+// programadas aparte. El enriquecimiento (descuento, riesgo, medios de pago, condiciones)
+// reutiliza EXACTAMENTE los mismos datos ya aprobados para estos 4 tours en el Portal
+// (create-reservation.component.ts: KNOWN_TOUR_DETAILS), sin inventar una politica distinta
+// entre Landing y Portal. No incluye itinerario, caracteristicas turisticas ni "inclusiones"
+// de alimentacion: esos datos no estan realmente modelados por tour en el catalogo.
+const KNOWN_TOUR_DETAILS = {
+  "Tour destino ejemplo - Montañas": {
+    discount: 0.2,
+    risk: false,
+    payments: ["Transferencia", "Efectivo", "Abono"],
+    conditions: [
+      "La modificación o cancelación depende de las condiciones vigentes del tour.",
+      "La disponibilidad y los valores se validan antes de registrar la reserva.",
+    ],
+  },
+  "Aventura en cenotes ocultos": {
+    discount: 0,
+    risk: false,
+    payments: ["Transferencia", "Efectivo", "Abono"],
+    conditions: [
+      "La modificación o cancelación depende de las condiciones vigentes del tour.",
+      "La disponibilidad y los valores se validan antes de registrar la reserva.",
+    ],
+  },
+  "Rafting y acampada extrema": {
+    discount: 0,
+    risk: true,
+    payments: ["Transferencia", "Abono"],
+    conditions: [
+      "La actividad requiere requisitos de riesgo para cada viajero.",
+      "La modificación o cancelación depende de las condiciones vigentes del servicio.",
+    ],
+  },
+  "Recorrido cultural e histórico": {
+    discount: 0,
+    risk: false,
+    payments: ["Transferencia", "Efectivo"],
+    conditions: [
+      "La modificación o cancelación depende de las condiciones vigentes del servicio.",
+      "Los descuentos se aplican según la configuración comercial vigente.",
+    ],
+  },
+};
+const GENERIC_TOUR_CONDITION = "La disponibilidad y los valores se validan antes de registrar la reserva.";
+const DEFAULT_TOUR_PAYMENT_METHODS = ["Transferencia", "Efectivo", "Abono"];
+const TOUR_CATALOG_ID = "catalogo-catalog-panel";
+const TOUR_LODGING_CATALOG_ID = "hospedaje-catalog-panel";
+
+function getOperatorActiveTourServices() {
+  const result = {};
+  const lodgingRecord = OPERATOR_CATALOG_DEFAULTS[TOUR_LODGING_CATALOG_ID]?.records[0];
+  const lodgingCapacity = (lodgingRecord && parseCOP(lodgingRecord.fields.capacity)) || 2;
+
+  OPERATOR_CATALOG_DEFAULTS[TOUR_CATALOG_ID].records.forEach((record) => {
+    if (!resolveOperatorServiceActive(TOUR_CATALOG_ID, record.key, record.active)) return;
+    const fields = getOperatorServiceFields(TOUR_CATALOG_ID, record.key) || record.fields;
+    const [startText, endText] = (fields.validity || "").split(" - ");
+    const start = parseOperatorDate(startText);
+    if (!start) return;
+    const details = KNOWN_TOUR_DETAILS[record.key];
+    result[record.key] = {
+      key: record.key,
+      name: fields.name || record.key,
+      price: parseCOP(fields.tariff),
+      discount: details?.discount ?? 0,
+      risk: details?.risk ?? false,
+      capacity: null,
+      restrictions: "",
+      lodgingCapacity,
+      start,
+      end: parseOperatorDate(endText) || start,
+      payments: details?.payments ?? DEFAULT_TOUR_PAYMENT_METHODS,
+      conditions: details?.conditions ?? [GENERIC_TOUR_CONDITION],
+      associatedTransport: getOperatorTourTransport(record.key),
+      image: "",
+    };
+  });
+
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "tour" || !resource.active) return;
+    result[resource.id] = {
+      key: resource.id,
+      name: resource.name,
+      price: resource.price,
+      discount: 0,
+      risk: false,
+      capacity: resource.capacity,
+      restrictions: resource.restrictions || "",
+      lodgingCapacity: resource.capacity ?? lodgingCapacity,
+      start: resource.start,
+      end: resource.end,
+      payments: DEFAULT_TOUR_PAYMENT_METHODS,
+      conditions: [resource.policy || GENERIC_TOUR_CONDITION],
+      associatedTransport: getOperatorTourTransport(resource.id),
+      image: resource.image || "",
+    };
+  });
+
+  return result;
+}
+
+function getOperatorActiveTourService(key) {
+  return getOperatorActiveTourServices()[key] || null;
+}
+
+// Datos bancarios para instrucciones de transferencia: no existe hoy una pantalla de
+// configuracion de datos bancarios por operador, asi que se centraliza AQUI (una sola
+// fuente para toda la pantalla de transferencia) en vez de dejarlos repetidos como texto
+// fijo en el HTML. Mismo valor de referencia ya usado, ahora como dato configurable.
+const TENANT_BANK_ACCOUNT = {
+  bank: "Banco de Occidente",
+  accountType: "Corriente",
+  accountNumber: "1234-5678-9012-3456",
+  holder: "Multitour Operaciones S.A.S.",
+  taxId: "900.123.456-7",
+};
+
+// Actualiza los campos GLOBALES del recurso de Transporte (trayecto/capacidad/costo
+// base): valen para cualquier Tour que lo use, igual que si se editara desde Configurar
+// transporte (mismo mecanismo, reutilizado aqui para no duplicar logica). La tarifa por
+// persona NO se toca aqui: es especifica por Tour (ver setOperatorTourTransportLink).
+function updateOperatorTransportResourceConfig(transportKey, patch) {
+  const defaultRecord = OPERATOR_CATALOG_DEFAULTS["transporte-catalog-panel"]?.records[0];
+  if (defaultRecord && defaultRecord.key === transportKey) {
+    const current = getOperatorServiceFields("transporte-catalog-panel", transportKey) || defaultRecord.fields;
+    const updated = { ...current };
+    if (patch.route !== undefined) updated.route = (patch.route || "").trim() || "Por configurar";
+    if (patch.capacity !== undefined) updated.capacity = patch.capacity ? String(patch.capacity) : "Por configurar";
+    if (patch.cost !== undefined) updated.cost = patch.cost > 0 ? formatCOP(patch.cost) : "Por configurar";
+    setOperatorServiceFields("transporte-catalog-panel", transportKey, updated);
+    return;
+  }
+  const catalog = getOperatorCatalog().map((resource) => {
+    if (resource.id !== transportKey || resource.type !== "transport") return resource;
+    return {
+      ...resource,
+      route: patch.route !== undefined ? ((patch.route || "").trim() || undefined) : resource.route,
+      capacity: patch.capacity !== undefined ? patch.capacity : resource.capacity,
+      cost: patch.cost !== undefined ? patch.cost : resource.cost,
+    };
+  });
+  localStorage.setItem(OPERATOR_CATALOG_STORAGE_KEY, JSON.stringify(catalog));
+}
 
 function setupOperatorCatalogs() {
   if (document.body.dataset.screen !== "operator-catalogs") return;
@@ -4117,14 +4727,23 @@ function setupOperatorCatalogs() {
   });
   const body = document.querySelector(".operator-table tbody");
   const typeLabels = { tour: "Actividad principal", lodging: "Hospedaje", food: "Alimentación", transport: "Transporte" };
+  // Mismo catalogId ya usado por OPERATOR_CATALOG_DEFAULTS: permite que un servicio creado
+  // posteriormente por el Administrador (Nuevo servicio) cuente y muestre "Ver detalle"
+  // exactamente igual que los servicios base, sin duplicar catalogos por tipo.
+  const NEW_SERVICE_CATALOG_ID_BY_TYPE = { tour: "catalogo-catalog-panel", lodging: "hospedaje-catalog-panel", food: "alimentacion-catalog-panel", transport: "transporte-catalog-panel" };
   getOperatorCatalog().forEach((item) => {
+    const catalogId = NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type];
+    // BUG corregido: el estado de esta fila quedaba fijo en "Activo" (el valor de
+    // creacion), ignorando un Desactivar/Activar posterior sobre este MISMO recurso.
+    const active = catalogId ? resolveOperatorServiceActive(catalogId, item.id, item.active) : item.active;
     const row = document.createElement("tr");
-    row.innerHTML = `<td><strong>${escapeHtml(item.name)}</strong></td><td>${typeLabels[item.type] || "Servicio"}</td><td>${escapeHtml(item.policy)}</td><td>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</td><td><span class="operator-status is-confirmed">Activo</span></td>`;
+    row.innerHTML = `<td><strong>${escapeHtml(item.name)}</strong></td><td>${typeLabels[item.type] || "Servicio"}</td><td>${escapeHtml(item.policy)}</td><td>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</td><td>${active ? '<span class="operator-status is-confirmed">Activo</span>' : '<span class="operator-status is-cancelled">Inactivo</span>'}</td>`;
     body?.append(row);
+    rowCatalogLookup.push({ catalogId, key: item.id });
   });
   const create = document.querySelector(".operator-topbar .operator-primary");
   if (create) create.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-servicio.html", getTheme()); });
-  const actions = ["admin-gestionar-catalogo.html", "admin-gestionar-hospedaje.html", "admin-gestionar-alimentacion.html", "admin-gestionar-transporte.html"];
+  const actions = ["admin-gestionar-catalogo.html", "admin-gestionar-hospedaje.html", "admin-gestionar-alimentacion.html", "admin-gestionar-transporte.html", "admin-gestionar-restaurantes.html"];
   document.querySelectorAll(".operator-catalog-grid button").forEach((button, index) => {
     if (actions[index]) button.addEventListener("click", () => { window.location.href = withTheme(actions[index], getTheme()); });
   });
@@ -4132,15 +4751,30 @@ function setupOperatorCatalogs() {
   Object.entries(OPERATOR_CATALOG_DEFAULTS).forEach(([catalogId, entry]) => {
     const strong = catalogCards[entry.cardIndex]?.querySelector("strong");
     if (!strong) return;
-    const activeCount = entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length;
+    const baseActiveCount = entry.records.filter((record) => resolveOperatorServiceActive(catalogId, record.key, record.active)).length;
+    // Regla: el contador nunca puede excluir servicios activos reales creados
+    // posteriormente por el Administrador; se suman los del mismo tipo/catalogo.
+    // BUG corregido: leia item.active (fijo desde su creacion) en vez de
+    // resolveOperatorServiceActive, por lo que Desactivar un tour/servicio dinamico no
+    // bajaba este contador.
+    const dynamicActiveCount = getOperatorCatalog().filter(
+      (item) => NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type] === catalogId && resolveOperatorServiceActive(catalogId, item.id, item.active),
+    ).length;
+    const activeCount = baseActiveCount + dynamicActiveCount;
     strong.textContent = `${activeCount} activo${activeCount === 1 ? "" : "s"}`;
   });
+  const restaurantsCountEl = document.querySelector("[data-restaurants-count]");
+  if (restaurantsCountEl) {
+    const restaurantsActiveCount = getOperatorActiveAssociatedEstablishments("restaurant").length;
+    restaurantsCountEl.textContent = `${restaurantsActiveCount} activo${restaurantsActiveCount === 1 ? "" : "s"}`;
+  }
 
   // Catálogos del Colaborador operativo: misma tabla, en modo consulta ("Ver detalle"
   // reutiliza el mismo formulario de configuración de cada servicio, ya en solo lectura).
   // El catálogo del Administrador no se modifica (esta rama solo corre para Colaborador).
   if (isOperatorColaborador()) {
     const setText = (selector, value) => { const el = document.querySelector(selector); if (el) el.textContent = value; };
+    setText("[data-catalog-topbar-eyebrow]", "Consulta operativa");
     setText(
       "[data-catalog-hero-body]",
       "Consulta los servicios disponibles del operador, sus condiciones, vigencia y disponibilidad para apoyar la gestión de reservas.",
@@ -4175,6 +4809,38 @@ function setupManagedTourCatalog() {
   const panel = document.querySelector("[data-managed-tour-catalog], [data-managed-catalog]");
   if (!panel) return;
   const catalogId = panel.id;
+  const tbody = panel.querySelector("tbody");
+
+  // BUG corregido: esta tabla solo mostraba los registros base hardcodeados en el HTML,
+  // ignorando servicios del MISMO tipo creados despues en Nuevo servicio (ej. tours nuevos
+  // que no aparecian aunque el contador de "Catálogos" ya los contara). Se agregan filas
+  // reales adicionales clonando la estructura de columnas ya aprobada de este catalogo, para
+  // que tabla y contador salgan siempre de la MISMA fuente.
+  const typeEntry = tbody && Object.entries(OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE).find(([, id]) => id === catalogId);
+  if (typeEntry) {
+    const [type] = typeEntry;
+    const templateRow = tbody.querySelector("tr");
+    getOperatorCatalog().filter((resource) => resource.type === type).forEach((resource) => {
+      const row = templateRow ? templateRow.cloneNode(true) : document.createElement("tr");
+      row.dataset.recordKey = resource.id;
+      const setCell = (attr, value) => { const cell = row.querySelector(`[${attr}]`); if (cell) cell.textContent = value; };
+      setCell("data-service-name", resource.name);
+      setCell("data-service-dish", resource.name);
+      setCell("data-service-tariff", formatCOP(resource.price));
+      setCell("data-service-validity", `${formatOperatorDate(resource.start)} - ${formatOperatorDate(resource.end)}`);
+      setCell("data-service-route", (resource.route || "").trim() || "Por configurar");
+      setCell("data-service-capacity", resource.capacity != null ? `${resource.capacity} viajero${resource.capacity === 1 ? "" : "s"}` : "Por configurar");
+      setCell("data-service-cost", resource.cost > 0 ? formatCOP(resource.cost) : "Por configurar");
+      setCell("data-service-policy", resource.policy);
+      setCell("data-service-status", "Activo");
+      const manageLink = row.querySelector("td:last-child a");
+      if (manageLink) manageLink.removeAttribute("href");
+      const toggleButton = row.querySelector("[data-toggle-service]");
+      if (toggleButton) toggleButton.dataset.toggleService = resource.active ? "deactivate" : "activate";
+      tbody.appendChild(row);
+    });
+  }
+
   document.querySelectorAll("[data-toggle-service]").forEach((button) => {
     const row = button.closest("tr");
     const actionCell = row.querySelector("td:last-child");
@@ -4183,14 +4849,17 @@ function setupManagedTourCatalog() {
     button.className = "operator-row-toggle";
     actionCell.textContent = "";
     actionCell.append(manage, button);
-    const recordKey = row.querySelector("td:first-child")?.textContent.trim() || "";
+    // Los registros base identifican su clave por el texto visible de la primera columna
+    // (ya aprobado); los dinamicos usan su id real via data-record-key (ver arriba), para no
+    // depender del nombre visible (que no es unico) como clave de estado.
+    const recordKey = row.dataset.recordKey || row.querySelector("td:first-child")?.textContent.trim() || "";
     const defaultRecord = catalogId ? OPERATOR_CATALOG_DEFAULTS[catalogId]?.records.find((r) => r.key === recordKey) : null;
     if (defaultRecord?.fields) {
       const fields = getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields;
       Object.entries(fields).forEach(([field, value]) => {
         const cell = row.querySelector(`[data-service-${field}]`);
         if (!cell) return;
-        cell.textContent = field === "capacity" ? `${value} viajero${value === "1" ? "" : "s"}` : value;
+        cell.textContent = field === "capacity" && value && value !== "Por configurar" ? `${value} viajero${value === "1" ? "" : "s"}` : value;
       });
     }
     const defaultActive = button.dataset.toggleService === "deactivate";
@@ -4222,9 +4891,22 @@ function setupManagedTourCatalog() {
 // gasto ya visible ($250.000), sin inventar ningun monto nuevo: 550.000 - 250.000 = 300.000.
 const OPERATOR_CASH_DAY_KEY = "multitour-cash-day";
 const OPERATOR_CASH_CLOSURES_KEY = "multitour-cash-closures";
+const OPERATOR_TENANT_TIMEZONE = "America/Bogota";
+
+// La jornada de caja, su cierre, historial y consolidacion deben usar SIEMPRE la fecha/hora
+// local del tenant (America/Bogota), nunca UTC ni la zona horaria de quien consulta: de lo
+// contrario el cambio de dia por huso horario desfasa la fecha de jornada respecto a la
+// fecha/hora de cierre mostrada (ej. encabezado "2026-09-03" vs "Sep 2, 2026").
+function getOperatorTenantDateKey(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: OPERATOR_TENANT_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
+function formatOperatorTenantDateTime(isoDate) {
+  return new Date(isoDate).toLocaleString("es-CO", { timeZone: OPERATOR_TENANT_TIMEZONE });
+}
 
 function getOperatorCashTodayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return getOperatorTenantDateKey();
 }
 
 // Valor de arranque en frio (solo cuando nunca existio ninguna jornada): no se reinventa
@@ -4272,9 +4954,29 @@ function getOperatorCashDay() {
   } catch {
     stored = null;
   }
+  const today = getOperatorCashTodayKey();
+
+  // Fuente unica de verdad: la jornada de HOY solo esta cerrada si ya existe un cierre real
+  // para la fecha local de hoy en getOperatorCashClosures() (ya normalizada por closedAt).
+  // No se confia en el "date"/"status" guardado aparte en la jornada en curso, que pudo
+  // quedar desactualizado por el mismo bug de huso horario ya corregido en los cierres (eso
+  // provocaba que, al cambiar de dia, la pantalla siguiera mostrando cerrada la jornada del
+  // dia anterior en lugar de abrir una jornada nueva para hoy).
+  const todaysClosure = getOperatorCashClosures().find((closure) => closure.date === today);
+  if (todaysClosure) {
+    // Las devoluciones del cierre se recalculan siempre en vivo con
+    // getOperatorExecutedRefundMovements(); se excluyen aqui para no duplicarlas.
+    const movements = todaysClosure.movements.filter((movement) => movement.type !== "Devolución");
+    return { date: today, status: "cerrada", base: todaysClosure.base, movements };
+  }
+
   if (!stored) return getDefaultOperatorCashDay();
-  if (stored.status === "cerrada") {
-    return { date: getOperatorCashTodayKey(), status: "abierta", base: stored.base, movements: [] };
+  // Regla: debe existir un unico cierre ordinario por tenant y fecha. Sin un cierre real
+  // para hoy, la jornada de hoy esta abierta. Si lo almacenado pertenece a un dia distinto
+  // o quedo marcado "cerrada" por un cierre de un dia anterior, se inicializa una jornada
+  // NUEVA para hoy, heredando la base -no el total de cierre- segun PDR linea 769.
+  if (stored.date !== today || stored.status === "cerrada") {
+    return { date: today, status: "abierta", base: stored.base, movements: [] };
   }
   return stored;
 }
@@ -4283,8 +4985,38 @@ function setOperatorCashDay(day) {
   localStorage.setItem(OPERATOR_CASH_DAY_KEY, JSON.stringify(day));
 }
 
+// Debe existir un unico cierre ordinario por tenant y fecha, y la fecha del encabezado
+// ("Cierre 2026-09-03") debe corresponder SIEMPRE a la misma fecha/hora local del tenant
+// (America/Bogota) que se muestra en el detalle del cierre. Esta es la UNICA fuente de
+// lectura de cierres (Historial, Consolidacion mensual y el propio cierre la consultan): se
+// corrige la fuente aqui mismo (no solo se filtra en pantalla), en dos pasos:
+// 1) el "date" de cada cierre se recalcula SIEMPRE a partir de su propio "closedAt" (el
+//    instante real, sin ambiguedad de huso horario) convertido a fecha local del tenant,
+//    nunca se confia en un "date" que pudo quedar mal calculado por un bug ya corregido;
+// 2) si tras normalizar la fecha llegaran a coincidir dos cierres, se conserva el
+//    ORDINARIO original (el primero) y se fusiona en el cualquier correccion que hubiera
+//    quedado registrada sobre el duplicado, sin perder trazabilidad ni reemplazar el
+//    responsable historico valido de cada correccion.
 function getOperatorCashClosures() {
-  try { return JSON.parse(localStorage.getItem(OPERATOR_CASH_CLOSURES_KEY) || "[]"); } catch { return []; }
+  let stored;
+  try { stored = JSON.parse(localStorage.getItem(OPERATOR_CASH_CLOSURES_KEY) || "[]"); } catch { stored = []; }
+  const byDate = new Map();
+  let changed = false;
+  stored.forEach((closure) => {
+    const tenantDate = closure.closedAt ? getOperatorTenantDateKey(new Date(closure.closedAt)) : closure.date;
+    if (tenantDate !== closure.date) changed = true;
+    const normalized = tenantDate === closure.date ? closure : { ...closure, date: tenantDate };
+    const existing = byDate.get(tenantDate);
+    if (!existing) {
+      byDate.set(tenantDate, { ...normalized, corrections: [...(normalized.corrections || [])] });
+      return;
+    }
+    changed = true;
+    existing.corrections = [...(existing.corrections || []), ...(normalized.corrections || [])];
+  });
+  const deduped = Array.from(byDate.values());
+  if (changed) setOperatorCashClosures(deduped);
+  return deduped;
 }
 
 function setOperatorCashClosures(list) {
@@ -4425,11 +5157,22 @@ function setupOperatorCash() {
   document.querySelector("[data-cash-close]")?.addEventListener("click", () => {
     const day = getOperatorCashDay();
     if (day.status === "cerrada") return;
-    const { ingresos, pagosOperacionales, gastos, devoluciones, total, refundMovements } = computeOperatorCashTotals(day);
+    const dayDate = day.date || getOperatorCashTodayKey();
     const closures = getOperatorCashClosures();
+    // Regla 1: debe existir un unico cierre ordinario por tenant y fecha. Si ya existe un
+    // cierre normal para esta fecha, no se crea otro duplicado: cualquier ajuste posterior
+    // se registra como correccion del mismo cierre desde Historial de caja (regla 8).
+    if (closures.some((closure) => closure.date === dayDate)) {
+      day.status = "cerrada";
+      setOperatorCashDay(day);
+      if (movementFeedback) { movementFeedback.textContent = "Ya existe un cierre registrado para esta fecha. Usa Historial de caja para registrar una corrección."; movementFeedback.classList.remove("is-valid"); }
+      render();
+      return;
+    }
+    const { ingresos, pagosOperacionales, gastos, devoluciones, total, refundMovements } = computeOperatorCashTotals(day);
     closures.push({
       id: `cierre-${Date.now()}`,
-      date: day.date || getOperatorCashTodayKey(),
+      date: dayDate,
       base: day.base,
       ingresos,
       pagosOperacionales,
@@ -4466,7 +5209,7 @@ function setupOperatorCashHistory() {
         const corrections = closure.corrections || [];
         const correctionsHtml = corrections.length
           ? `<div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Fecha</th><th>Responsable</th><th>Justificación</th></tr></thead><tbody>${corrections
-              .map((c) => `<tr><td>${escapeHtml(new Date(c.appliedAt).toLocaleString("es-CO"))}</td><td>${escapeHtml(c.appliedBy)}</td><td>${escapeHtml(c.justification)}</td></tr>`)
+              .map((c) => `<tr><td>${escapeHtml(formatOperatorTenantDateTime(c.appliedAt))}</td><td>${escapeHtml(c.appliedBy)}</td><td>${escapeHtml(c.justification)}</td></tr>`)
               .join("")}</tbody></table></div>`
           : `<p class="operator-copy">Sin correcciones registradas para este cierre.</p>`;
         return `<section class="operator-panel">
@@ -4478,7 +5221,7 @@ function setupOperatorCashHistory() {
             <div><span>Gastos</span><strong>${formatCOP(closure.gastos)}</strong></div>
             <div><span>Devoluciones</span><strong>${formatCOP(closure.devoluciones)}</strong></div>
             <div><span>Cerrado por</span><strong>${escapeHtml(closure.closedBy)}</strong></div>
-            <div><span>Fecha y hora de cierre</span><strong>${escapeHtml(new Date(closure.closedAt).toLocaleString("es-CO"))}</strong></div>
+            <div><span>Fecha y hora de cierre</span><strong>${escapeHtml(formatOperatorTenantDateTime(closure.closedAt))}</strong></div>
           </div>
           <p class="operator-eyebrow">Correcciones posteriores</p>
           ${correctionsHtml}
@@ -4516,7 +5259,7 @@ function setupOperatorCashHistory() {
     const closure = closures.find((item) => item.id === closureId);
     if (!closure) return;
     closure.corrections = closure.corrections || [];
-    closure.corrections.push({ justification, appliedBy: "Administrador del operador", appliedAt: new Date().toISOString() });
+    closure.corrections.push({ justification, appliedBy: getOperatorRoleLabel(), appliedAt: new Date().toISOString() });
     setOperatorCashClosures(closures);
     render();
   });
@@ -4526,6 +5269,9 @@ function setupOperatorCashHistory() {
 // Compartido entre Caja > Consolidación mensual y Reportes para que ambas pantallas
 // muestren siempre los mismos periodos y valores, sin duplicar ni desincronizar el calculo.
 function getOperatorMonthlyConsolidation() {
+  // Regla 3: la consolidacion mensual usa unicamente cierres diarios validos, sin duplicar
+  // una misma jornada. getOperatorCashClosures() ya garantiza un unico cierre ordinario por
+  // fecha (fuente unica, corregida de raiz), asi que aqui no se vuelve a deduplicar aparte.
   const closures = getOperatorCashClosures();
   if (!closures.length) return [];
 
@@ -4762,6 +5508,12 @@ function setupOperatorReports() {
   });
 }
 
+// Mismo catalogId ya usado por OPERATOR_CATALOG_DEFAULTS: permite ubicar un servicio creado
+// posteriormente por el Administrador (Nuevo servicio) cuando "Ver detalle" del Colaborador
+// lo abre, reutilizando este MISMO formulario de configuracion (sin pantalla nueva).
+const OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE = { tour: "catalogo-catalog-panel", lodging: "hospedaje-catalog-panel", food: "alimentacion-catalog-panel", transport: "transporte-catalog-panel" };
+const OPERATOR_NEW_SERVICE_TYPE_LABELS = { tour: "Actividad principal", lodging: "Hospedaje", food: "Alimentación", transport: "Transporte" };
+
 function setupOperatorConfigureScreen() {
   const form = document.querySelector("[data-configure-form]");
   if (!form) return;
@@ -4769,14 +5521,26 @@ function setupOperatorConfigureScreen() {
   const catalog = OPERATOR_CATALOG_DEFAULTS[catalogId];
   const recordKey = new URLSearchParams(window.location.search).get("record") || "";
   const defaultRecord = catalog?.records.find((r) => r.key === recordKey);
+  const dynamicResource = !defaultRecord
+    ? getOperatorCatalog().find((item) => item.id === recordKey && OPERATOR_NEW_SERVICE_CATALOG_ID_BY_TYPE[item.type] === catalogId)
+    : null;
   const feedback = form.querySelector("[data-config-feedback]");
   const backHref = catalog?.backHref || "admin-catalogos.html";
-  if (!defaultRecord) {
+  if (!defaultRecord && !dynamicResource) {
     if (feedback) feedback.textContent = "No se encontró el registro seleccionado. Vuelve al listado e ingresa nuevamente por Gestionar.";
     form.querySelectorAll("input, select, button").forEach((el) => { el.disabled = true; });
     return;
   }
-  const fields = getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields;
+  const fields = defaultRecord
+    ? (getOperatorServiceFields(catalogId, recordKey) || defaultRecord.fields)
+    : {
+        name: dynamicResource.name,
+        dish: dynamicResource.name,
+        capacity: dynamicResource.capacity != null ? String(dynamicResource.capacity) : "",
+        tariff: formatCOP(dynamicResource.price),
+        policy: dynamicResource.policy,
+        validity: `${formatOperatorDate(dynamicResource.start)} - ${formatOperatorDate(dynamicResource.end)}`,
+      };
   const [validityStart, validityEnd] = (fields.validity || "").split(" - ");
   form.querySelectorAll("[data-field]").forEach((input) => {
     const field = input.dataset.field;
@@ -4787,8 +5551,8 @@ function setupOperatorConfigureScreen() {
   const title = document.querySelector("[data-config-title]");
   if (title) title.textContent = fields.name || fields.dish || fields.restaurant || recordKey;
   const typeInput = form.querySelector("[data-config-type]");
-  if (typeInput) typeInput.value = defaultRecord.typeLabel || "";
-  const isActive = resolveOperatorServiceActive(catalogId, recordKey, defaultRecord.active);
+  if (typeInput) typeInput.value = defaultRecord ? (defaultRecord.typeLabel || "") : (OPERATOR_NEW_SERVICE_TYPE_LABELS[dynamicResource.type] || "");
+  const isActive = defaultRecord ? resolveOperatorServiceActive(catalogId, recordKey, defaultRecord.active) : dynamicResource.active;
   const statusBadge = document.querySelector("[data-config-status]");
   if (statusBadge) {
     statusBadge.textContent = isActive ? "Activo" : "Inactivo";
@@ -4833,9 +5597,101 @@ function getOperatorCatalog() {
 // Los establecimientos asociados (hoteles/restaurantes externos promocionados)
 // se guardan aparte del catalogo reservable: no son un servicio de la operacion turistica.
 const OPERATOR_ASSOCIATED_ESTABLISHMENTS_KEY = "multitour-associated-establishments";
+const OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID = "associated-establishments";
 
 function getOperatorAssociatedEstablishments() {
   try { return JSON.parse(localStorage.getItem(OPERATOR_ASSOCIATED_ESTABLISHMENTS_KEY) || "[]"); } catch { return []; }
+}
+
+// BUG corregido: Gastronomía Cliente mostraba restaurantes globales hardcodeados (Pujol,
+// El Califa, Cicatriz) en vez de los establecimientos realmente registrados por el
+// Administrador del tenant. El estado activo/inactivo reutiliza el MISMO mapa generico ya
+// usado por el resto de catalogos (resolveOperatorServiceActive), sin crear un mecanismo
+// paralelo; por defecto un establecimiento recien registrado queda Activo.
+function getOperatorActiveAssociatedEstablishments(kind) {
+  return getOperatorAssociatedEstablishments().filter(
+    (establishment) =>
+      establishment.kind === kind &&
+      resolveOperatorServiceActive(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, establishment.id, true),
+  );
+}
+
+// Gestión mínima de Restaurantes asociados (Administrador → Catálogos → Restaurantes
+// asociados): antes solo existía el formulario de creación ("Nuevo servicio" →
+// "Establecimiento asociado"), sin ninguna pantalla para consultarlos ni activar/inactivar
+// los ya creados. Reutiliza el MISMO registro/estado ya usado por Gastronomía Cliente
+// (getOperatorAssociatedEstablishments + resolveOperatorServiceActive); nunca borra un
+// registro, solo cambia su estado (histórico conservado).
+function setupOperatorManageRestaurants() {
+  if (document.body.dataset.screen !== "operator-manage-restaurants") return;
+  const tbody = document.querySelector("[data-restaurants-body]");
+  if (!tbody) return;
+  const isAdmin = !isOperatorColaborador();
+  const render = () => {
+    const restaurants = getOperatorAssociatedEstablishments().filter((item) => item.kind === "restaurant");
+    if (!restaurants.length) {
+      tbody.innerHTML = '<tr><td colspan="4">Aún no se han registrado restaurantes asociados. Usa "Nuevo servicio" → "Establecimiento asociado" → "Restaurante asociado" para crear uno.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = restaurants
+      .map((restaurant) => {
+        const active = resolveOperatorServiceActive(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, restaurant.id, true);
+        const actionCell = isAdmin
+          ? `<button class="operator-row-toggle" type="button" data-toggle-restaurant="${escapeHtml(restaurant.id)}">${active ? "Desactivar" : "Activar"}</button>`
+          : "";
+        return `<tr><td><strong>${escapeHtml(restaurant.name)}</strong></td><td>${escapeHtml(restaurant.description || "Sin información adicional registrada.")}</td><td><span class="operator-status ${active ? "is-confirmed" : "is-cancelled"}">${active ? "Activo" : "Inactivo"}</span></td><td>${actionCell}</td></tr>`;
+      })
+      .join("");
+    tbody.querySelectorAll("[data-toggle-restaurant]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const id = button.dataset.toggleRestaurant;
+        const active = resolveOperatorServiceActive(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, id, true);
+        setOperatorServiceStatus(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, id, !active);
+        render();
+      });
+    });
+  };
+  render();
+}
+
+// BUG corregido: "Platos del día" mostraba una tarjeta fija ("Plato del día"/"Según menú
+// vigente") sin relacion con el catalogo real de Alimentación. Reutiliza exactamente el
+// mismo filtro activo+vigente ya aprobado en setupDashboardRecommendations (Panel Cliente),
+// sin inventar un ranking ni una fuente distinta.
+function getOperatorActiveFoodOptions() {
+  const catalogId = "alimentacion-catalog-panel";
+  const today = OPERATOR_TODAY_DATE;
+  const withinValidity = (startText, endText) => {
+    const start = parseOperatorDate(startText);
+    const end = parseOperatorDate(endText) || start;
+    return Boolean(start) && today >= start && today <= (end || start);
+  };
+  const options = [];
+  OPERATOR_CATALOG_DEFAULTS[catalogId].records.forEach((record) => {
+    if (!resolveOperatorServiceActive(catalogId, record.key, record.active)) return;
+    const fields = getOperatorServiceFields(catalogId, record.key) || record.fields;
+    const [start, end] = (fields.validity || "").split(" - ");
+    if (!withinValidity(start, end)) return;
+    options.push({
+      key: record.key,
+      name: fields.dish || record.key,
+      restaurant: fields.restaurant && fields.restaurant !== "Por configurar" ? fields.restaurant : "",
+      tariff: fields.tariff || "Por configurar",
+      validity: fields.validity || "",
+    });
+  });
+  getOperatorCatalog().forEach((resource) => {
+    if (resource.type !== "food" || !resolveOperatorServiceActive(catalogId, resource.id, resource.active)) return;
+    if (!(today >= resource.start && today <= resource.end)) return;
+    options.push({
+      key: resource.id,
+      name: resource.name,
+      restaurant: resource.restaurant || "",
+      tariff: formatCOP(resource.price),
+      validity: `${formatOperatorDate(resource.start)} - ${formatOperatorDate(resource.end)}`,
+    });
+  });
+  return options;
 }
 
 const OPERATOR_DISCOUNTS_STORAGE_KEY = "multitour-discounts";
@@ -4997,11 +5853,22 @@ function setupOperatorNewService() {
   const formGrid = form?.querySelector(".operator-form-grid");
   const priceLabel = form?.querySelector("[data-service-price]")?.closest("label");
   if (priceLabel?.firstChild) priceLabel.firstChild.nodeValue = "Tarifa base";
-  formGrid?.insertAdjacentHTML("beforeend", '<label data-operational-field>Capacidad / cupo<input data-service-capacity type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label><label data-operational-field>Restricciones operativas<textarea data-service-restrictions placeholder="Opcional: condiciones que limitan la disponibilidad"></textarea></label>');
+  formGrid?.insertAdjacentHTML("beforeend", '<label data-operational-field>Capacidad / cupo<input data-service-capacity type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label><label data-operational-field>Restricciones operativas<textarea data-service-restrictions placeholder="Opcional: condiciones que limitan la disponibilidad"></textarea></label>'
+    + '<label data-operational-field data-transport-field hidden>Trayecto (origen - destino o descripción)<input data-service-route type="text" placeholder="Por configurar" /></label>'
+    + '<label data-operational-field data-tour-field hidden>¿Incluye transporte?<select data-tour-includes-transport><option value="no">No</option><option value="si">Sí</option></select></label>'
+    + '<label data-operational-field data-tour-field hidden>Transporte asociado<select data-tour-transport-key><option value="">Selecciona un transporte activo</option></select></label>'
+    + '<p class="operator-form-feedback operator-form-wide" data-tour-transport-empty hidden>No hay transportes activos disponibles. Crea o activa uno en Gestionar transporte antes de asociarlo a este Tour.</p>'
+    + '<p class="operator-eyebrow operator-form-wide" data-tour-transport-config hidden>CONFIGURACIÓN DEL TRANSPORTE</p>'
+    + '<p class="operator-copy operator-form-wide" data-tour-transport-config hidden>Si el transporte ya tiene datos, se precargan aquí; si no, complétalos directamente. Se guardan sobre el mismo recurso de Transporte, salvo la tarifa por persona, que queda propia de este Tour (RN-TRA-002).</p>'
+    + '<label data-tour-transport-config hidden>Trayecto<input data-tour-transport-route type="text" placeholder="Por configurar" /></label>'
+    + '<label data-tour-transport-config hidden>Tarifa por persona (para este Tour)<input data-tour-transport-tariff type="number" min="1" inputmode="numeric" placeholder="Por configurar" /></label>'
+    + '<label data-tour-transport-config hidden>Capacidad del transporte<input data-tour-transport-capacity type="number" min="1" inputmode="numeric" placeholder="Por configurar" /></label>'
+    + '<label data-tour-transport-config hidden>Costo base (interno, no se cobra al cliente)<input data-tour-transport-cost type="number" min="1" inputmode="numeric" placeholder="Por configurar" /></label>'
+    + '<div class="operator-form-wide operator-detail-list" data-tour-transport-config hidden><div><span>Capacidad del Tour</span><strong data-tour-capacity-display>Por configurar</strong></div><div><span>Capacidad del Transporte</span><strong data-transport-capacity-display>Por configurar</strong></div></div>'
+    + '<p class="operator-form-feedback operator-form-wide" data-tour-transport-config hidden>Capacidad Tour ≠ Capacidad Transporte: son independientes, ninguna se copia sobre la otra. La reserva valida ambas cuando corresponda.</p>');
   const image = form?.querySelector("[data-service-image]");
   const imageLabel = image?.closest("label");
   const kindSelect = form?.querySelector("[data-service-kind]");
-  const typeSelect = form?.querySelector("[data-service-type]");
   const establishmentTypeSelect = form?.querySelector("[data-establishment-type]");
   const operationalFields = form?.querySelectorAll("[data-operational-field]");
   const establishmentFields = form?.querySelectorAll("[data-establishment-field]");
@@ -5020,39 +5887,75 @@ function setupOperatorNewService() {
   kindSelect?.addEventListener("change", syncServiceKind);
   establishmentTypeSelect?.addEventListener("change", syncServiceKind);
 
-  // Regla 1/2 (RF-007/linea 452): las salidas son fechas reales de ejecucion, distintas de
-  // la vigencia comercial. Solo aplican a "Tour o actividad", que es el unico tipo que
-  // aparece como "Servicio principal" en Crear reserva; no se inventan horarios ni campos
-  // adicionales, solo la fecha.
-  const departuresField = form?.querySelector("[data-tour-departures-field]");
-  const departureInput = form?.querySelector("[data-service-departure-input]");
-  const departureAddButton = form?.querySelector("[data-service-departure-add]");
-  const departureList = form?.querySelector("[data-service-departure-list]");
-  let departureDates = [];
-  const renderDepartureList = () => {
-    if (!departureList) return;
-    departureList.innerHTML = departureDates
-      .map((iso) => `<li>${escapeHtml(formatOperatorDate(iso))} <button class="operator-table-toggle" type="button" data-remove-departure="${escapeHtml(iso)}">Quitar</button></li>`)
-      .join("");
+  // Tour <-> Transporte (RN-TRA-001/002): solo aplica cuando Tipo = "Tour o actividad".
+  // Mismo comportamiento ya aprobado en el Portal Angular.
+  const typeSelect = form?.querySelector("[data-service-type]");
+  const transportField = form?.querySelector("[data-transport-field]");
+  const tourFields = form?.querySelectorAll("[data-tour-field]");
+  const includesTransportSelect = form?.querySelector("[data-tour-includes-transport]");
+  const transportKeySelect = form?.querySelector("[data-tour-transport-key]");
+  const transportEmptyMsg = form?.querySelector("[data-tour-transport-empty]");
+  const transportConfigEls = form?.querySelectorAll("[data-tour-transport-config]");
+  const transportRouteInput = form?.querySelector("[data-tour-transport-route]");
+  const transportTariffInput = form?.querySelector("[data-tour-transport-tariff]");
+  const transportCapacityInput = form?.querySelector("[data-tour-transport-capacity]");
+  const transportCostInput = form?.querySelector("[data-tour-transport-cost]");
+  const tourCapacityDisplay = form?.querySelector("[data-tour-capacity-display]");
+  const transportCapacityDisplay = form?.querySelector("[data-transport-capacity-display]");
+  const tourCapacityFormInput = form?.querySelector("[data-service-capacity]");
+
+  const hideTransportConfig = () => { transportConfigEls?.forEach((el) => { el.hidden = true; }); };
+
+  const updateCapacityDisplays = () => {
+    if (tourCapacityDisplay) tourCapacityDisplay.textContent = tourCapacityFormInput?.value || "Por configurar";
+    if (transportCapacityDisplay) transportCapacityDisplay.textContent = transportCapacityInput?.value || "Por configurar";
   };
-  const syncTourFields = () => {
-    if (departuresField) departuresField.hidden = typeSelect?.value !== "tour";
+
+  const populateTransportOptions = () => {
+    const options = getOperatorActiveTransportOptions();
+    if (transportKeySelect) {
+      // Reconstruir las opciones no debe perder la seleccion actual (syncTransportPanel
+      // llama a esta funcion tambien cuando el propio selector de transporte cambia).
+      const previousValue = transportKeySelect.value;
+      transportKeySelect.innerHTML = '<option value="">Selecciona un transporte activo</option>'
+        + options.map((option) => `<option value="${escapeHtml(option.key)}">${escapeHtml(option.name)}</option>`).join("");
+      if (options.some((option) => option.key === previousValue)) transportKeySelect.value = previousValue;
+    }
+    if (transportEmptyMsg) transportEmptyMsg.hidden = options.length > 0;
+    return options;
   };
-  syncTourFields();
-  typeSelect?.addEventListener("change", syncTourFields);
-  departureAddButton?.addEventListener("click", () => {
-    const value = departureInput?.value;
-    if (!value || departureDates.includes(value)) return;
-    departureDates = [...departureDates, value].sort();
-    if (departureInput) departureInput.value = "";
-    renderDepartureList();
+
+  const syncTransportPanel = () => {
+    if (includesTransportSelect?.value !== "si") { hideTransportConfig(); return; }
+    const options = populateTransportOptions();
+    const option = options.find((o) => o.key === transportKeySelect?.value) || null;
+    if (!option) { hideTransportConfig(); return; }
+    transportConfigEls?.forEach((el) => { el.hidden = false; });
+    if (transportRouteInput) transportRouteInput.value = option.route !== "Por configurar" ? option.route : "";
+    if (transportTariffInput) transportTariffInput.value = option.price > 0 ? option.price : "";
+    if (transportCapacityInput) transportCapacityInput.value = option.capacity != null ? option.capacity : "";
+    if (transportCostInput) transportCostInput.value = option.cost > 0 ? option.cost : "";
+    updateCapacityDisplays();
+  };
+
+  const syncOperationalType = () => {
+    const type = typeSelect?.value;
+    if (transportField) transportField.hidden = type !== "transport";
+    tourFields?.forEach((field) => { field.hidden = type !== "tour"; });
+    if (type !== "tour") { if (includesTransportSelect) includesTransportSelect.value = "no"; hideTransportConfig(); }
+    else syncTransportPanel();
+  };
+
+  typeSelect?.addEventListener("change", syncOperationalType);
+  includesTransportSelect?.addEventListener("change", () => {
+    if (includesTransportSelect.value !== "si" && transportKeySelect) transportKeySelect.value = "";
+    syncTransportPanel();
   });
-  departureList?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-remove-departure]");
-    if (!button) return;
-    departureDates = departureDates.filter((iso) => iso !== button.dataset.removeDeparture);
-    renderDepartureList();
-  });
+  transportKeySelect?.addEventListener("change", syncTransportPanel);
+  tourCapacityFormInput?.addEventListener("input", updateCapacityDisplays);
+  transportCapacityInput?.addEventListener("input", updateCapacityDisplays);
+  syncOperationalType();
+
   const preview = form?.querySelector("[data-service-preview]");
   const feedback = form?.querySelector("[data-service-feedback]");
   image?.addEventListener("change", () => {
@@ -5082,15 +5985,35 @@ function setupOperatorNewService() {
       feedback.textContent = "Completa los datos, adjunta una imagen y define una vigencia válida.";
       return;
     }
-    const resource = { id: `resource-${Date.now()}`, name: form.querySelector("[data-service-name]").value.trim(), type: form.querySelector("[data-service-type]").value, price: Number(form.querySelector("[data-service-price]").value), capacity: Number(form.querySelector("[data-service-capacity]").value) || null, restrictions: form.querySelector("[data-service-restrictions]").value.trim(), start, end, policy: form.querySelector("[data-service-policy]").value, image: preview.src, active: true };
+    const type = form.querySelector("[data-service-type]").value;
+    // RN-TRA-001/002: si el Tour declara transporte incluido, debe seleccionarse un
+    // recurso de transporte real (activo); nunca se guarda una relacion vacia como "si".
+    if (type === "tour" && includesTransportSelect?.value === "si" && !transportKeySelect?.value) {
+      feedback.textContent = 'Selecciona un transporte activo para asociarlo a este Tour, o marca "No" si no incluye transporte.';
+      return;
+    }
+    const resource = { id: `resource-${Date.now()}`, name: form.querySelector("[data-service-name]").value.trim(), type, price: Number(form.querySelector("[data-service-price]").value), capacity: Number(form.querySelector("[data-service-capacity]").value) || null, restrictions: form.querySelector("[data-service-restrictions]").value.trim(), start, end, policy: form.querySelector("[data-service-policy]").value, image: preview.src, active: true };
+    // RN-TRA-001 (trayecto): solo tiene sentido para type === "transport"; no se inventa
+    // uno para el resto de tipos ni si el campo quedo vacio.
+    if (type === "transport") {
+      const routeValue = form.querySelector("[data-service-route]")?.value.trim();
+      if (routeValue) resource.route = routeValue;
+    }
     const catalog = getOperatorCatalog();
     catalog.push(resource);
     localStorage.setItem(OPERATOR_CATALOG_STORAGE_KEY, JSON.stringify(catalog));
-    // Regla 2/6: las salidas quedan asociadas al MISMO servicio (su id) y son la unica
-    // fuente que Crear reserva consulta; sin salidas configuradas, no se guarda nada
-    // (no se inventa una salida a partir de la vigencia).
-    if (resource.type === "tour" && departureDates.length) {
-      setOperatorServiceDepartures(resource.id, departureDates.map(formatOperatorDate));
+    if (type === "tour" && includesTransportSelect?.value === "si") {
+      const transportKey = transportKeySelect.value;
+      // Trayecto/capacidad/costo: configuracion global del recurso de Transporte (mismo
+      // mecanismo que Configurar transporte, reutilizado aqui para no duplicar logica).
+      updateOperatorTransportResourceConfig(transportKey, {
+        route: transportRouteInput?.value || "",
+        capacity: transportCapacityInput?.value ? Number(transportCapacityInput.value) : null,
+        cost: transportCostInput?.value ? Number(transportCostInput.value) : 0,
+      });
+      // Tarifa por persona: especifica de este Tour (RN-TRA-002).
+      const tariffOverride = transportTariffInput?.value ? Number(transportTariffInput.value) : undefined;
+      setOperatorTourTransportLink(resource.id, transportKey, tariffOverride);
     }
     window.location.href = withTheme("admin-catalogos.html", getTheme());
   });
@@ -5197,6 +6120,28 @@ function setupOperatorReservationDetail() {
     };
   }
 
+  // BUG corregido: Detalle de reserva no reflejaba una decision de soporte de pago ya
+  // validada ni una ejecucion/finalizacion ya registrada, por lo que podia mostrar un
+  // estado distinto al de Operación/Reservas para la MISMA reserva (misma fuente/claves
+  // que ambas pantallas: multitour-payment-support-state / multitour-reservation-executions).
+  const supportDecision = getOperatorPaymentSupportState()[code];
+  if (supportDecision && (supportDecision.status === "Pagado" || supportDecision.status === "Parcial")) {
+    reservation = {
+      ...reservation,
+      paid: supportDecision.paid,
+      balance: supportDecision.balance,
+      payment: supportDecision.status,
+      status: supportDecision.status === "Pagado" ? "Confirmada" : "Pendiente de pago",
+      statusClass: supportDecision.status === "Pagado" ? "is-confirmed" : "is-pending",
+    };
+  }
+  const detailExecution = getOperatorReservationExecution(code);
+  if (detailExecution) {
+    reservation = detailExecution.finalized
+      ? { ...reservation, status: "Finalizada", statusClass: "is-finalized", execution: "Finalizada" }
+      : { ...reservation, status: "En ejecución", statusClass: "is-execution", execution: "En ejecución" };
+  }
+
   // Una cancelacion registrada (RF-008A/linea 972) siempre deja la reserva en "Cancelada",
   // tenga o no dinero pagado que devolver: nunca debe seguir mostrandose en un estado
   // anterior como "En ejecucion". El estado de ejecucion del servicio pasa a "No ejecutada"
@@ -5244,8 +6189,24 @@ function setupOperatorReservationDetail() {
   if (status) { status.textContent = reservation.status; status.className = `operator-status ${reservation.statusClass}`; }
   const services = document.querySelector("[data-reservation-services]");
   if (services) services.innerHTML = `<tr><td><strong>${escapeHtml(reservation.service)}</strong></td><td>${escapeHtml(reservation.date)}</td><td>${reservation.travelers} viajeros</td><td>${escapeHtml(reservation.execution)}</td></tr>`;
+  // BUG corregido: cuando la accion de la reserva es economica (Gestionar pago/Ver pago),
+  // esta venia fija desde la reserva base y nunca se recalculaba si el pago pasaba a
+  // Pagado/saldo $0 despues (ej. al validar un soporte). Reservas cuya accion NO es
+  // economica (ej. "Ver operación") conservan su accion original sin tocarla.
   const action = document.querySelector("[data-reservation-action]");
-  if (action) { action.textContent = reservation.action; action.href = reservation.href; }
+  if (action) {
+    const isPaymentAction = /admin-(gestion-pago|pagos)\.html/.test(reservation.href || "");
+    if (isPaymentAction) {
+      const isPaymentSettled = reservation.statusClass === "is-cancelled" || (reservation.payment === "Pagado" && reservation.balance === "$0");
+      action.textContent = isPaymentSettled ? "Ver pagos" : "Gestionar pago";
+      action.href = withTheme(`admin-gestion-pago.html?reservation=${code}`, getTheme());
+      action.classList.toggle("operator-outline", isPaymentSettled);
+      action.classList.toggle("operator-primary", !isPaymentSettled);
+    } else {
+      action.textContent = reservation.action;
+      action.href = reservation.href;
+    }
+  }
 
   const adjustment = getOperatorReservationAdjustment(code);
   const discountPanel = document.querySelector("[data-additional-discount-panel]");
@@ -5290,30 +6251,37 @@ function setupOperatorReservationDetail() {
   }
 }
 
-// El catalogo de Catálogos (OPERATOR_CATALOG_DEFAULTS) todavia no modela salidas
-// especificas, medios de pago aceptados ni inclusiones por servicio. Estos datos
-// complementarios YA aprobados para los 4 tours base se conservan aqui, ligados al MISMO
-// key/nombre ya usado en Catálogos: la identidad, tarifa, vigencia y estado activo/inactivo
-// del servicio siempre se leen en vivo desde Catálogos, nunca desde esta lista.
+// El catalogo de Catálogos (OPERATOR_CATALOG_DEFAULTS) todavia no modela medios de pago
+// aceptados ni inclusiones por servicio. Estos datos complementarios YA aprobados para los 4
+// tours base se conservan aqui, ligados al MISMO key/nombre ya usado en Catálogos: la
+// identidad, tarifa, vigencia y estado activo/inactivo del servicio siempre se leen en vivo
+// desde Catálogos, nunca desde esta lista.
+// CORRECCION PDR v1.7.1: el PDR no define una parametrizacion independiente de "salidas". La
+// fecha del servicio se selecciona dentro de la vigencia de oferta (ver PDR
+// 03-product/prd.md linea 1006), por lo que este mapa ya no expone una lista propia de fechas.
+// AJUSTE (Tour <-> Transporte real): "inclusions" ya no declara un texto fijo de
+// transporte ("Transporte incluido: ..."). La informacion de transporte de cada Tour sale
+// exclusivamente de la relacion real Tour -> Transporte (getOperatorTourTransport),
+// nunca de un texto hardcodeado aqui. Mismo ajuste ya aprobado en el Portal Angular.
 const OPERATOR_KNOWN_TOUR_DETAILS = {
   "Tour destino ejemplo - Montañas": {
-    discount: 0.2, risk: false, departures: ["15 sep 2026", "22 sep 2026", "29 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
-    inclusions: ["Alimentación incluida: plato del día", "Transporte incluido: trayecto de ida y vuelta"],
+    discount: 0.2, risk: false, payments: ["Transferencia", "Efectivo", "Abono"],
+    inclusions: ["Alimentación incluida: plato del día"],
     conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
   },
   "Aventura en cenotes ocultos": {
-    discount: 0, risk: false, departures: ["12 sep 2026", "19 sep 2026"], payments: ["Transferencia", "Efectivo", "Abono"],
-    inclusions: ["Alimentación incluida: snack ligero", "Transporte incluido: traslado al punto de salida"],
+    discount: 0, risk: false, payments: ["Transferencia", "Efectivo", "Abono"],
+    inclusions: ["Alimentación incluida: snack ligero"],
     conditions: ["La modificación o cancelación depende de las condiciones vigentes del tour.", "La disponibilidad y los valores se validan antes de registrar la reserva."],
   },
   "Rafting y acampada extrema": {
-    discount: 0, risk: true, departures: ["13 sep 2026", "27 sep 2026"], payments: ["Transferencia", "Abono"],
-    inclusions: ["Alimentación incluida: refrigerio de la actividad", "Transporte incluido: traslado al punto de salida"],
+    discount: 0, risk: true, payments: ["Transferencia", "Abono"],
+    inclusions: ["Alimentación incluida: refrigerio de la actividad"],
     conditions: ["La actividad requiere requisitos de riesgo para cada viajero.", "La modificación o cancelación depende de las condiciones vigentes del servicio."],
   },
   "Recorrido cultural e histórico": {
-    discount: 0, risk: false, departures: ["16 sep 2026", "23 sep 2026", "30 sep 2026"], payments: ["Transferencia", "Efectivo"],
-    inclusions: ["Alimentación incluida: opción gastronómica del recorrido", "Transporte incluido: trayecto programado"],
+    discount: 0, risk: false, payments: ["Transferencia", "Efectivo"],
+    inclusions: ["Alimentación incluida: opción gastronómica del recorrido"],
     conditions: ["La modificación o cancelación depende de las condiciones vigentes del servicio.", "Los descuentos se aplican según la configuración comercial vigente."],
   },
 };
@@ -5324,16 +6292,11 @@ const OPERATOR_DEFAULT_PAYMENT_METHODS = ["Transferencia", "Efectivo", "Abono"];
 // Regla 1/2/3/6: el catalogo de "Servicio principal" se construye en vivo desde el MISMO
 // catalogo ya usado en Catálogos (solo activos y vigentes, incluyendo actualizaciones de
 // datos), sin listas independientes ni servicios hardcodeados.
-// Regla 1/2/5: la vigencia (rango inicio-fin) del catalogo NO es una salida reservable.
-// Sin salidas especificas configuradas para el servicio, no se inventa ninguna fecha: si
-// inicio y fin coinciden, esa unica fecha SI es una salida real; si son distintos, es un
-// rango de vigencia sin salida puntual definida y no se muestra ninguna.
-function resolveOperatorVigenciaDepartures(start, end) {
-  if (!start) return [];
-  if (!end || end === start) return [start];
-  return [];
-}
-
+// CORRECCION PDR v1.7.1 (03-product/prd.md linea 1006): el PDR no define una
+// parametrizacion independiente de "salidas". La disponibilidad del servicio depende de que
+// este activo, dentro de su vigencia de oferta y sin restricciones operativas que lo excluyan
+// para la fecha consultada; por eso "Crear reserva" ya no lista fechas discretas, sino que
+// permite elegir cualquier fecha dentro del rango de vigencia (start/end) del servicio.
 function getOperatorReservationServiceCatalog() {
   const services = {};
   const tourCatalogId = "catalogo-catalog-panel";
@@ -5344,7 +6307,6 @@ function getOperatorReservationServiceCatalog() {
     if (!resolveOperatorServiceActive(tourCatalogId, record.key, record.active)) return;
     const fields = getOperatorServiceFields(tourCatalogId, record.key) || record.fields;
     const details = OPERATOR_KNOWN_TOUR_DETAILS[record.key];
-    const configuredDepartures = getOperatorServiceDepartures(record.key);
     const [validityStart, validityEnd] = (fields.validity || "").split(" - ");
     services[record.key] = {
       name: fields.name || record.key,
@@ -5352,29 +6314,32 @@ function getOperatorReservationServiceCatalog() {
       discount: details ? details.discount : 0,
       risk: details ? details.risk : false,
       lodgingCapacity,
-      // Regla 6: una sola fuente de salidas por servicio, con esta prioridad: salidas
-      // configuradas explicitamente > salidas ya aprobadas para los tours base > una unica
-      // fecha real cuando la vigencia es de un solo dia. Nunca se inventa una salida.
-      departures: configuredDepartures || (details ? details.departures : resolveOperatorVigenciaDepartures(validityStart, validityEnd)),
+      start: parseOperatorDate(validityStart),
+      end: parseOperatorDate(validityEnd) || parseOperatorDate(validityStart),
       payments: details ? details.payments : OPERATOR_DEFAULT_PAYMENT_METHODS,
       inclusions: details ? details.inclusions : [],
       conditions: details ? details.conditions : [OPERATOR_GENERIC_CONDITION],
+      // RN-TRA-001/002: transporte REAL asociado a este Tour (relacion configurada en
+      // Nuevo servicio), resuelto en vivo. null si el Tour no tiene transporte asociado, o
+      // si el transporte asociado ya no esta activo. Nunca se hardcodea un trayecto/tarifa.
+      associatedTransport: getOperatorTourTransport(record.key),
     };
   });
   getOperatorCatalog().forEach((resource) => {
     if (resource.type !== "tour" || !resource.active) return;
     const key = resource.id || resource.name;
-    const configuredDepartures = getOperatorServiceDepartures(key);
     services[key] = {
       name: resource.name,
       price: resource.price,
       discount: 0,
       risk: false,
       lodgingCapacity: resource.capacity || lodgingCapacity,
-      departures: configuredDepartures || resolveOperatorVigenciaDepartures(resource.start, resource.end),
+      start: resource.start,
+      end: resource.end,
       payments: OPERATOR_DEFAULT_PAYMENT_METHODS,
       inclusions: [],
       conditions: [resource.policy || OPERATOR_GENERIC_CONDITION],
+      associatedTransport: getOperatorTourTransport(resource.id),
     };
   });
   return services;
@@ -5390,9 +6355,19 @@ function setupOperatorReservationForm() {
     serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' +
       Object.keys(services).map((key) => `<option value="${escapeHtml(key)}">${escapeHtml(services[key].name)}</option>`).join("");
   }
-  const departureSelect = form.querySelector("[data-reservation-departure]");
+  const departureInput = form.querySelector("[data-reservation-departure]");
+  const departureHint = form.querySelector("[data-reservation-departure-hint]");
   const travelerInput = form.querySelector("[data-reservation-travelers]");
   const lodgingSelect = form.querySelector("[data-reservation-lodging]");
+  const transportField = form.querySelector("[data-reservation-transport-field]");
+  const transportSelect = form.querySelector("[data-reservation-transport]");
+  const transportIncludedMessage = form.querySelector("[data-transport-included-message]");
+  const transportDetail = form.querySelector("[data-transport-detail]");
+  const transportCapacityMessage = form.querySelector("[data-transport-capacity]");
+  if (transportSelect) {
+    transportSelect.innerHTML = '<option value="none">No aplica</option>'
+      + getOperatorActiveTransportOptions().map((option) => `<option value="${escapeHtml(option.key)}">${escapeHtml(option.name)} — ${escapeHtml(option.route)}</option>`).join("");
+  }
   const holderDocument = form.querySelector("[data-holder-document]");
   const companionList = form.querySelector("[data-companion-list]");
   const companionCount = form.querySelector("[data-companion-count]");
@@ -5412,6 +6387,57 @@ function setupOperatorReservationForm() {
   const normalizeDocument = (value) => value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
   const selectedService = () => services[serviceSelect.value];
   const travelers = () => Math.max(1, Number.parseInt(travelerInput.value, 10) || 1);
+
+  // CASO A/B (Tour <-> Transporte real): si el Tour tiene un transporte realmente
+  // asociado, se reconoce automaticamente (sin selector manual); si no, se ofrece el
+  // selector manual de transportes activos.
+  const serviceIncludesTransport = () => Boolean(selectedService()?.associatedTransport);
+  const selectedTransport = () => {
+    const service = selectedService();
+    if (service?.associatedTransport) return service.associatedTransport;
+    if (serviceIncludesTransport()) return null;
+    if (!transportSelect || transportSelect.value === "none") return null;
+    return getOperatorActiveTransportOptions().find((option) => option.key === transportSelect.value) || null;
+  };
+  const transportOverCapacity = () => {
+    const option = selectedTransport();
+    if (!option || option.capacity == null) return false;
+    if (!serviceIncludesTransport() && (!transportSelect || transportSelect.value === "none")) return false;
+    return travelers() > option.capacity;
+  };
+
+  const renderTransportConfiguration = () => {
+    const service = selectedService();
+    if (transportField) transportField.hidden = serviceIncludesTransport();
+    if (!service) {
+      if (transportIncludedMessage) transportIncludedMessage.hidden = true;
+      if (transportDetail) { transportDetail.hidden = true; transportDetail.innerHTML = ""; }
+      if (transportCapacityMessage) transportCapacityMessage.hidden = true;
+      return;
+    }
+    if (transportIncludedMessage) {
+      transportIncludedMessage.hidden = !serviceIncludesTransport();
+      transportIncludedMessage.textContent = "Este Tour tiene transporte asociado. No se ofrece un transporte adicional por separado ni se cobra aparte.";
+    }
+    const option = selectedTransport();
+    if (!option) {
+      if (transportDetail) { transportDetail.hidden = true; transportDetail.innerHTML = ""; }
+      if (transportCapacityMessage) transportCapacityMessage.hidden = true;
+      return;
+    }
+    if (transportDetail) {
+      transportDetail.hidden = false;
+      transportDetail.innerHTML = `<div><span>Transporte</span><strong>${escapeHtml(option.name)}</strong></div><div><span>Trayecto</span><strong>${escapeHtml(option.route)}</strong></div><div><span>Tarifa por persona</span><strong>${option.price > 0 ? formatCurrency(option.price) : "Por configurar"}</strong></div><div><span>Capacidad</span><strong>${option.capacity != null ? option.capacity + " viajeros" : "Por configurar"}</strong></div>`;
+    }
+    if (transportCapacityMessage) {
+      transportCapacityMessage.hidden = false;
+      const overCapacity = transportOverCapacity();
+      transportCapacityMessage.classList.toggle("is-error", overCapacity);
+      transportCapacityMessage.textContent = overCapacity
+        ? `Capacidad insuficiente: este transporte admite hasta ${option.capacity} viajeros.`
+        : "Tarifa por persona incluida en el valor proyectado.";
+    }
+  };
 
   const renderCompanions = () => {
     const requiredCompanions = Math.max(0, travelers() - 1);
@@ -5437,20 +6463,33 @@ function setupOperatorReservationForm() {
 
   const renderServiceConfiguration = () => {
     const service = selectedService();
-    const departurePlaceholder = !service
-      ? "Selecciona primero un servicio"
-      : service.departures.length
-        ? "Selecciona una salida"
-        : "Este servicio no tiene salidas configuradas";
-    departureSelect.innerHTML = `<option value="">${departurePlaceholder}</option>`;
+    departureInput.value = "";
+    departureInput.disabled = !service;
     paymentSelect.innerHTML = '<option value="">Selecciona una modalidad</option>';
-    departureSelect.disabled = !service;
     paymentSelect.disabled = !service;
     inclusions.hidden = !service;
-    if (!service) { inclusions.innerHTML = ""; conditions.innerHTML = "<strong>Condiciones de reserva</strong><p>Selecciona un servicio para consultar las condiciones parametrizadas.</p>"; return; }
-    departureSelect.insertAdjacentHTML("beforeend", service.departures.map((date) => `<option value="${date}">${date}</option>`).join(""));
+    if (!service) {
+      departureInput.removeAttribute("min");
+      departureInput.removeAttribute("max");
+      departureHint.textContent = "Selecciona primero un servicio";
+      inclusions.innerHTML = "";
+      conditions.innerHTML = "<strong>Condiciones de reserva</strong><p>Selecciona un servicio para consultar las condiciones parametrizadas.</p>";
+      return;
+    }
+    departureInput.min = service.start;
+    departureInput.max = service.end;
+    // CORRECCION PDR v1.7.1: la fecha del servicio se valida contra su vigencia de oferta
+    // (activo + rango de fechas + restricciones operativas), no contra una lista de salidas.
+    departureHint.textContent = service.start === service.end
+      ? `Fecha disponible: ${formatOperatorDate(service.start)}.`
+      : `Selecciona una fecha entre ${formatOperatorDate(service.start)} y ${formatOperatorDate(service.end)}.`;
     paymentSelect.insertAdjacentHTML("beforeend", service.payments.map((method) => `<option value="${method}">${method}</option>`).join(""));
-    inclusions.innerHTML = `<strong>Servicios relacionados incluidos</strong>${service.inclusions.map((item) => `<span>${item}</span>`).join("")}`;
+    // BUG/UX corregido: no mostrar el bloque "Servicios relacionados incluidos" vacio
+    // cuando el servicio (ej. un Tour nuevo) no tiene ninguna inclusion parametrizada.
+    inclusions.hidden = service.inclusions.length === 0;
+    inclusions.innerHTML = service.inclusions.length
+      ? `<strong>Servicios relacionados incluidos</strong>${service.inclusions.map((item) => `<span>${item}</span>`).join("")}`
+      : "";
     conditions.innerHTML = `<strong>Condiciones de reserva</strong><ul>${service.conditions.map((item) => `<li>${item}</li>`).join("")}</ul>`;
   };
 
@@ -5459,11 +6498,14 @@ function setupOperatorReservationForm() {
     const lodgingOverCapacity = lodgingSelect.value !== "none" && service && travelers() > service.lodgingCapacity;
     const documents = [holderDocument, ...form.querySelectorAll("[data-companion-document]")].map((input) => normalizeDocument(input.value)).filter(Boolean);
     const duplicatedDocument = documents.some((document, index) => documents.indexOf(document) !== index);
-    const serviceReady = Boolean(service && departureSelect.value);
-    const isValid = Boolean(serviceReady && form.checkValidity() && !lodgingOverCapacity && !duplicatedDocument);
+    const dateWithinValidity = Boolean(service && departureInput.value && departureInput.value >= service.start && departureInput.value <= service.end);
+    const serviceReady = Boolean(service) && dateWithinValidity;
+    const isValid = Boolean(serviceReady && form.checkValidity() && !lodgingOverCapacity && !transportOverCapacity() && !duplicatedDocument);
 
     if (!service) feedback.textContent = "Selecciona un servicio para consultar sus requisitos y valores.";
+    else if (!dateWithinValidity && departureInput.value) feedback.textContent = "La fecha seleccionada está fuera de la vigencia del servicio.";
     else if (lodgingOverCapacity) feedback.textContent = "La capacidad del hospedaje no cubre la cantidad total de viajeros.";
+    else if (transportOverCapacity()) feedback.textContent = "La capacidad del transporte no cubre la cantidad total de viajeros.";
     else if (duplicatedDocument) feedback.textContent = "El documento del titular y los acompañantes debe ser único dentro de la reserva.";
     else if (!form.checkValidity()) feedback.textContent = "Completa los campos obligatorios y registra los requisitos aplicables.";
     else feedback.textContent = "La reserva cumple las validaciones y está lista para registrarse.";
@@ -5471,10 +6513,18 @@ function setupOperatorReservationForm() {
     registerButton.disabled = !isValid;
   };
 
+  // Tarifa de transporte por persona x viajeros (RN-TRA-002), sumada al valor proyectado.
+  // El descuento del servicio (mas abajo) se calcula SOLO sobre el precio del Tour, nunca
+  // se extiende automaticamente al transporte.
+  const transportCost = () => {
+    const option = selectedTransport();
+    return option ? option.price * travelers() : 0;
+  };
+
   const renderSummary = () => {
     const service = selectedService();
-    const projected = service ? service.price * travelers() : 0;
-    const discount = service ? projected * service.discount : 0;
+    const projected = service ? service.price * travelers() + transportCost() : 0;
+    const discount = service ? service.price * travelers() * service.discount : 0;
     projectedNode.textContent = formatCurrency(projected);
     discountNode.textContent = discount ? `-${formatCurrency(discount)}` : "$0";
     finalNode.textContent = formatCurrency(projected - discount);
@@ -5486,9 +6536,10 @@ function setupOperatorReservationForm() {
   };
 
   const sync = ({ serviceChanged = false } = {}) => {
-    if (serviceChanged) renderServiceConfiguration();
+    if (serviceChanged) { renderServiceConfiguration(); if (transportSelect) transportSelect.value = "none"; }
     renderCompanions();
     renderRiskRequirements(selectedService());
+    renderTransportConfiguration();
     renderSummary();
     validate();
   };
@@ -5496,6 +6547,7 @@ function setupOperatorReservationForm() {
   serviceSelect.addEventListener("change", () => { form.querySelector("[data-conditions-accepted]").checked = false; sync({ serviceChanged: true }); });
   travelerInput.addEventListener("input", () => sync());
   lodgingSelect.addEventListener("change", () => sync());
+  transportSelect?.addEventListener("change", () => sync());
   form.addEventListener("input", () => validate());
   form.addEventListener("change", () => validate());
   form.addEventListener("submit", (event) => {
@@ -5504,16 +6556,22 @@ function setupOperatorReservationForm() {
     if (registerButton.disabled) return;
 
     const service = selectedService();
-    const code = "RES-1843";
-    const projected = service.price * travelers();
-    const discount = projected * service.discount;
+    const code = getNextOperatorReservationCode();
+    const projected = service.price * travelers() + transportCost();
+    const discount = service.price * travelers() * service.discount;
+    const transportOption = selectedTransport();
+    const transportSelected = transportOption
+      ? serviceIncludesTransport()
+        ? `Asociado al Tour — ${transportOption.name} (${transportOption.route})`
+        : `${transportOption.name} — ${transportOption.route}`
+      : undefined;
     sessionStorage.setItem("operatorReservationDraft", JSON.stringify({
       code,
       createdAt: OPERATOR_TODAY_DATE,
       customer: form.querySelector("[data-holder-name]").value.trim(),
       email: "No registrado en esta vista",
       service: service.name,
-      date: departureSelect.value,
+      date: departureInput.value,
       travelers: travelers(),
       companions: `${Math.max(0, travelers() - 1)} registrado(s)`,
       status: "Pendiente de pago",
@@ -5528,18 +6586,20 @@ function setupOperatorReservationForm() {
       execution: "Pendiente de ejecución",
       action: "Gestionar pago",
       href: "admin-pagos.html",
+      transportSelected,
     }));
     window.location.href = withTheme(`admin-gestion-pago.html?reservation=${code}`, getTheme());
   });
   sync({ serviceChanged: true });
 }
 
+function getNextOperatorReservationCode() { const codes=Object.keys(getUnifiedOperatorReservations()).map(c=>Number(String(c).replace(/\D/g,""))).filter(Boolean); return "RES-"+(Math.max(1846,...codes)+1); }
 function setupOperatorReservationCreated() {
   if (document.body.dataset.screen !== "operator-reservation-created") return;
 
   let draft = null;
   try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
-  const reservation = draft || { code: "RES-1843", customer: "Cliente registrado", service: "Servicio seleccionado", date: "Por confirmar", travelers: 1, projected: "$0", discount: "$0", final: "$0", balance: "$0", payment: "Sin pago", method: "Sin modalidad definida" };
+  const reservation = draft || { code: getNextOperatorReservationCode(), customer: "Cliente registrado", service: "Servicio seleccionado", date: "Por confirmar", travelers: 1, projected: "$0", discount: "$0", final: "$0", balance: "$0", payment: "Sin pago", method: "Sin modalidad definida" };
   const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
   setText("[data-created-code]", `#${reservation.code}`);
   setText("[data-created-service]", reservation.service);
@@ -5563,10 +6623,33 @@ function setupOperatorReservationPayment() {
 
   let draft = null;
   try { draft = JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch { draft = null; }
-  const code = new URLSearchParams(window.location.search).get("reservation") || "RES-1843";
+  // Regla (CORREGIR): "Gestión de pago" siempre debe abrir la reserva realmente
+  // seleccionada; nunca cae en una reserva fija/por defecto cuando el codigo esta ausente
+  // o no se encuentra.
+  const code = new URLSearchParams(window.location.search).get("reservation") || "";
   const base = OPERATOR_RESERVATIONS[code];
-  const fallback = { code, customer: "Paula", method: "Efectivo", payment: "Sin pago", final: "$2.078.400", paid: "$0", balance: "$2.078.400", status: "Pendiente de pago", statusClass: "is-pending" };
-  let reservation = draft?.code === code ? draft : (base ? { ...base } : fallback);
+  let reservation = code && draft?.code === code ? draft : base ? { ...base, code } : null;
+
+  const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
+
+  if (!reservation) {
+    setText("[data-payment-reservation-code]", "Reserva no encontrada");
+    setText("[data-payment-customer]", "—");
+    const feedbackEl = document.querySelector("[data-payment-feedback]");
+    if (feedbackEl) { feedbackEl.hidden = false; feedbackEl.textContent = "No se encontró la reserva seleccionada. Vuelve a Reservas u Operación e ingresa nuevamente por Gestionar pago."; }
+    document.querySelector("[data-payment-form]")?.querySelectorAll("input, button").forEach((el) => { el.disabled = true; });
+    const submitEl = document.querySelector("[data-payment-submit]");
+    if (submitEl) submitEl.hidden = true;
+    return;
+  }
+
+  // Una reserva Cancelada (RF-008A/linea 972) conserva su informacion economica en
+  // consulta, pero no admite registrar nuevos pagos ni soportes: solo trazabilidad
+  // existente y, si corresponde, el flujo de devolucion ya disponible desde el detalle.
+  const cancellation = getOperatorReservationCancellation(code);
+  if (cancellation) {
+    reservation = { ...reservation, status: "Cancelada", statusClass: "is-cancelled" };
+  }
 
   // El % de descuento adicional se recalcula siempre sobre el valor original (OPERATOR_RESERVATIONS),
   // nunca sobre un valor ya descontado guardado en el draft, para no aplicarlo dos veces.
@@ -5578,7 +6661,6 @@ function setupOperatorReservationPayment() {
     reservation = { ...reservation, final: formatCOP(newFinal), balance: formatCOP(Math.max(newFinal - paidSoFar, 0)) };
   }
 
-  const setText = (selector, value) => document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
   setText("[data-payment-reservation-code]", `#${reservation.code}`);
   setText("[data-payment-customer]", reservation.customer);
   setText("[data-payment-method]", reservation.method);
@@ -5616,7 +6698,10 @@ function setupOperatorReservationPayment() {
   const formatCurrency = (value) => `$${new Intl.NumberFormat("es-CO").format(value)}`;
 
   const renderEntryState = () => {
-    const isSettled = reservation.payment === "Pagado" || parseCurrency(reservation.balance) === 0;
+    // Regla (CORREGIR): una reserva Cancelada nunca admite registrar nuevo pago ni
+    // soporte, sin importar su saldo; solo consulta economica y trazabilidad existente.
+    const isCancelled = reservation.statusClass === "is-cancelled";
+    const isSettled = isCancelled || reservation.payment === "Pagado" || parseCurrency(reservation.balance) === 0;
     document.querySelectorAll("[data-payment-entry]").forEach((node) => {
       const isSupport = node.querySelector("[data-payment-support]");
       node.hidden = isSettled || Boolean(isSupport && !isTransfer);
@@ -5625,8 +6710,27 @@ function setupOperatorReservationPayment() {
     if (submit) submit.hidden = isSettled;
     if (completed) completed.hidden = !isSettled;
     if (isSettled) {
-      if (paymentHeading) paymentHeading.textContent = "Pago registrado";
+      if (paymentHeading) paymentHeading.textContent = isCancelled ? "Reserva cancelada" : "Pago registrado";
+      const completedNote = completed?.querySelector("p");
+      if (completedNote) {
+        completedNote.textContent = isCancelled
+          ? "Esta reserva está cancelada: no se pueden registrar nuevos pagos ni soportes. Se conserva la trazabilidad existente."
+          : "No existen valores pendientes por registrar para esta reserva.";
+      }
       setText("[data-payment-paid]", reservation.paid || reservation.final);
+      // Trazabilidad de abonos: se muestra el historico completo cuando hay mas de un
+      // movimiento, en vez de reemplazarlo por un unico numero sin desglose.
+      const movementsList = document.querySelector("[data-payment-movements-list]");
+      const movements = getOperatorPaymentMovements(reservation.code);
+      if (movementsList) {
+        if (movements.length > 1) {
+          movementsList.hidden = false;
+          movementsList.innerHTML = movements.map((movement, index) => `<div><span>Abono ${index + 1}</span><strong>${escapeHtml(movement.amount)}</strong></div>`).join("");
+        } else {
+          movementsList.hidden = true;
+          movementsList.innerHTML = "";
+        }
+      }
     }
     if (review) review.hidden = isSettled || !(isTransfer && reservation.payment === "En validación" && reservation.supportPending);
   };
@@ -5649,7 +6753,18 @@ function setupOperatorReservationPayment() {
   }
   renderEntryState();
 
-  const persist = () => sessionStorage.setItem("operatorReservationDraft", JSON.stringify(reservation));
+  // Regla (CORREGIR): el estado economico actualizado aqui debe reflejarse tambien en
+  // Operación (y Reportes), que leen la MISMA fuente ya usada por Validar soporte -- sin
+  // esto, confirmar el pago desde Gestión de pago no habilitaba "Registrar ejecución".
+  const persist = () => {
+    sessionStorage.setItem("operatorReservationDraft", JSON.stringify(reservation));
+    setOperatorPaymentSupportState(code, {
+      status: reservation.payment,
+      paid: reservation.paid,
+      balance: reservation.balance,
+      decidedAt: new Date().toISOString(),
+    });
+  };
   const renderPaymentState = () => {
     setText("[data-payment-status]", reservation.payment);
     setText("[data-payment-balance]", reservation.balance);
@@ -5662,7 +6777,7 @@ function setupOperatorReservationPayment() {
 
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!hasSupportedMethod) return;
+    if (!hasSupportedMethod || reservation.statusClass === "is-cancelled") return;
     const enteredAmount = parseCurrency(amount?.value);
     const balance = parseCurrency(reservation.balance);
     const currentPaid = parseCurrency(reservation.paid);
@@ -5701,6 +6816,7 @@ function setupOperatorReservationPayment() {
       feedback.textContent = paidInFull
         ? "Pago registrado. Se cumplió la condición parametrizada y la reserva quedó confirmada."
         : "Abono registrado. El pago queda parcial y se conserva el saldo pendiente.";
+      addOperatorPaymentMovement(reservation.code, formatCurrency(enteredAmount), reservation.method);
     }
 
     persist();
@@ -5712,6 +6828,7 @@ function setupOperatorReservationPayment() {
   });
 
   approve?.addEventListener("click", () => {
+    if (reservation.statusClass === "is-cancelled") return;
     const validatedAmount = Number(reservation.pendingTransferAmount || 0);
     const newPaid = parseCurrency(reservation.paid) + validatedAmount;
     const newBalance = Math.max(0, parseCurrency(reservation.final) - newPaid);
@@ -5722,6 +6839,7 @@ function setupOperatorReservationPayment() {
     reservation.statusClass = newBalance === 0 ? "is-confirmed" : "is-pending";
     delete reservation.pendingTransferAmount;
     delete reservation.supportPending;
+    if (validatedAmount > 0) addOperatorPaymentMovement(reservation.code, formatCurrency(validatedAmount), reservation.method);
     persist();
     renderPaymentState();
     review.hidden = true;
@@ -5732,6 +6850,7 @@ function setupOperatorReservationPayment() {
   });
 
   reject?.addEventListener("click", () => {
+    if (reservation.statusClass === "is-cancelled") return;
     reservation.payment = "Rechazado";
     reservation.status = "Pendiente de pago";
     reservation.statusClass = "is-pending";
@@ -5748,18 +6867,90 @@ function setupOperatorReservationPayment() {
   });
 }
 
+// BLOQUE B UNIFIED PAYMENT MODEL
+const OPERATOR_RECEIPT_DECISIONS_KEY = "multitour-receipt-decisions";
+const OPERATOR_PAYMENT_REFERENCE_NOW = new Date("2026-09-01T12:00:00-05:00");
+function getOperatorReceiptDecisions() { try { return JSON.parse(localStorage.getItem(OPERATOR_RECEIPT_DECISIONS_KEY) || "{}"); } catch { return {}; } }
+function setOperatorReceiptDecision(code, data) { const all = getOperatorReceiptDecisions(); all[code] = { ...data, decidedAt: OPERATOR_PAYMENT_REFERENCE_NOW.toISOString() }; localStorage.setItem(OPERATOR_RECEIPT_DECISIONS_KEY, JSON.stringify(all)); }
+function operatorReceiptOverdue(r) { return r && r.status === "En validaci\u00f3n" && r.presentedAt && OPERATOR_PAYMENT_REFERENCE_NOW - new Date(r.presentedAt) >= 86400000; }
+function operatorFinancialSituation(status, type, paid, balance, value) {
+  if (status === "Cancelada") return Number(paid || 0) > 0 ? "Parcial" : "";
+  const p = Number(paid || 0), b = Number(balance || 0), v = Number(value || 0);
+  if (type === "Abono") { if (status === "Confirmada" && p > 0 && b > 0) return "Abono recibido"; if (status === "Confirmada" && b === 0) return "Pago completo"; return p > 0 ? "Parcial" : "Sin pago"; }
+  if (["Confirmada", "En ejecuci\u00f3n", "Finalizada"].includes(status) && b === 0) return "Pago completo";
+  if (status === "Confirmada" && b > 0) return "Saldo pendiente";
+  return p > 0 ? "Parcial" : "Sin pago";
+}
+function operatorStatusClass(s) { return ({"Pendiente de pago":"is-pending", "Confirmada":"is-confirmed", "En ejecuci\u00f3n":"is-execution", "Finalizada":"is-finalized", "Cancelada":"is-cancelled"})[s] || "is-pending"; }
+function operatorDemoRecord(item) {
+  const decision = getOperatorReceiptDecisions()[item.code];
+  const paid = Number(item.paid || 0) + (decision?.status === "Aprobado" ? Number(decision.validatedAmount || 0) : 0);
+  const value = Number(item.value || 0), balance = Math.max(value - paid, 0);
+  let status = item.status;
+  if (decision?.status === "Aprobado" && item.paymentType === "Pago total" && paid >= value && status === "Pendiente de pago") status = "Confirmada";
+  const financial = operatorFinancialSituation(status, item.paymentType, paid, balance, value);
+  return { code:item.code, customer:({"RES-1843":"Paula M\u00e9ndez","RES-1844":"Daniela Torres","RES-1845":"Sof\u00eda Vargas","RES-1846":"Andr\u00e9s Silva"})[item.code] || "Cliente demo", email:"cliente@ejemplo.com", service:item.tour, date:item.departure, travelers:item.travelers, companions:(Math.max(item.travelers - 1, 1) + " registrado"), status, statusClass:operatorStatusClass(status), projected:formatCOP(value), discount:"$0", final:formatCOP(value), paid:formatCOP(paid), balance:formatCOP(balance), paidValue:paid, balanceValue:balance, value, receiptStatus:decision?.status || item.receiptStatus, financialStatus:financial, payment:financial, paymentType:item.paymentType, paymentMedium:item.paymentMedium, method:item.paymentMedium, execution:status === "Cancelada" ? "No ejecutada" : "Pendiente de ejecuci\u00f3n", cancellationCause:item.cancellationCause || "", refundTreatment:item.refundTreatment || "" };
+}
+function getUnifiedOperatorReservations() {
+  const demo = typeof getClientDemoReservations === "function" ? getClientDemoReservations().map(operatorDemoRecord) : [];
+  const legacy = Object.entries(OPERATOR_RESERVATIONS).map(([code, r]) => { const value=parseCOP(r.final), paid=parseCOP(r.paid), balance=parseCOP(r.balance), type=code === "RES-1837" ? "Abono" : "Pago total"; const receipt=code === "RES-1842" ? "En validaci\u00f3n" : code === "RES-1822" ? "Sin comprobante" : "Aprobado"; const financial=operatorFinancialSituation(r.status,type,paid,balance,value); const decision=getOperatorReceiptDecisions()[code]; return { ...r, code, paymentType:type, paymentMedium:r.method, receiptStatus:decision?.status || receipt, financialStatus:financial, payment:financial, paidValue:paid, balanceValue:balance, value }; });
+  let draft=null; try { draft=JSON.parse(sessionStorage.getItem("operatorReservationDraft") || "null"); } catch {}
+  const extra=draft?.code && !OPERATOR_RESERVATIONS[draft.code] ? [{...draft, receiptStatus:"Sin comprobante", financialStatus:"Sin pago", paymentType:draft.paymentType || "Pago total", paymentMedium:draft.paymentMedium || draft.method || "Sin medio definido", paidValue:0, balanceValue:parseCOP(draft.balance), value:parseCOP(draft.final), payment:"Sin pago"}] : [];
+  return [...legacy,...demo,...extra].reduce((out,r) => { out[r.code]=r; return out; }, {});
+}
+function getUnifiedOperatorReservation(code) { return getUnifiedOperatorReservations()[code] || null; }
+function getUnifiedReceiptRecords() {
+  const records={
+    "RES-1842":{code:"RES-1842",customer:"Laura Gómez",method:"Transferencia",amount:"$1.039.200",support:"comprobante-transferencia-RES-1842.pdf",status:"En validaci\u00f3n",presentedAt:"2026-09-01T08:00:00-05:00"},
+    "RES-1837":{code:"RES-1837",customer:"Juliana Cruz",method:"Transferencia",amount:"$1.039.200",support:"comprobante-transferencia-RES-1837.pdf",status:"En validaci\u00f3n",presentedAt:"2026-08-31T08:00:00-05:00"},
+    "RES-1843":{code:"RES-1843",customer:"Paula M\u00e9ndez",method:"Transferencia",amount:"$1.299.000",support:"comprobante-transferencia-RES-1843.pdf",status:"En validaci\u00f3n",presentedAt:"2026-08-31T10:00:00-05:00"},
+    "RES-1844":{code:"RES-1844",customer:"Daniela Torres",method:"Transferencia",amount:"$100.000",support:"comprobante-transferencia-RES-1844.pdf",status:"Aprobado",presentedAt:"2026-08-30T10:00:00-05:00"},
+    "RES-1846":{code:"RES-1846",customer:"Andr\u00e9s Silva",method:"Transferencia",amount:"$1.299.000",support:"comprobante-transferencia-RES-1846.pdf",status:"Aprobado",presentedAt:"2026-08-29T10:00:00-05:00"}
+  };
+  const decisions=getOperatorReceiptDecisions(); Object.values(records).forEach(r=>{if(decisions[r.code])r.status=decisions[r.code].status;}); return records;
+}
+function updateClientPaymentDemoFromDecisions() { return getClientDemoReservations().map(i=>{const d=getOperatorReceiptDecisions()[i.code]; if(!d)return i; const paid=Number(i.paid||0)+(d.status === "Aprobado" ? Number(d.validatedAmount||0):0), balance=Math.max(Number(i.value||0)-paid,0), status=d.status === "Aprobado" && paid >= Number(i.value||0) ? "Confirmada" : i.status; return {...i,receiptStatus:d.status,paid,balance,status,financialStatus:operatorFinancialSituation(status,i.paymentType,paid,balance,i.value)};}); }
+function setupClientPaymentsScreen() {
+  if(document.body.dataset.screen !== "client-payments")return; const list=document.querySelector("[data-payments-list]"),empty=document.querySelector("[data-payments-empty]"); if(!list)return; const rows=updateClientPaymentDemoFromDecisions(); if(empty)empty.hidden=rows.length>0;
+  list.innerHTML=rows.map(i=>`<article class="travel-dashboard-reservation-card"><p>${escapeHtml(i.code)}</p><h3>${escapeHtml(i.tour)}</h3><p>${escapeHtml(i.departure)}</p><div class="travel-dashboard-card-meta"><span>Tipo: ${escapeHtml(i.paymentType)}</span><span>Medio: ${escapeHtml(i.paymentMedium)}</span><span>Comprobante: ${escapeHtml(i.receiptStatus)}</span><span>Situación financiera: ${escapeHtml(i.financialStatus || "No aplica por reserva cancelada")}</span><span>Valores validados: ${formatClientAmount(i.paid)}</span><span>Saldo pendiente: ${formatClientAmount(i.balance)}</span></div></article>`).join("");
+}
+function setupOperatorReservations() {
+  if(document.body.dataset.screen !== "operator-reservations")return; const tbody=document.querySelector(".operator-table tbody"); if(!tbody)return; const rows=Object.values(getUnifiedOperatorReservations());
+  tbody.innerHTML=rows.map(r=>`<tr><td><a href="admin-detalle-reserva.html?reservation=${encodeURIComponent(r.code)}">#${escapeHtml(r.code)}</a><small>${escapeHtml(r.date||"Por confirmar")} · ${r.travelers||1} viajeros</small></td><td>${escapeHtml(r.customer||"Cliente")}</td><td>${escapeHtml(r.service||"Servicio")}</td><td><span class="operator-status ${r.statusClass||operatorStatusClass(r.status)}">${escapeHtml(r.status)}</span></td><td>${escapeHtml(r.receiptStatus||"Sin comprobante")} · ${escapeHtml(r.financialStatus||"No aplica")}<br><strong>${escapeHtml(r.balance||formatCOP(r.balanceValue||0))}</strong></td><td><a href="admin-detalle-reserva.html?reservation=${encodeURIComponent(r.code)}">Ver detalle</a>${r.receiptStatus === "En validaci\u00f3n" ? ` · <a href="admin-validar-soporte.html?reservation=${encodeURIComponent(r.code)}">Validar soporte</a>` : ""}</td></tr>`).join("");
+}
+function renderReceiptDecision(code,status) { const r=getUnifiedReceiptRecords()[code]; if(!r || r.status !== "En validaci\u00f3n")return false; setOperatorReceiptDecision(code,{status,validatedAmount:status === "Aprobado" ? parseCOP(r.amount):0}); return true; }
+function setupOperatorValidateSupport() {
+  if(document.body.dataset.screen !== "operator-validate-support")return; const code=new URLSearchParams(location.search).get("reservation")||"RES-1843",r=getUnifiedReceiptRecords()[code],res=getUnifiedOperatorReservation(code); const set=(s,v)=>document.querySelectorAll(s).forEach(n=>{n.value=v;n.textContent=v;}); if(!r||!res){set("[data-validate-status]","Soporte no disponible");return;} set("[data-validate-code]",code);set("[data-validate-customer]",r.customer);set("[data-validate-method]",res.paymentType+" · "+r.method);set("[data-validate-amount]",r.amount);set("[data-validate-status]",r.status);set("[data-validate-support-filename]",r.support); const feedback=document.querySelector("[data-validate-feedback]"); const decide=s=>{if(renderReceiptDecision(code,s)){set("[data-validate-status]",s);if(feedback){feedback.textContent=s === "Aprobado" ? "Soporte aprobado. La reserva y su situaci\u00f3n financiera fueron recalculadas." : "Soporte rechazado. La reserva conserva su estado y saldo pendiente.";feedback.classList.add("is-valid");}document.querySelectorAll("[data-validate-approve],[data-validate-reject]").forEach(b=>b.disabled=true);}}; document.querySelector("[data-validate-approve]")?.addEventListener("click",()=>decide("Aprobado"));document.querySelector("[data-validate-reject]")?.addEventListener("click",()=>decide("Rechazado"));
+}
+function setupOperatorPayments() {
+  if(document.body.dataset.screen !== "operator-payments")return; const tbody=document.querySelector(".operator-table tbody");if(!tbody)return;const records=Object.values(getUnifiedReceiptRecords()),pending=records.filter(r=>r.status === "En validaci\u00f3n"),badge=document.querySelector(".operator-panel-head .operator-status");if(badge)badge.textContent=pending.length+" pendientes"; const panel=document.querySelector(".operator-panel"),overdue=pending.filter(operatorReceiptOverdue);if(panel&&overdue.length){const n=document.createElement("p");n.className="operator-access-note";n.textContent=`Hay ${overdue.length} soporte(s) con revisi\u00f3n vencida. La marca no cambia el estado ni libera cupos.`;panel.insertBefore(n,panel.querySelector(".operator-table-wrap"));} tbody.innerHTML=records.map(r=>{const res=getUnifiedOperatorReservation(r.code)||{};return `<tr><td><strong>#${r.code}</strong></td><td>${escapeHtml(r.customer)}</td><td>${escapeHtml(res.paymentType||"Pago total")} · ${escapeHtml(r.method)}</td><td>${r.amount}</td><td><span class="operator-status">${escapeHtml(r.status)}${operatorReceiptOverdue(r)?" · Revisión vencida":""}</span></td><td>${r.status === "En validaci\u00f3n" ? `<a href="admin-validar-soporte.html?reservation=${encodeURIComponent(r.code)}">Validar soporte</a>` : "Sin acci\u00f3n pendiente"}</td></tr>`;}).join("");
+}
+function setupOperatorReservationDetail() {
+  if(document.body.dataset.screen !== "operator-reservation-detail")return;const code=new URLSearchParams(location.search).get("reservation")||"RES-1842",r=getUnifiedOperatorReservation(code)||getUnifiedOperatorReservation("RES-1842"),set=(s,v)=>document.querySelectorAll(s).forEach(n=>n.textContent=v==null?"":v); set("[data-reservation-code]","#"+r.code);set("[data-reservation-service]",r.service);set("[data-reservation-departure]","Salida: "+r.date+" · "+r.travelers+" viajeros");set("[data-reservation-customer]",r.customer);set("[data-reservation-email]",r.email||"cliente@ejemplo.com");set("[data-reservation-travelers]",r.travelers+" personas");set("[data-reservation-companions]",r.companions||"");set("[data-reservation-projected]",r.projected);set("[data-reservation-discount]",r.discount);set("[data-reservation-final]",r.final);set("[data-reservation-paid]",r.paid);set("[data-reservation-balance]",(r.balance||"$0")+(r.balance === "$0"?" sin saldo pendiente":" pendientes"));set("[data-reservation-payment-method]",(r.paymentType||"Pago total")+" · "+(r.paymentMedium||r.method||"Sin medio"));set("[data-reservation-payment-status]",r.receiptStatus||"Sin comprobante");set("[data-reservation-paid-table]",r.paid);set("[data-reservation-balance-table]",r.balance||"$0");set("[data-reservation-receipt-status]",r.receiptStatus||"Sin comprobante");set("[data-reservation-financial-status]",r.financialStatus||"No aplica por reserva cancelada");set("[data-reservation-payment-type]",r.paymentType||"Pago total");set("[data-reservation-payment-medium]",r.paymentMedium||r.method||"Sin medio");set("[data-reservation-validated]",r.paid||"$0");set("[data-reservation-refunded]",r.refundTreatment||"No registrado");set("[data-reservation-cancellation-cause]",r.cancellationCause||"No registrada");const st=document.querySelector("[data-reservation-status]");if(st){st.textContent=r.status;st.className="operator-status "+(r.statusClass||operatorStatusClass(r.status));}const services=document.querySelector("[data-reservation-services]");if(services)services.innerHTML=`<tr><td><strong>${escapeHtml(r.service||"Servicio")}</strong></td><td>${escapeHtml(r.date||"Por confirmar")}</td><td>${r.travelers||1} viajeros</td><td>${escapeHtml(r.execution||"Pendiente de ejecuci\u00f3n")}</td></tr>`;const action=document.querySelector("[data-reservation-action]");if(action){action.textContent=r.receiptStatus === "En validaci\u00f3n"?"Validar soporte":"Gestionar pago";action.href=r.receiptStatus === "En validaci\u00f3n"?`admin-validar-soporte.html?reservation=${encodeURIComponent(r.code)}`:`admin-gestion-pago.html?reservation=${encodeURIComponent(r.code)}`;}
+}
+function setupOperatorReservationPayment() { if(document.body.dataset.screen !== "operator-reservation-payment")return;const code=new URLSearchParams(location.search).get("reservation")||"RES-1843",r=getUnifiedOperatorReservation(code),rec=getUnifiedReceiptRecords()[code],set=(s,v)=>document.querySelectorAll(s).forEach(n=>n.textContent=v);if(!r)return;set("[data-payment-reservation-code]","#"+code);set("[data-payment-customer]",r.customer);set("[data-payment-method]",r.paymentType+" · "+r.paymentMedium);set("[data-payment-status]",rec?.status||r.receiptStatus);set("[data-payment-financial-status]",r.financialStatus||"No aplica por reserva cancelada");set("[data-payment-reservation-status]",r.status);set("[data-payment-final]",r.final);set("[data-payment-balance]",r.balance||"$0");const review=document.querySelector("[data-payment-review]");if(review&&rec?.status === "En validaci\u00f3n")review.hidden=false;const feedback=document.querySelector("[data-payment-feedback]"),decide=s=>{if(renderReceiptDecision(code,s)&&feedback){feedback.textContent=s === "Aprobado"?"Soporte aprobado y reserva recalculada.":"Soporte rechazado; la reserva conserva el saldo pendiente.";feedback.classList.add("is-valid");}};document.querySelector("[data-payment-approve]")?.addEventListener("click",()=>decide("Aprobado"));document.querySelector("[data-payment-reject]")?.addEventListener("click",()=>decide("Rechazado")); }
+function getOperatorReportsDashboard() { const rows=Object.values(getUnifiedOperatorReservations());return {createdToday:rows.filter(r=>r.createdAt === OPERATOR_TODAY_DATE).length,pendingPayment:rows.filter(r=>r.status === "Pendiente de pago").length,confirmed:rows.filter(r=>r.status === "Confirmada").length,confirmedWithBalance:rows.filter(r=>r.status === "Confirmada" && ["Abono recibido","Saldo pendiente"].includes(r.financialStatus)).length,cancelled:rows.filter(r=>r.status === "Cancelada").length,upcomingExecutions:rows.filter(r=>["Confirmada","En ejecuci\u00f3n"].includes(r.status)).length}; }
+function setupOperatorReports() { if(document.body.dataset.screen !== "operator-reports")return;const d=getOperatorReportsDashboard(),set=(s,v)=>{const n=document.querySelector(s);if(n)n.textContent=String(v);};set("[data-reports-created]",d.createdToday);set("[data-reports-pending]",d.pendingPayment);set("[data-reports-confirmed]",d.confirmed);set("[data-reports-confirmed-with-balance]",d.confirmedWithBalance);set("[data-reports-cancelled-dashboard]",d.cancelled);set("[data-reports-upcoming]",d.upcomingExecutions); }
+function setupOperatorDashboardRole() { if(document.body.dataset.screen !== "operator-admin")return;const d=getOperatorReportsDashboard(),set=(s,v)=>{const n=document.querySelector(s);if(n)n.textContent=String(v);};set("[data-dashboard-created]",d.createdToday);set("[data-dashboard-pending]",d.pendingPayment);set("[data-dashboard-confirmed]",d.confirmed);set("[data-dashboard-cancelled]",d.cancelled);set("[data-dashboard-upcoming]",d.upcomingExecutions);set("[data-dashboard-confirmed-with-balance]",d.confirmedWithBalance);set("[data-dashboard-pagos-count]",Object.values(getUnifiedReceiptRecords()).filter(r=>r.status === "En validaci\u00f3n").length); }
+function setupOperatorReservationCreated() { if(document.body.dataset.screen !== "operator-reservation-created")return;let draft=null;try{draft=JSON.parse(sessionStorage.getItem("operatorReservationDraft")||"null");}catch{}const r=draft||{code:"RES-1847",customer:"Cliente registrado",service:"Servicio seleccionado",date:"Por confirmar",travelers:1,projected:"$0",discount:"$0",final:"$0",balance:"$0"},set=(s,v)=>document.querySelectorAll(s).forEach(n=>n.textContent=v);set("[data-created-code]","#"+r.code);set("[data-created-service]",r.service);set("[data-created-departure]",r.date);set("[data-created-travelers]",r.travelers);set("[data-created-holder]",r.customer||"Cliente registrado");set("[data-created-payment]","Sin comprobante · Sin pago");set("[data-created-method]",(r.paymentType||"Pago total")+" · "+(r.paymentMedium||r.method||"Sin medio definido"));set("[data-created-final]",r.final||"$0");set("[data-created-projected]",r.projected||"$0");set("[data-created-discount]",r.discount||"$0");set("[data-created-balance]",r.balance||"$0");document.querySelectorAll("[data-created-detail]").forEach(n=>n.href="admin-detalle-reserva.html?reservation="+encodeURIComponent(r.code));document.querySelectorAll("[data-created-payment-manage]").forEach(n=>n.href="admin-gestion-pago.html?reservation="+encodeURIComponent(r.code)); }
+
 const activeTheme = getTheme();
 const activeThemeConfig = THEMES[activeTheme];
 
 applyTheme();
 hydrateStoredUser();
+setupProfileSummary();
+setupProfileEdit();
 setupPasswordToggle();
 setupRoleSwitch();
 setupLoginForm(activeThemeConfig, activeTheme);
 setupSignupForm(activeTheme);
-setupRecoverForm(activeTheme);
+setupAccountRecovery(activeTheme);
 setupResetForm(activeTheme);
 setupPlatformScreens(activeTheme);
+setupGastronomyCatalog();
+setupLodgingCatalog();
+setupToursCatalog();
 setupVenueLinks(activeTheme);
 setupTourLinks(activeTheme);
 setupTourBookingLinks(activeTheme);
@@ -5771,10 +6962,16 @@ setupTourPaymentSuccess(activeTheme);
 setupTourPaymentFailed(activeTheme);
 setupTourPaymentTransfer(activeTheme);
 setupDashboardBooking();
+setupDashboardSearch();
+setupDashboardNotifications();
+setupReprogrammingProposal();
+setupClientReservationsScreen();
+setupClientPaymentsScreen();
 setupCompanionsForm();
 setupCatalogSearch();
 setupOperatorCatalogs();
 setupManagedTourCatalog();
+setupOperatorManageRestaurants();
 setupOperatorConfigureScreen();
 setupOperatorNewService();
 setupOperatorDiscounts();
@@ -5805,3 +7002,4 @@ setupOperatorDashboardRole();
 setupOperatorCollaborators();
 setupOperatorRegisterCollaborator();
 setupOperatorCollaboratorDetail();
+

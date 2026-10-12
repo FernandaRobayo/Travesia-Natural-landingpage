@@ -13,7 +13,7 @@
     <main class="operator-shell">
       <aside class="operator-sidebar">
         <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
-        <p class="operator-role">Administrador del operador</p>
+        <p class="operator-role">Administrador del tenant</p>
         <nav class="operator-nav" aria-label="Administración del operador">
           <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
           <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
@@ -28,9 +28,9 @@
         <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
       </aside>
       <section class="operator-content">
-        <header class="operator-topbar">
-          <div><p class="operator-eyebrow">Consulta de reserva</p><h1>Detalle de reserva</h1></div>
-          <div class="operator-form-actions">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Consulta de reserva</p><h1 class="mt-page-header-title mt-h1">Detalle de reserva</h1></div>
+          <div class="operator-form-actions mt-page-header-action">
             <a class="operator-outline" data-cancel-modify-link href="admin-cancelar-modificar-reserva.html" data-route="operatorCancelModifyReservation" hidden>Cancelar o modificar reserva</a>
             <a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Volver a reservas</a>
           </div>
@@ -57,7 +57,7 @@
               <div><span>Valor proyectado</span><strong data-reservation-projected>$1.299.000</strong></div>
               <div><span>Descuentos aplicados</span><strong data-reservation-discount>-$259.800</strong></div>
               <div><span>Valor final</span><strong data-reservation-final>$1.039.200</strong></div>
-              <div><span>Pagado o validado</span><strong data-reservation-paid>$0</strong></div>
+              <div><span>Total recibido</span><strong data-reservation-paid>$0</strong></div>
             </div>
           </section>
         </div>
@@ -96,7 +96,7 @@
         </section>
         <section class="operator-panel">
           <div class="operator-panel-head"><div><p class="operator-eyebrow">Pagos y soportes</p><h2>Seguimiento económico</h2></div><a class="operator-primary" data-reservation-action href="admin-pagos.html" data-route="operatorPayments">Gestionar pago</a></div>
-          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Modalidad</th><th>Estado</th><th>Valor</th><th>Saldo resultante</th></tr></thead><tbody><tr><td data-reservation-payment-method>Transferencia</td><td data-reservation-payment-status>Sin pago</td><td data-reservation-paid-table>$0</td><td data-reservation-balance-table>$1.039.200</td></tr></tbody></table></div>
+          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Tipo</th><th>Medio</th><th>Estado del comprobante</th><th>Situaci\u00f3n financiera</th><th>Valores validados</th><th>Saldo pendiente</th></tr></thead><tbody><tr><td data-reservation-payment-type>Pago total</td><td data-reservation-payment-medium>Transferencia</td><td data-reservation-receipt-status data-reservation-payment-status>Sin comprobante</td><td data-reservation-financial-status>Sin pago</td><td data-reservation-validated data-reservation-paid-table>$0</td><td data-reservation-balance-table>$0</td></tr></tbody></table></div>
         </section>
       </section>
     </main>

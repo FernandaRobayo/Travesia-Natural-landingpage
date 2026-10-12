@@ -19,18 +19,16 @@
       <header class="travel-profile-topbar">
         <a class="travel-tours-back" href="panel-cliente.html" data-route="dashboard">
           <span aria-hidden="true">&larr;</span>
-          <span>Volver al panel</span>
+          <span>Volver al panel cliente</span>
         </a>
-        <h1>Cuenta</h1>
+        <h1>Mi perfil</h1>
         <div class="travel-profile-topbar-spacer"></div>
       </header>
 
       <section class="travel-profile-content">
-        <article class="travel-profile-info-card">
-          <div class="travel-profile-info-head">
-            <h2>Informacion personal</h2>
-          </div>
+      <p class="travel-dashboard-copy">Consulta y actualiza tu información personal dentro del operador actual. Los datos sensibles se eliminan automáticamente un año después de la finalización del servicio; los consentimientos y la auditoría se conservan.</p>
 
+        <article class="travel-profile-info-card">
           <div class="travel-profile-info-grid">
             <aside class="travel-profile-identity">
               <div class="travel-profile-photo-wrap">
@@ -38,105 +36,104 @@
                 <span class="travel-profile-badge-dot" aria-hidden="true"></span>
               </div>
 
-              <strong data-profile-name-card>Fernanda Robayo</strong>
-              <p data-profile-email>correo@ejemplo.com</p>
+              <strong data-profile-name-card>No registrado</strong>
+              <p data-profile-email>No registrado</p>
             </aside>
 
-            <div class="travel-profile-form-grid">
-              <label class="travel-profile-field-block">
-                <span>Nombre completo</span>
-                <input type="text" readonly data-profile-name-input value="Fernanda Robayo" />
-              </label>
+            <div class="mt-form-section">
+              <h2 class="mt-form-section-title mt-label">Datos de la cuenta</h2>
+              <div class="travel-profile-form-grid mt-form-grid-2">
+                <label class="travel-profile-field-block">
+                  <span>Nombre completo</span>
+                  <input type="text" readonly data-profile-name-input />
+                </label>
 
-              <label class="travel-profile-field-block">
-                <span>Correo electronico</span>
-                <input type="email" readonly data-profile-email-input value="correo@ejemplo.com" />
-              </label>
+                <label class="travel-profile-field-block">
+                  <span>Correo electronico</span>
+                  <input type="email" readonly data-profile-email-input />
+                </label>
 
-              <label class="travel-profile-field-block">
-                <span>Numero de telefono</span>
-                <input type="text" readonly data-profile-phone-input value="+57 300 000 0000" />
-              </label>
+                <label class="travel-profile-field-block">
+                  <span>Rol</span>
+                  <input type="text" readonly value="Cliente" />
+                </label>
+              </div>
+            </div>
 
-              <label class="travel-profile-field-block">
-                <span>Codigo de pais</span>
-                <input type="text" readonly data-profile-country-input value="+57" />
-              </label>
+            <div class="mt-form-section">
+              <h2 class="mt-form-section-title mt-label">Datos personales</h2>
+              <div class="travel-profile-form-grid mt-form-grid-2">
+                <label class="travel-profile-field-block">
+                  <span>Numero de telefono</span>
+                  <input type="text" readonly data-profile-phone-input />
+                </label>
+              </div>
             </div>
           </div>
         </article>
 
         <section class="travel-profile-stack">
           <div class="travel-profile-section-headline">
-            <h2>Actividad</h2>
+            <h2>Resumen</h2>
           </div>
 
-          <div class="travel-profile-list-panel">
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">MR</div>
-              <div class="travel-profile-row-copy">
-                <strong>Mis reservas</strong>
-                <span>Historial y proximos viajes</span>
-              </div>
-              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
-            </article>
+          <div class="mt-summary-row">
+            <div class="mt-summary-metric">
+              <strong class="mt-summary-metric-value" data-profile-active-reservations>0</strong>
+              <span class="mt-summary-metric-label">Reservas activas</span>
+            </div>
 
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">GU</div>
-              <div class="travel-profile-row-copy">
-                <strong>Guardados</strong>
-                <span>Tours e itinerarios favoritos</span>
-              </div>
-              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
-            </article>
+            <div class="mt-summary-metric">
+              <strong class="mt-summary-metric-value" data-profile-pending-payments>0</strong>
+              <span class="mt-summary-metric-label">Pagos pendientes</span>
+            </div>
 
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">RE</div>
-              <div class="travel-profile-row-copy">
-                <strong>Resenas</strong>
-                <span>Tus opiniones de experiencias</span>
-              </div>
-              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
-            </article>
+            <div class="mt-summary-metric">
+              <strong class="mt-summary-metric-value" data-profile-last-reservation>No registrado</strong>
+              <span class="mt-summary-metric-label">Ultima reserva</span>
+            </div>
           </div>
         </section>
 
         <section class="travel-profile-stack">
           <div class="travel-profile-section-headline">
-            <h2>Soporte</h2>
+            <h2>Seguridad</h2>
           </div>
 
+          <p class="feedback" data-profile-feedback aria-live="polite"></p>
+
           <div class="travel-profile-list-panel">
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">CA</div>
+            <a class="travel-profile-list-row" href="#" data-profile-edit-toggle>
+              <div class="travel-profile-row-icon">EP</div>
               <div class="travel-profile-row-copy">
-                <strong>Centro de ayuda</strong>
-                <span>Preguntas frecuentes y contacto</span>
+                <strong data-profile-edit-label>Editar perfil</strong>
+                <span>Actualiza tu nombre completo y numero de telefono.</span>
               </div>
               <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
-            </article>
+            </a>
 
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">PP</div>
+            <a class="travel-profile-list-row" href="recuperar.html" data-route="recover">
+              <div class="travel-profile-row-icon">CC</div>
               <div class="travel-profile-row-copy">
-                <strong>Politica de privacidad</strong>
+                <strong>Cambiar contraseña</strong>
+                <span>Reutiliza el flujo de recuperación de contraseña ya existente.</span>
               </div>
-              <span class="travel-profile-row-arrow is-external" aria-hidden="true">&#8599;</span>
-            </article>
+              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
 
-            <article class="travel-profile-list-row">
-              <div class="travel-profile-row-icon">TC</div>
+            <a class="travel-profile-list-row" href="panel-cliente.html" data-route="dashboard">
+              <div class="travel-profile-row-icon">VP</div>
               <div class="travel-profile-row-copy">
-                <strong>Terminos y condiciones</strong>
+                <strong>Volver al panel</strong>
+                <span>Regresa al panel cliente.</span>
               </div>
-              <span class="travel-profile-row-arrow is-external" aria-hidden="true">&#8599;</span>
-            </article>
+              <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
           </div>
         </section>
 
         <div class="travel-profile-footer">
           <a class="travel-profile-logout" href="login.html" data-route="login">Cerrar sesion</a>
-          <p class="travel-profile-version">Version 2.4.1 (Core System)</p>
         </div>
       </section>
     </main>

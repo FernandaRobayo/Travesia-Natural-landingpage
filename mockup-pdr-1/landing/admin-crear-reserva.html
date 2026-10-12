@@ -13,7 +13,7 @@
     <main class="operator-shell">
       <aside class="operator-sidebar">
         <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
-        <p class="operator-role">Administrador del operador</p>
+        <p class="operator-role">Administrador del tenant</p>
         <nav class="operator-nav" aria-label="Administración del operador">
           <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
           <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
@@ -28,9 +28,9 @@
         <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
       </aside>
       <section class="operator-content">
-        <header class="operator-topbar">
-          <div><p class="operator-eyebrow">Gestión comercial</p><h1>Crear reserva</h1></div>
-          <a class="operator-outline" href="admin-reservas.html" data-route="operatorReservations">Cancelar</a>
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Gestión comercial</p><h1 class="mt-page-header-title mt-h1">Crear reserva</h1></div>
+          <a class="operator-outline mt-page-header-action" href="admin-reservas.html" data-route="operatorReservations">Cancelar</a>
         </header>
         <section class="operator-tenant-context"><span>Operador activo</span><strong>[Nombre comercial del operador]</strong><p>Todos los catálogos, condiciones, cupos y valores se consultan en este contexto.</p></section>
         <section class="operator-hero operator-hero-compact"><div><p class="operator-eyebrow">Nueva proyección comercial</p><h2>Registra el servicio, las personas y los valores antes de continuar al pago.</h2></div><p>La reserva aplica únicamente condiciones, disponibilidad y descuentos vigentes del operador activo.</p></section>
@@ -41,8 +41,10 @@
           </section>
           <section class="operator-panel">
             <p class="operator-eyebrow">02. Servicios y viajeros</p><h2>Oferta seleccionada</h2>
-            <div class="operator-form-grid"><label>Servicio principal<select data-reservation-service required><option value="">Selecciona un servicio</option></select></label><label>Salida disponible<select data-reservation-departure required disabled><option value="">Selecciona primero un servicio</option></select></label><label>Cantidad total de viajeros<input data-reservation-travelers required type="number" min="1" value="2" /></label><label>Hospedaje, si aplica<select data-reservation-lodging><option value="none">No aplica</option><option value="mirador">Ecohotel Mirador</option></select></label></div>
-            <p class="operator-capacity-message" data-lodging-capacity aria-live="polite" hidden></p>
+            <div class="operator-form-grid"><label>Tour<select data-reservation-service required><option value="">Selecciona un tour</option></select></label><label>Salida concreta<input data-reservation-departure required type="date" disabled /><small data-reservation-departure-hint>Selecciona primero un tour</small></label><label>Cantidad total de viajeros<input data-reservation-travelers required type="number" min="1" value="2" /></label><label data-reservation-transport-field>Vehículo asignado<select data-reservation-transport><option value="none">Según la salida</option></select></label></div>
+            <p class="operator-capacity-message" data-transport-included-message aria-live="polite" hidden></p>
+            <div class="operator-detail-list" data-transport-detail hidden></div>
+            <p class="operator-capacity-message" data-transport-capacity aria-live="polite" hidden></p>
             <div class="operator-inclusions" data-service-inclusions hidden></div>
           </section>
           <section class="operator-panel" data-companions-section>
@@ -56,7 +58,7 @@
             <div class="operator-risk-list" data-risk-list></div>
           </section>
           <section class="operator-panel">
-            <p class="operator-eyebrow">04. Condiciones y pago</p><h2>Reglas aplicables</h2>
+            <p class="operator-eyebrow">04. Condiciones y pago</p><h2>Reglas aplicables</h2><p class="operator-copy">La comida se muestra únicamente como incluida en el paquete del tour. El cupo se aparta por salida con el primer pago.</p>
             <div class="operator-form-grid"><label>Modalidad de pago esperada<select data-payment-method disabled><option value="">Selecciona primero un servicio</option></select></label></div>
             <section class="operator-conditions" aria-label="Condiciones de reserva" data-reservation-conditions><strong>Condiciones de reserva</strong><p>Selecciona un servicio para consultar las condiciones parametrizadas.</p></section>
             <label class="operator-check"><input data-conditions-accepted required type="checkbox" /> Confirmo que el cliente acepta las condiciones aplicables a esta reserva.</label>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nueva contrasena | Multitour</title>
+    <title>Nueva contraseña | Multitour</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,66 +17,29 @@
 
     <main id="contenido" class="travel-login-shell">
       <header class="travel-login-header travel-login-header-centered">
-        <a class="travel-login-brand" href="index.html" data-route="home">[Tu Marca]</a>
+        <a class="travel-login-brand" href="index.html" data-route="home">Multi Tour</a>
       </header>
 
       <section class="travel-login-stage">
         <div class="travel-login-card travel-reset-card">
           <div class="travel-login-copy travel-recover-copy">
-            <h1>Definir Nueva Contrasena</h1>
-            <p>Ingresa tu nueva contrasena para asegurar tu cuenta.</p>
+            <h1 class="mt-h1">Definir nueva contraseña</h1>
+            <p class="mt-body">Define una nueva contraseña para completar la recuperación de tu cuenta.</p>
           </div>
 
-          <form class="travel-login-form" data-form="reset" novalidate>
-            <div class="travel-login-field">
-              <label for="reset-password">Nueva Contrasena</label>
-              <div class="travel-login-password-wrap">
-                <input
-                  id="reset-password"
-                  name="password"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="..........."
-                />
-                <button class="travel-login-visibility" type="button" data-toggle="#reset-password">Ver</button>
-              </div>
-            </div>
+          <p class="feedback" data-reset-feedback aria-live="polite">El enlace o código vence en 30 minutos y solo puede usarse una vez.</p>
 
-            <div class="travel-login-field">
-              <label for="reset-confirm">Confirmar Contrasena</label>
-              <div class="travel-login-password-wrap">
-                <input
-                  id="reset-confirm"
-                  name="confirm_password"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="..........."
-                />
-                <button class="travel-login-visibility" type="button" data-toggle="#reset-confirm">Ver</button>
-              </div>
-            </div>
-
-            <div class="password-policy" aria-label="Requisitos de la contrasena">
-              <p>La contrasena debe contener:</p>
-              <ul>
-                <li>Minimo 8 caracteres</li>
-                <li>Al menos una letra mayuscula</li>
-                <li>Al menos una letra minuscula</li>
-                <li>Al menos un numero</li>
-                <li>Al menos un caracter especial</li>
-              </ul>
-            </div>
-
-            <p class="feedback" data-feedback="reset" aria-live="polite"></p>
-
-            <button class="travel-login-submit" type="submit">
-              <span>Guardar Contrasena</span>
-            </button>
+          <form class="travel-login-form" data-reset-form>
+            <label class="mth-login-field">Nueva contraseña<input type="password" name="password" autocomplete="new-password" minlength="8" required /></label>
+            <label class="mth-login-field">Confirmar contraseña<input type="password" name="password-confirmation" autocomplete="new-password" minlength="8" required /></label>
+            <p class="mt-body">Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial.</p>
+            <button class="travel-login-submit mt-btn mt-btn-primary" type="submit"><span>Guardar nueva contraseña</span></button>
+            <a class="travel-login-submit mt-btn mt-btn-secondary" data-reset-login href="login.html" data-route="login" hidden><span>Ir al inicio de sesión</span></a>
           </form>
 
-          <p class="travel-recover-back">
-            <a href="login.html" data-route="login">Volver al Inicio de Sesion</a>
-          </p>
+          <a class="travel-login-submit mt-btn mt-btn-secondary" data-reset-request-new href="recuperar.html" hidden>Solicitar un nuevo enlace</a>
+
+          <p class="travel-recover-back">Los cambios de contraseña administrativa quedan auditados y notificados por correo.</p>
         </div>
       </section>
     </main>
