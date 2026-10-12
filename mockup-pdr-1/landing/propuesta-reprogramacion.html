@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Propuesta de reprogramación | Multitour</title>
+    <link rel="stylesheet" href="main.css?v=20260901-3" />
+  </head>
+  <body data-screen="client-reprogramming-proposal" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main id="contenido" class="travel-dashboard-shell">
+      <header class="travel-dashboard-header">
+        <a class="travel-dashboard-brand" href="panel-cliente.html" data-tenant-brand>Multi Tour</a>
+        <div class="travel-dashboard-header-actions"><a class="travel-dashboard-header-link" href="mis-reservas.html">Mis reservas</a><a class="travel-dashboard-avatar" href="profile.html" aria-label="Perfil del usuario" data-user-avatar>FN</a></div>
+      </header>
+      <section class="mt-page-header" aria-labelledby="proposal-title"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Portal cliente</p><h1 id="proposal-title" class="mt-page-header-title mt-h1">Propuesta de reprogramación</h1><p class="mt-page-header-desc mt-body">La salida original fue cancelada por una causa no atribuible al cliente. Revisa la alternativa y responde dentro del plazo.</p></div></section>
+      <section class="operator-panel">
+        <p class="operator-eyebrow">Reserva <span data-proposal-code>RES-1846</span></p>
+        <h2 data-proposal-tour>Ruta Andina</h2>
+        <div class="operator-detail-list"><div><span>Salida original cancelada</span><strong data-proposal-original></strong></div><div><span>Salida propuesta</span><strong data-proposal-new></strong></div><div><span>Viajeros</span><strong data-proposal-travelers></strong></div></div>
+        <p class="travel-transfer-reference-copy">Los cupos de la salida propuesta quedan apartados durante el plazo de respuesta.</p>
+        <p class="travel-transfer-reference-copy" data-proposal-deadline></p>
+        <div data-proposal-actions class="operator-form-actions"><button class="operator-primary" type="button" data-proposal-accept>Aceptar propuesta</button><button class="operator-outline" type="button" data-proposal-reject>Rechazar propuesta</button></div>
+        <p class="travel-transfer-reference-copy" data-proposal-feedback aria-live="polite"></p>
+      </section>
+      <p><a class="travel-dashboard-section-action" href="mis-reservas.html">Volver a mis reservas</a></p>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -13,7 +13,7 @@
     <main class="operator-shell">
       <aside class="operator-sidebar">
         <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
-        <p class="operator-role">Administrador del operador</p>
+        <p class="operator-role">Administrador del tenant</p>
         <nav class="operator-nav" aria-label="Administración del operador">
           <a href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
           <a class="is-active" href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
@@ -41,7 +41,7 @@
             <h2 data-payment-customer>Paula</h2>
             <div class="operator-detail-list">
               <div><span>Modalidad</span><strong data-payment-method>Efectivo</strong></div>
-              <div><span>Estado de pago</span><strong data-payment-status>Sin pago</strong></div>
+              <div><span>Estado del comprobante</span><strong data-payment-status>En validación</strong></div><div><span>Situación financiera</span><strong>Abono recibido</strong></div>
               <div data-payment-discount-row hidden><span>Descuento adicional</span><strong data-payment-discount-percentage>0%</strong></div>
             </div>
           </article>
@@ -57,7 +57,7 @@
         <section class="operator-panel operator-next-panel">
           <p class="operator-eyebrow">Acción de pago</p>
           <h2 data-payment-heading>Registra el pago de esta reserva</h2>
-          <p class="operator-copy">La condición parametrizada de esta reserva exige el pago total para confirmarla. El flujo se ajusta a la modalidad habilitada.</p>
+          <p class="operator-copy">El comprobante no es ingreso de caja hasta su validación. La reserva permanece Pendiente de pago mientras existan abonos parciales y solo pasa a Confirmada con pago completo. La revisión máxima es de 24 horas.</p><div class="operator-access-note">Historial: En validación → Rechazado: imagen ilegible → En validación.</div>
           <form class="operator-form-grid" data-payment-form>
             <label class="operator-form-wide" data-payment-entry>Monto recibido<input data-payment-amount type="text" inputmode="numeric" autocomplete="off" required /></label>
             <label class="operator-form-wide" data-payment-entry hidden>Soporte de transferencia<input data-payment-support type="file" accept=".pdf,.jpg,.jpeg,.png" /></label>

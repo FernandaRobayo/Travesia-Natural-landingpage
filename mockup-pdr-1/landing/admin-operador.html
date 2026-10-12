@@ -13,7 +13,7 @@
     <main class="operator-shell">
       <aside class="operator-sidebar">
         <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
-        <p class="operator-role">Administrador del operador</p>
+        <p class="operator-role">Administrador del tenant</p>
         <nav class="operator-nav" aria-label="Administración del operador">
           <a class="is-active" href="admin-operador.html" data-route="operatorAdmin">Resumen</a>
           <a href="admin-reservas.html" data-route="operatorReservations">Reservas</a>
@@ -22,6 +22,7 @@
           <a href="admin-pagos.html" data-route="operatorPayments">Pagos</a>
           <a href="admin-caja.html" data-route="operatorCash">Caja</a>
           <a href="admin-operacion.html" data-route="operatorOperations">Operación</a>
+          <a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a>
           <a href="admin-reportes.html" data-route="operatorReports">Reportes</a>
           <a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a>
         </nav>
@@ -35,7 +36,7 @@
           <div class="mt-summary-row" aria-label="Indicadores diarios">
             <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Reservas creadas hoy</span><strong class="mt-summary-metric-value" data-dashboard-created>12</strong><a class="mt-btn mt-btn-ghost" href="admin-reservas.html" data-route="operatorReservations">Ver reservas</a></div>
             <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Reservas pendientes de pago</span><strong class="mt-summary-metric-value" data-dashboard-pending>6</strong><a class="mt-btn mt-btn-ghost" href="admin-reservas.html" data-route="operatorReservations">Revisar reservas</a></div>
-            <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Reservas confirmadas</span><strong class="mt-summary-metric-value" data-dashboard-confirmed>18</strong><a class="mt-btn mt-btn-ghost" href="admin-reservas.html" data-route="operatorReservations">Ver confirmadas</a></div>
+            <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Reservas confirmadas</span><strong class="mt-summary-metric-value" data-dashboard-confirmed>18</strong><small>Incluye las confirmadas con saldo</small><a class="mt-btn mt-btn-ghost" href="admin-reservas.html" data-route="operatorReservations">Ver confirmadas</a></div><div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Confirmadas con saldo</span><strong class="mt-summary-metric-value" data-dashboard-confirmed-with-balance>0</strong><a class="mt-btn mt-btn-ghost" href="admin-reservas.html" data-route="operatorReservations">Ver reservas con saldo</a></div>
             <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Reservas canceladas</span><strong class="mt-summary-metric-value" data-dashboard-cancelled>2</strong><a class="mt-btn mt-btn-ghost" href="admin-reservas.html" data-route="operatorReservations">Ver cancelaciones</a></div>
             <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Tours o servicios próximos a ejecutar</span><strong class="mt-summary-metric-value" data-dashboard-upcoming>4</strong><a class="mt-btn mt-btn-ghost" href="admin-operacion.html" data-route="operatorOperations">Ver operación</a></div>
           </div>

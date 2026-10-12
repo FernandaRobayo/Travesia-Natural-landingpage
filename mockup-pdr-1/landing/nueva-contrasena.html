@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nueva contrasena | Multitour</title>
+    <title>Nueva contraseña | Multitour</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -23,21 +23,23 @@
       <section class="travel-login-stage">
         <div class="travel-login-card travel-reset-card">
           <div class="travel-login-copy travel-recover-copy">
-            <h1 class="mt-h1">Definir nueva contrasena</h1>
-            <p class="mt-body">Este enlace de cambio de contrasena no corresponde a un proceso activo: la recuperacion por autoservicio aun no esta disponible en esta version de Multi Tour.</p>
+            <h1 class="mt-h1">Definir nueva contraseña</h1>
+            <p class="mt-body">Define una nueva contraseña para completar la recuperación de tu cuenta.</p>
           </div>
 
-          <p class="feedback" aria-live="polite">No es posible guardar una nueva contrasena desde esta pantalla todavia. Vuelve a iniciar sesion con tus credenciales actuales o crea una cuenta nueva.</p>
+          <p class="feedback" data-reset-feedback aria-live="polite">El enlace o código vence en 30 minutos y solo puede usarse una vez.</p>
 
-          <div class="travel-login-form">
-            <a class="travel-login-submit mt-btn mt-btn-primary" href="login.html" data-route="login">
-              <span>Volver al inicio de sesion</span>
-            </a>
-          </div>
+          <form class="travel-login-form" data-reset-form>
+            <label class="mth-login-field">Nueva contraseña<input type="password" name="password" autocomplete="new-password" minlength="8" required /></label>
+            <label class="mth-login-field">Confirmar contraseña<input type="password" name="password-confirmation" autocomplete="new-password" minlength="8" required /></label>
+            <p class="mt-body">Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial.</p>
+            <button class="travel-login-submit mt-btn mt-btn-primary" type="submit"><span>Guardar nueva contraseña</span></button>
+            <a class="travel-login-submit mt-btn mt-btn-secondary" data-reset-login href="login.html" data-route="login" hidden><span>Ir al inicio de sesión</span></a>
+          </form>
 
-          <p class="travel-recover-back">
-            <a href="login.html" data-route="login">Volver al Inicio de Sesion</a>
-          </p>
+          <a class="travel-login-submit mt-btn mt-btn-secondary" data-reset-request-new href="recuperar.html" hidden>Solicitar un nuevo enlace</a>
+
+          <p class="travel-recover-back">Los cambios de contraseña administrativa quedan auditados y notificados por correo.</p>
         </div>
       </section>
     </main>

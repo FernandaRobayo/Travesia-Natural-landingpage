@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Recuperar contrasena | Multitour</title>
+    <title>Recuperar contraseña | Multitour</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,6 +12,36 @@
     />
     <link rel="stylesheet" href="main.css?v=20260901-3" />
     <link rel="stylesheet" href="recuperar.css?v=20260918-1" />
+    <style>
+      .mth-recover-form { margin-top: 24px; }
+      .mth-recover-field {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        color: var(--mt-ink);
+        font-family: "Manrope", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+      .mth-recover-field input {
+        width: 100%;
+        min-height: 48px;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border: 1px solid var(--mt-line-strong, #cbd5d1);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--mt-ink);
+        font: inherit;
+        font-weight: 500;
+        outline: none;
+      }
+      .mth-recover-field input:focus {
+        border-color: var(--mt-teal);
+        box-shadow: 0 0 0 3px rgba(20, 129, 121, 0.14);
+      }
+    </style>
   </head>
   <body data-screen="recover" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -39,19 +69,20 @@
             <div class="mth-recover-copy">
               <span class="mth-recover-eyebrow">Multi Tour</span>
               <h1 class="mth-recover-title">Recuperar acceso</h1>
-              <p class="mth-recover-subtitle">La recuperacion de contrasena por autoservicio aun no esta disponible en esta version de Multi Tour.</p>
+              <p class="mth-recover-subtitle">Solicita un enlace seguro para recuperar el acceso a tu cuenta.</p>
             </div>
 
-            <p class="mth-recover-note" aria-live="polite">Por ahora no podemos enviar un codigo de verificacion ni procesar un cambio de contrasena desde aqui. Si perdiste el acceso a tu cuenta, vuelve a iniciar sesion con tus credenciales actuales o crea una cuenta nueva.</p>
+            <form class="mth-recover-form" data-recover-form>
+              <label class="mth-recover-field">Correo electrónico registrado<input type="email" name="email" autocomplete="email" required /></label>
+              <p class="mth-recover-note" data-recover-feedback aria-live="polite">Si existe una cuenta con ese correo, enviaremos un enlace de un solo uso que vence en 30 minutos.</p>
+              <a class="mth-recover-simulate" data-recover-simulate href="nueva-contrasena.html" hidden>Simular apertura del enlace del correo</a>
+              <div class="mth-recover-actions">
+                <button class="mth-recover-submit" type="submit"><span>Enviar enlace de recuperación</span></button>
+                <a class="mth-recover-secondary" href="login.html" data-route="login"><span>Volver al inicio de sesión</span></a>
+              </div>
+            </form>
 
-            <div class="mth-recover-actions">
-              <a class="mth-recover-submit" href="login.html" data-route="login">
-                <span>Volver al inicio de sesion</span>
-              </a>
-              <a class="mth-recover-secondary" href="crear-cuenta.html" data-route="crear-cuenta">
-                <span>Crear una cuenta</span>
-              </a>
-            </div>
+            <p class="mth-recover-note">La recuperación de una cuenta administrativa queda auditada y notificada por correo.</p>
           </div>
         </div>
       </section>

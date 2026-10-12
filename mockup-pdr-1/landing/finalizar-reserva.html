@@ -21,12 +21,12 @@
           <span aria-hidden="true">&larr;</span>
           <span>Volver a fecha y viajeros</span>
         </a>
-        <h1>Finalizar reserva</h1>
+        <h1>Finalizar reserva de tour</h1>
         <div class="travel-profile-topbar-spacer"></div>
       </header>
 
       <section class="travel-checkout-content">
-        <div class="travel-checkout-secure-pill">Pago 100% seguro</div>
+        <div class="travel-checkout-secure-pill">Selecciona el tipo y medio de pago habilitados para esta reserva.</div>
 
         <div class="mt-dashboard-layout">
           <div class="mt-dashboard-main">
@@ -37,6 +37,9 @@
               <div class="travel-companion-grid">
                 <label>Nombre completo<input type="text" required data-checkout-holder-name placeholder="Nombre completo" /></label>
                 <label>Documento de identidad<input type="text" required data-checkout-holder-document placeholder="Documento" /></label>
+                <label>Teléfono<input type="tel" required data-checkout-holder-phone placeholder="Teléfono" /></label>
+                <label>Correo electrónico<input type="email" required data-checkout-holder-email placeholder="correo@ejemplo.com" /></label>
+                <label>Fecha de nacimiento<input type="date" required data-checkout-holder-birthdate /></label>
               </div>
             </article>
 
@@ -61,45 +64,32 @@
               <div class="travel-checkout-section-title">
                 <h2 class="mt-h3">Condiciones de reserva</h2>
               </div>
+              <p class="travel-transfer-reference-copy">Reserva únicamente el tour y la salida seleccionada. La alimentación indicada forma parte del paquete cuando corresponda; hospedaje y alimentación no son servicios reservables.</p>
               <ul data-checkout-conditions-list></ul>
               <label class="travel-checkout-consent"><input type="checkbox" required data-checkout-conditions-accept /> Confirmo que acepto las condiciones aplicables a esta reserva.</label>
+              <label class="travel-checkout-consent"><input type="checkbox" required data-checkout-terms-accept /> Acepto los términos y condiciones.</label>
             </article>
 
             <article class="travel-booking-card">
               <div class="travel-checkout-section-title">
-                <h2 class="mt-h3">Metodo de pago</h2>
+                <h2 class="mt-h3">Método y plazo de pago</h2>
               </div>
 
               <div class="travel-checkout-payment-list" data-checkout-payment-list>
-                <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Transferencia">
-                  <input type="radio" name="payment-method" value="bank" />
-                  <div>
-                    <strong>Transferencia</strong>
-                    <span>Recibe los datos bancarios y confirma con comprobante.</span>
-                  </div>
-                </label>
-
-                <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Efectivo">
-                  <input type="radio" name="payment-method" value="cash" />
-                  <div>
-                    <strong>Efectivo</strong>
-                    <span>El pago en efectivo será registrado por el equipo del operador según el canal acordado.</span>
-                  </div>
-                </label>
-
-                <label class="travel-checkout-payment-option" data-payment-option data-payment-value="Abono">
-                  <input type="radio" name="payment-method" value="deposit" />
-                  <div>
-                    <strong>Abono</strong>
-                    <span>Registra un pago parcial y completa el saldo despues.</span>
-                  </div>
-                </label>
+                <p class="travel-transfer-reference-copy"><strong>Tipo de pago</strong></p>
+                <label class="travel-checkout-payment-option" data-payment-type-option data-payment-type-value="Pago total"><input type="radio" name="payment-type" value="total" /><div><strong>Pago total</strong><span>Completa el valor final de la reserva.</span></div></label>
+                <label class="travel-checkout-payment-option" data-payment-type-option data-payment-type-value="Abono"><input type="radio" name="payment-type" value="deposit" /><div><strong>Abono</strong><span>Confirma según el abono mínimo parametrizado y conserva el saldo pendiente.</span></div></label>
+                <p class="travel-transfer-reference-copy"><strong>Medio de pago</strong></p>
+                <label class="travel-checkout-payment-option" data-payment-medium-option data-payment-medium-value="Transferencia"><input type="radio" name="payment-medium" value="bank" /><div><strong>Transferencia</strong><span>Presenta el comprobante para revisión del operador.</span></div></label>
+                <label class="travel-checkout-payment-option" data-payment-medium-option data-payment-medium-value="Efectivo"><input type="radio" name="payment-medium" value="cash" /><div><strong>Efectivo</strong><span>El pago en efectivo será registrado por el equipo del operador.</span></div></label>
               </div>
 
               <div class="travel-companion-grid" data-checkout-deposit-fields hidden>
                 <label>Monto a abonar<input type="number" min="1" data-checkout-deposit-amount placeholder="Ej. 500000" /></label>
                 <p class="travel-transfer-reference-copy" data-checkout-deposit-hint></p>
               </div>
+            <p class="travel-transfer-reference-copy" data-checkout-cash-hint hidden>El pago en efectivo no confirma la reserva hasta que el dinero sea recibido y registrado por el equipo del operador.</p>
+              <p class="travel-transfer-reference-copy" data-checkout-transfer-hint hidden>La transferencia queda pendiente de revisión mediante comprobante.</p>
             </article>
 
             <p class="travel-transfer-reference-copy" data-checkout-feedback aria-live="polite"></p>
@@ -170,7 +160,7 @@
       </div>
 
       <button type="button" class="travel-booking-continue mt-btn mt-btn-primary" data-checkout-pay>
-        Pagar ahora
+        Continuar
       </button>
     </aside>
 

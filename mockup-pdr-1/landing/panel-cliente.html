@@ -38,20 +38,21 @@
         </div>
 
         <div class="travel-dashboard-search-block">
-          <label class="travel-dashboard-search-label" for="dashboard-search">Buscar tours, alojamiento o experiencias</label>
+          <label class="travel-dashboard-search-label" for="dashboard-search">Buscar tours o establecimientos asociados</label>
           <div class="travel-dashboard-search-row">
             <input
               id="dashboard-search"
               type="search"
               placeholder="Buscar tours, alojamiento o experiencias..."
             />
-            <button type="button">Buscar</button>
+            <button type="button" data-dashboard-search-button>Buscar</button>
           </div>
+          <p class="travel-dashboard-copy" data-dashboard-search-feedback hidden></p>
 
           <div class="travel-dashboard-filter-row" aria-label="Filtros rapidos">
             <a href="gastronomia.html" data-route="gastronomy">Gastronomia</a>
             <a href="tours.html" data-route="tours">Tours</a>
-            <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+            <a href="alojamiento.html" data-route="lodging">Alojamiento asociado</a>
           </div>
         </div>
       </section>
@@ -161,6 +162,8 @@
           </section>
         </aside>
       </div>
+
+      <section class="travel-dashboard-section" aria-labelledby="notificaciones"><div class="travel-dashboard-section-head"><h2 id="notificaciones">Notificaciones</h2></div><div class="operator-panel" data-client-notifications></div></section>
 
       <section class="travel-dashboard-section" aria-labelledby="recomendados">
         <div class="travel-dashboard-section-head">
