@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Indice del Mockup | Multitour</title>
+    <title>Índice del Mockup | Multitour</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="index" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -18,10 +18,10 @@
     <main id="contenido" class="index-shell mockup-index-shell">
       <header class="index-header mockup-index-header">
         <div>
-          <h1>Indice navegable del mockup</h1>
+          <h1>Índice navegable del mockup</h1>
           <p>
-            Estamos construyendo el flujo base de acceso, exploracion,
-            reservas, pagos y gestion del cliente dentro del mockup.
+            Recorrido por las pantallas del mockup de Multitour: acceso del cliente dentro de su operador (tenant),
+            exploración de tours por salida, reservas, pagos con comprobante y administración del operador.
           </p>
         </div>
 
@@ -31,18 +31,18 @@
       </header>
 
       <div class="notice-banner mockup-index-note">
-        Prototipo visual. Esta fase ya incluye acceso, catalogos, reservas, medios de pago y gestion de acompanantes.
+        Prototipo visual alineado con el PDR v1.9. Incluye acceso con verificación de correo, catálogo de tours y salidas, reserva con tipo y medio de pago separados, comprobantes de transferencia, saldo a favor y gestión de acompañantes. No hay pago con tarjeta ni pasarela en Fase 1.
       </div>
 
       <section class="index-section mockup-index-section" aria-labelledby="auth-shell-title">
-        <h2 id="auth-shell-title">01 · Auth y shell</h2>
+        <h2 id="auth-shell-title">01 · Acceso y cuenta del cliente</h2>
 
         <div class="index-grid mockup-index-grid">
           <a class="index-card mockup-index-card" href="index.html" data-route="home">
             <span class="index-number">1</span>
             <div>
               <strong>Home</strong>
-              <span>Vista inicial del mockup comercial con estructura web base.</span>
+              <span>Vista inicial del canal digital, con tours activos y acceso al equipo del operador.</span>
             </div>
           </a>
 
@@ -50,7 +50,7 @@
             <span class="index-number">2</span>
             <div>
               <strong>Login</strong>
-              <span>Acceso para clientes y equipo del operador; el equipo solicita acceso a su administrador.</span>
+              <span>Acceso del cliente dentro de su operador (tenant) y del equipo del operador; el equipo solicita acceso a su administrador.</span>
             </div>
           </a>
 
@@ -58,7 +58,7 @@
             <span class="index-number">3</span>
             <div>
               <strong>Crear cuenta</strong>
-              <span>Registro inicial para usuarios que aun no tienen acceso.</span>
+              <span>Registro con teléfono obligatorio y verificación de correo; la cuenta queda inactiva hasta verificarlo.</span>
             </div>
           </a>
 
@@ -66,14 +66,14 @@
             <span class="index-number">4</span>
             <div>
               <strong>Recuperar acceso</strong>
-              <span>Verificacion de identidad y definicion de nueva contrasena en una sola pantalla.</span>
+              <span>Solicitud de un código de recuperación (vence en 30 minutos, un solo uso) dentro del operador elegido.</span>
             </div>
           </a>
         </div>
       </section>
 
       <section class="index-section mockup-index-section" aria-labelledby="platform-title">
-        <h2 id="platform-title">02 · Administracion de plataforma</h2>
+        <h2 id="platform-title">02 · Administración de plataforma</h2>
 
         <div class="index-grid mockup-index-grid">
           <a class="index-card mockup-index-card" href="admin-plataforma.html" data-route="platformAdmin">
@@ -86,11 +86,11 @@
           </a>
           <a class="index-card mockup-index-card" href="admin-crear-operador.html" data-route="platformCreate">
             <span class="index-number">7</span>
-            <div><strong>Crear operador</strong><span>Alta administrativa con identificador unico y responsable inicial.</span></div>
+            <div><strong>Crear operador</strong><span>Alta administrativa con identificador único y responsable inicial.</span></div>
           </a>
           <a class="index-card mockup-index-card" href="admin-auditoria.html" data-route="platformAudit">
             <span class="index-number">8</span>
-            <div><strong>Auditoria de plataforma</strong><span>Trazabilidad de altas y cambios de estado de cada tenant.</span></div>
+            <div><strong>Auditoría de plataforma</strong><span>Trazabilidad de altas y cambios de estado de cada tenant.</span></div>
           </a>
         </div>
       </section>
@@ -106,7 +106,7 @@
           <a class="index-card mockup-index-card" href="admin-reserva-registrada.html?reservation=RES-1843" data-route="operatorReservationCreated"><span class="index-number">10C</span><div><strong>Reserva registrada</strong><span>Resultado del alta y acceso al detalle o a la gestión de pago.</span></div></a>
           <a class="index-card mockup-index-card" href="admin-catalogos.html" data-route="operatorCatalogs"><span class="index-number">11</span><div><strong>Catálogos</strong><span>Oferta, tarifas, costos base y parámetros de capacidad.</span></div></a>
           <a class="index-card mockup-index-card" href="admin-descuentos.html" data-route="operatorDiscounts"><span class="index-number">12</span><div><strong>Descuentos</strong><span>Reglas comerciales, vigencias y autorizaciones adicionales.</span></div></a>
-          <a class="index-card mockup-index-card" href="admin-pagos.html" data-route="operatorPayments"><span class="index-number">13</span><div><strong>Pagos y devoluciones</strong><span>Validación de soportes, abonos, saldos y decisiones monetarias.</span></div></a>
+          <a class="index-card mockup-index-card" href="admin-pagos.html" data-route="operatorPayments"><span class="index-number">13</span><div><strong>Pagos y devoluciones</strong><span>Validación de comprobantes, abonos, saldos y decisiones monetarias.</span></div></a>
           <a class="index-card mockup-index-card" href="admin-caja.html" data-route="operatorCash"><span class="index-number">14</span><div><strong>Caja</strong><span>Base diaria, movimientos, cierres e histórico de la jornada.</span></div></a>
           <a class="index-card mockup-index-card" href="admin-operacion.html" data-route="operatorOperations"><span class="index-number">15</span><div><strong>Operación y costos</strong><span>Ejecución real, novedades y costos de los servicios prestados.</span></div></a>
           <a class="index-card mockup-index-card" href="admin-reportes.html" data-route="operatorReports"><span class="index-number">16</span><div><strong>Reportes</strong><span>Dashboard diario y consolidado administrativo mensual.</span></div></a>
@@ -121,7 +121,7 @@
             <span class="index-number">17</span>
             <div>
               <strong>Panel cliente</strong>
-              <span>Vista posterior al login para reservas, pagos y recomendaciones.</span>
+              <span>Vista posterior al ingreso: reservas, notificaciones, descuentos vigentes y acceso a pagos.</span>
             </div>
           </a>
 
@@ -129,7 +129,7 @@
             <span class="index-number">18</span>
             <div>
               <strong>Tours</strong>
-              <span>Catalogo visual de tours con regreso directo al panel del cliente.</span>
+              <span>Catálogo de tours activos y vigentes del operador.</span>
             </div>
           </a>
 
@@ -137,7 +137,7 @@
             <span class="index-number">19</span>
             <div>
               <strong>Detalle tour</strong>
-              <span>Ficha visual del tour con galeria, itinerario y acceso de regreso.</span>
+              <span>Ficha del tour con vigencia, salidas programadas con cupos, transporte incluido, modalidades de pago y condiciones.</span>
             </div>
           </a>
 
@@ -145,7 +145,7 @@
             <span class="index-number">20</span>
             <div>
               <strong>Reservar tour</strong>
-              <span>Seleccion de fecha y viajeros antes de avanzar al cierre de la reserva.</span>
+              <span>Elección de una salida programada (fecha, hora de inicio, hora de finalización estimada y cupos) y de la cantidad de viajeros.</span>
             </div>
           </a>
 
@@ -153,25 +153,31 @@
             <span class="index-number">21</span>
             <div>
               <strong>Finalizar reserva</strong>
-              <span>Resumen final del tour con metodo de pago y confirmacion del flujo.</span>
+              <span>Datos del titular y acompañantes, tipo de pago y medio de pago por separado, plazo de pago y creación de la reserva Pendiente de pago.</span>
             </div>
           </a>
 
-          <a class="index-card mockup-index-card" href="propuesta-reprogramacion.html?reserva=RES-1846" data-route="clientReprogrammingProposal"><span class="index-number">24A</span><div><strong>Propuesta de reprogramación</strong><span>Respuesta del cliente ante una nueva salida propuesta.</span></div></a>
+          <a class="index-card mockup-index-card" href="mis-reservas.html" data-route="clientReservations"><span class="index-number">17A</span><div><strong>Mis reservas</strong><span>Estado de cada reserva, salida, saldo, plazos y acciones para continuar el pago.</span></div></a>
+
+          <a class="index-card mockup-index-card" href="mis-pagos.html" data-route="clientPayments"><span class="index-number">17B</span><div><strong>Mis pagos</strong><span>Tipo y medio de pago, estado de comprobantes, situación financiera, devoluciones y saldo a favor.</span></div></a>
+
+          <a class="index-card mockup-index-card" href="nueva-contrasena.html" data-route="reset"><span class="index-number">4A</span><div><strong>Nueva contraseña</strong><span>Correo, código de recuperación, nueva contraseña y confirmación.</span></div></a>
+
+          <a class="index-card mockup-index-card" href="propuesta-reprogramacion.html?reserva=RES-1846" data-route="clientReprogrammingProposal"><span class="index-number">24A</span><div><strong>Propuesta de reprogramación</strong><span>Respuesta del cliente ante una nueva salida propuesta, con vencimiento concreto y cupos apartados.</span></div></a>
 
           <a class="index-card mockup-index-card" href="pago-exitoso.html" data-route="tourPaymentSuccess">
             <span class="index-number">22</span>
             <div>
-              <strong>Pago exitoso</strong>
-              <span>Confirmacion visual cuando el pago por tarjeta se procesa correctamente.</span>
+              <strong>Comprobante recibido</strong>
+              <span>Confirma la recepción del comprobante: queda En validación y no confirma la reserva hasta que el pago sea validado.</span>
             </div>
           </a>
 
           <a class="index-card mockup-index-card" href="pago-fallido.html" data-route="tourPaymentFailed">
             <span class="index-number">23</span>
             <div>
-              <strong>Pago fallido</strong>
-              <span>Escenario de error cuando la tarjeta no pasa o no tiene fondos.</span>
+              <strong>Comprobante rechazado</strong>
+              <span>Muestra el motivo del rechazo y permite presentar un nuevo comprobante sobre la misma reserva mientras el plazo siga vigente.</span>
             </div>
           </a>
 
@@ -179,15 +185,15 @@
             <span class="index-number">24</span>
             <div>
               <strong>Pago por transferencia</strong>
-              <span>Instrucciones bancarias y referencia para reservas con validacion manual.</span>
+              <span>Datos bancarios del operador y carga del comprobante (PDF, JPG, JPEG o PNG, máximo 5 MB) para validación manual.</span>
             </div>
           </a>
 
           <a class="index-card mockup-index-card" href="acompanantes.html" data-route="companions">
             <span class="index-number">25</span>
             <div>
-              <strong>Acompanantes</strong>
-              <span>Formulario para diligenciar los datos de los viajeros adicionales.</span>
+              <strong>Acompañantes</strong>
+              <span>Nombre, documento, fecha de nacimiento y contacto de emergencia de cada acompañante, sin documentos repetidos.</span>
             </div>
           </a>
 
@@ -195,7 +201,7 @@
             <span class="index-number">26</span>
             <div>
               <strong>Perfil</strong>
-              <span>Vista de cuenta del cliente con datos registrados, actividad y soporte.</span>
+              <span>Cuenta del cliente con su operador, datos registrados y resumen de actividad.</span>
             </div>
           </a>
 
@@ -210,15 +216,15 @@
           <a class="index-card mockup-index-card" href="gastronomia.html" data-route="gastronomy">
             <span class="index-number">28</span>
             <div>
-              <strong>Gastronomia</strong>
-              <span>Catalogo gastronomico con la misma navegacion de tours y alojamiento.</span>
+              <strong>Gastronomía</strong>
+              <span>Restaurantes asociados activos, informativos y con datos de contacto.</span>
             </div>
           </a>
 
           <a class="index-card mockup-index-card" href="detalle-gastronomia.html" data-route="gastronomyDetail">
             <span class="index-number">29</span>
             <div>
-              <strong>Detalle gastronomico</strong>
+              <strong>Detalle gastronómico</strong>
               <span>Ficha informativa del establecimiento con contacto para coordinar directamente.</span>
             </div>
           </a>
@@ -227,7 +233,7 @@
             <span class="index-number">30</span>
             <div>
               <strong>Restaurantes</strong>
-              <span>Subcatalogo gastronomico enfocado en restaurantes con acceso a detalle.</span>
+              <span>Listado de restaurantes asociados activos con acceso a su contacto.</span>
             </div>
           </a>
         </div>

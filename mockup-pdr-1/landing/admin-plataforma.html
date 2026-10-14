@@ -7,50 +7,45 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="platform-admin" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
     <main class="platform-shell">
       <aside class="platform-sidebar">
         <a class="platform-brand" href="admin-plataforma.html" data-route="platformAdmin">MULTI<span>TOUR</span></a>
         <p class="platform-role">Administrador de plataforma</p>
-        <nav class="platform-nav" aria-label="Navegacion de plataforma">
+        <nav class="platform-nav" aria-label="Navegación de plataforma">
           <a class="is-active" href="admin-plataforma.html" data-route="platformAdmin">Resumen</a>
           <a href="admin-operadores.html" data-route="platformOperators">Operadores</a>
-          <a href="admin-auditoria.html" data-route="platformAudit">Auditoria</a>
+          <a href="admin-auditoria.html" data-route="platformAudit">Auditoría</a>
         </nav>
-        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesion</a>
+        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesión</a>
       </aside>
-
-      <section class="platform-content">
+      <section class="platform-content" id="contenido">
         <header class="mt-page-header">
-          <div class="mt-page-header-main">
-            <p class="mt-page-header-eyebrow mt-caption">Control de plataforma</p>
-            <h1 class="mt-page-header-title mt-h1">Operadores bajo control</h1>
-          </div>
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Control de plataforma</p><h1 class="mt-page-header-title mt-h1">Operadores bajo control</h1></div>
           <a class="platform-primary mt-page-header-action" href="admin-crear-operador.html" data-route="platformCreate">Crear operador</a>
         </header>
-
         <section class="platform-intro">
           <div>
             <p class="platform-eyebrow">Vista transversal</p>
-            <h2>La plataforma conecta operadores, sin mezclar su operacion.</h2>
+            <h2>La plataforma conecta operadores, sin mezclar su operación.</h2>
           </div>
-          <p>Administra el alta y estado de cada tenant. Las reservas, pagos y caja pertenecen exclusivamente a cada operador.</p>
+          <p>Administra el alta, el estado y las credenciales iniciales de cada tenant. Las reservas, pagos y caja pertenecen exclusivamente a cada operador: el Administrador de plataforma no tiene acceso ordinario a sus datos operativos ni sensibles; solo accede de forma excepcional con autorización del Administrador del tenant (máximo 24 horas) o, en una emergencia justificada, con auditoría completa.</p>
         </section>
-
         <div class="mt-summary-row" aria-label="Resumen de operadores">
-          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Operadores activos</span><strong class="mt-summary-metric-value" data-platform-active-count>2</strong><small class="mt-small">Listos para nuevas autenticaciones y reservas</small></div>
-          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Operadores inactivos</span><strong class="mt-summary-metric-value" data-platform-inactive-count>1</strong><small class="mt-small">Conservan historial y auditoria</small></div>
-          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Altas este mes</span><strong class="mt-summary-metric-value" data-platform-created-count>2</strong><small class="mt-small">Incluyen su primer administrador</small></div>
+          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Operadores activos</span><strong class="mt-summary-metric-value" data-platform-active-count>0</strong><small class="mt-small">Listos para nuevas autenticaciones y reservas</small></div>
+          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Operadores inactivos</span><strong class="mt-summary-metric-value" data-platform-inactive-count>0</strong><small class="mt-small">Conservan historial y auditoría; su Administrador mantiene un acceso restringido</small></div>
+          <div class="mt-summary-metric"><span class="mt-summary-metric-label mt-label">Operadores registrados</span><strong class="mt-summary-metric-value" data-platform-created-count>0</strong><small class="mt-small">Cada uno con su primer Administrador</small></div>
         </div>
-
         <section class="platform-panel">
-          <div class="platform-panel-head">
-            <div><p class="platform-eyebrow">Operadores recientes</p><h2>Estado de tenants</h2></div>
-            <a href="admin-operadores.html" data-route="platformOperators">Ver todos</a>
-          </div>
+          <div class="platform-panel-head"><div><p class="platform-eyebrow">Operadores recientes</p><h2>Estado de tenants</h2></div><a href="admin-operadores.html" data-route="platformOperators">Ver todos</a></div>
           <div class="platform-tenant-list" data-platform-tenant-preview></div>
+        </section>
+        <section class="platform-panel">
+          <div class="platform-panel-head"><div><p class="platform-eyebrow">Atención pendiente</p><h2>Obligaciones de plataforma</h2></div></div>
+          <div class="platform-tenant-list" data-platform-attention></div>
         </section>
       </section>
     </main>

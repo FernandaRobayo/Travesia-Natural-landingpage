@@ -10,17 +10,25 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="client-dashboard" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
     <main id="contenido" class="travel-dashboard-shell">
       <header class="travel-dashboard-header">
-        <a class="travel-dashboard-brand" href="index.html" data-route="home" data-tenant-brand>[Tu Marca]</a>
-
         <div class="travel-dashboard-header-actions">
           <a class="travel-dashboard-header-link" href="tours.html" data-route="tours">Ver catálogo</a>
+          <div class="client-bell" data-client-bell>
+            <button type="button" class="client-bell-button" aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false" data-client-bell-button>
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span class="client-bell-badge" data-client-bell-count hidden>0</span>
+            </button>
+            <div class="client-bell-panel" role="region" aria-label="Notificaciones" data-client-bell-panel hidden>
+              <h2 class="client-bell-title">Notificaciones</h2>
+              <div class="client-bell-list" data-client-notifications></div>
+            </div>
+          </div>
           <a class="travel-dashboard-avatar" href="profile.html" data-route="profile" aria-label="Perfil del usuario" data-user-avatar>
             FN
           </a>
@@ -30,7 +38,7 @@
       <section class="travel-dashboard-hero" aria-labelledby="dashboard-title">
         <div class="travel-dashboard-copy">
           <p class="travel-dashboard-eyebrow">Portal cliente</p>
-          <h1 id="dashboard-title" data-user-greeting>Hola, Fernanda</h1>
+          <h1 id="dashboard-title" data-user-greeting>Hola, bienvenido</h1>
           <p>
             Consulta la oferta disponible, revisa tus reservas y continúa la gestión de
             tus próximos viajes desde un solo lugar.
@@ -43,14 +51,14 @@
             <input
               id="dashboard-search"
               type="search"
-              placeholder="Buscar tours, alojamiento o experiencias..."
+              placeholder="Buscar tours o experiencias..."
             />
             <button type="button" data-dashboard-search-button>Buscar</button>
           </div>
           <p class="travel-dashboard-copy" data-dashboard-search-feedback hidden></p>
 
           <div class="travel-dashboard-filter-row" aria-label="Filtros rapidos">
-            <a href="gastronomia.html" data-route="gastronomy">Gastronomia</a>
+            <a href="gastronomia.html" data-route="gastronomy">Restaurantes asociados</a>
             <a href="tours.html" data-route="tours">Tours</a>
             <a href="alojamiento.html" data-route="lodging">Alojamiento asociado</a>
           </div>
@@ -99,7 +107,7 @@
 
           <section class="travel-dashboard-section" aria-labelledby="acciones-rapidas">
             <div class="travel-dashboard-section-head">
-              <h2 id="acciones-rapidas">Acciones rapidas</h2>
+              <h2 id="acciones-rapidas">Acciones rápidas</h2>
             </div>
 
             <div class="mt-divider-list">
@@ -114,8 +122,8 @@
               <a class="mt-divider-list-item" href="gastronomia.html" data-route="gastronomy" data-action="gastronomy">
                 <span class="mt-divider-list-icon" aria-hidden="true">GA</span>
                 <span class="mt-divider-list-copy">
-                  <strong>Gastronomía</strong>
-                  <span>Explora opciones gastronómicas disponibles.</span>
+                  <strong>Restaurantes asociados</strong>
+                  <span>Consulta los datos de contacto de restaurantes asociados.</span>
                 </span>
               </a>
 
@@ -131,7 +139,7 @@
                 <span class="mt-divider-list-icon" aria-hidden="true">MP</span>
                 <span class="mt-divider-list-copy">
                   <strong>Mis pagos</strong>
-                  <span>Consulta pagos, abonos, saldos y soportes de tus reservas.</span>
+                  <span>Consulta pagos, abonos, saldos, comprobantes y saldo a favor de tus reservas.</span>
                 </span>
               </a>
             </div>
@@ -144,59 +152,17 @@
               <h2 id="descuentos-vigentes">Descuentos vigentes</h2>
             </div>
 
-            <div class="travel-dashboard-promos">
-              <article class="travel-dashboard-promo promo-cyan">
-                <span class="travel-dashboard-promo-tag">20% de descuento</span>
-                <strong>Tour destino ejemplo</strong>
-                <p>Válido hasta 30 sep 2026</p>
-                <a href="detalle-tour.html" data-route="tourDetail">Ver detalle</a>
-              </article>
-
-              <article class="travel-dashboard-promo promo-sand">
-                <span class="travel-dashboard-promo-tag">15% de descuento</span>
-                <strong>Alojamiento ejemplo</strong>
-                <p>Reserva anticipada</p>
-                <a href="alojamiento.html" data-route="lodging">Ver detalle</a>
-              </article>
-            </div>
+            <div class="travel-dashboard-promos"><p class="travel-dashboard-copy">Consultando descuentos vigentes...</p></div>
           </section>
         </aside>
       </div>
-
-      <section class="travel-dashboard-section" aria-labelledby="notificaciones"><div class="travel-dashboard-section-head"><h2 id="notificaciones">Notificaciones</h2></div><div class="operator-panel" data-client-notifications></div></section>
 
       <section class="travel-dashboard-section" aria-labelledby="recomendados">
         <div class="travel-dashboard-section-head">
           <h2 id="recomendados">Experiencias destacadas</h2>
         </div>
 
-        <div class="travel-dashboard-recommendations">
-          <article class="travel-dashboard-destination-card">
-            <div class="travel-dashboard-destination-media dashboard-media-one"></div>
-            <div class="travel-dashboard-destination-body">
-              <strong>Destino ejemplo - Trekking</strong>
-              <span>3 dias / 2 noches</span>
-              <div class="travel-dashboard-destination-meta">
-                <small>Desde</small>
-                <em>$1.299.000</em>
-              </div>
-              <a href="tours.html" data-route="tours">Ver detalle</a>
-            </div>
-          </article>
-
-          <article class="travel-dashboard-destination-card">
-            <div class="travel-dashboard-destination-media dashboard-media-two"></div>
-            <div class="travel-dashboard-destination-body">
-              <strong>Ruta arqueologica ejemplo</strong>
-              <span>Full day</span>
-              <div class="travel-dashboard-destination-meta">
-                <small>Desde</small>
-                <em>$349.000</em>
-              </div>
-              <a href="tours.html" data-route="tours">Ver detalle</a>
-            </div>
-          </article>
-        </div>
+        <div class="travel-dashboard-recommendations"><p class="travel-dashboard-copy">Consultando experiencias disponibles...</p></div>
       </section>
     </main>
 

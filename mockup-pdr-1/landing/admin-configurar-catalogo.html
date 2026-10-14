@@ -1,1 +1,36 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Configurar tour | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">Tour y salida</p><h1 class="mt-page-header-title mt-h1">Configurar tour</h1></div><a class="operator-outline mt-page-header-action" href="admin-gestionar-catalogo.html">Volver al catálogo</a></header><form class="operator-reservation-form"><section class="operator-panel"><h2>Datos del tour</h2><div class="operator-form-grid"><label>Nombre comercial<input required value="Ruta Andina - Montañas"></label><label>Tarifa base<input required value="$1.299.000"></label><label>Estado<select><option>Activo</option><option>Inactivo</option></select></label></div><p class="operator-copy">El cupo se controla por salida y se aparta con el primer pago. La salida concreta se programa en Operación.</p></section><div class="operator-form-actions"><a class="operator-outline" href="admin-gestionar-catalogo.html">Cancelar</a><button class="operator-primary" type="submit">Guardar tour</button></div></form></section></main></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurar tour | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-configure-tour" data-theme="travesia-natural">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a class="is-active" href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Tour · Solo Administrador del tenant</p><h1 class="mt-page-header-title mt-h1">Configurar tour</h1></div>
+          <a class="operator-outline mt-page-header-action" href="admin-gestionar-catalogo.html" data-route="operatorTourCatalog">Volver al catálogo</a>
+        </header>
+        <form class="operator-reservation-form" data-configure-tour-form novalidate>
+          <section class="operator-panel"><p class="operator-eyebrow">Datos del tour</p><h2>Oferta y tarifa</h2><div class="operator-form-grid"><label>Nombre comercial<input name="name" required type="text" /></label><label>Tarifa base (COP)<input name="tariff" required type="number" min="1" inputmode="numeric" /></label><label>Vigencia desde<input name="start" required type="date" /></label><label>Vigencia hasta<input name="end" required type="date" /></label><label>Capacidad máxima del tour<input name="capacity" type="number" min="1" inputmode="numeric" placeholder="Opcional" /></label></div><p class="operator-copy">El cupo se controla por salida y se aparta con el primer pago válido. La salida concreta (fecha, hora de inicio y fin estimado, vehículos) se programa en Operación. Para inactivar o reactivar el tour usa el catálogo.</p></section>
+          <section class="operator-panel"><p class="operator-eyebrow">Transporte</p><h2>Transporte incluido en el tour</h2><div class="operator-form-grid"><label>Transporte asociado<select name="transport"></select></label><label>Tarifa de transporte por persona (para este tour)<input name="transportTariff" type="number" min="1" inputmode="numeric" placeholder="Obligatoria si hay transporte" /></label></div><p class="operator-copy">Cuando el tour incluye transporte, la capacidad efectiva de la salida es la menor entre la del tour y la del vehículo asignado (RN-TRA-001). La tarifa por persona es propia de cada tour (RN-TRA-002).</p></section>
+          <p class="operator-form-feedback" data-configure-feedback>Actualiza los datos y guarda.</p>
+          <div class="operator-form-actions"><a class="operator-outline" href="admin-gestionar-catalogo.html" data-route="operatorTourCatalog">Cancelar</a><button class="operator-primary" type="submit">Guardar tour</button></div>
+        </form>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

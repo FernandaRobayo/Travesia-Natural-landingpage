@@ -1,1 +1,37 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Configurar establecimiento de alojamiento | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">RF-018 · Solo Administrador del tenant</p><h1 class="mt-page-header-title mt-h1">Configurar establecimiento asociado</h1></div><a class="operator-outline mt-page-header-action" href="admin-gestionar-hospedaje.html">Volver al directorio</a></header><form class="operator-reservation-form"><section class="operator-panel"><p class="operator-eyebrow">Datos de contacto</p><h2>Alojamiento asociado</h2><div class="operator-form-grid"><label>Nombre del establecimiento<input required value="Ecohotel Mirador"></label><label>Correo de contacto<input required type="email" value="reservas@ecohotelmirador.co"></label><label>Teléfono<input required value="+57 300 555 0184"></label><label class="operator-form-wide">Dirección<input required value="Vía principal, km 8"></label></div></section><section class="operator-panel"><p class="operator-eyebrow">Estado</p><div class="operator-form-grid"><label>Estado<select><option>Activo</option><option>Inactivo</option></select></label></div><p class="operator-copy">No se configuran habitaciones, tarifas, disponibilidad, inventario ni políticas de cupo.</p></section><div class="operator-form-actions"><a class="operator-outline" href="admin-gestionar-hospedaje.html">Cancelar</a><button class="operator-primary" type="submit">Guardar establecimiento</button></div></form></section></main></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurar alojamiento asociado | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-configure-establishment" data-theme="travesia-natural" data-establishment-kind="hotel" data-manage-page="admin-gestionar-hospedaje.html">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a class="is-active" href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Alojamiento asociado · Solo Administrador del tenant</p><h1 class="mt-page-header-title mt-h1">Configurar alojamiento asociado</h1></div>
+          <a class="operator-outline mt-page-header-action" href="admin-gestionar-hospedaje.html">Volver al directorio</a>
+        </header>
+        <form class="operator-reservation-form" data-establishment-form novalidate>
+          <section class="operator-panel"><p class="operator-eyebrow">Información comercial</p><h2 data-establishment-form-title>Alojamiento asociado</h2><div class="operator-form-grid"><label>Nombre comercial<input name="name" required type="text" placeholder="Nombre del establecimiento" /></label><label class="operator-form-wide">Descripción<textarea name="description" placeholder="Información comercial básica visible para los clientes del tenant"></textarea></label><label class="operator-form-wide">Imagen<input data-establishment-image type="file" accept="image/*" /></label></div><img class="operator-establishment-preview" data-establishment-preview hidden alt="Vista previa del establecimiento" /></section>
+          <section class="operator-panel"><p class="operator-eyebrow">Datos de contacto</p><h2>Contacto del establecimiento</h2><div class="operator-form-grid"><label>Correo de contacto<input name="email" type="email" placeholder="contacto@establecimiento.co" /></label><label>Teléfono<input name="phone" type="tel" placeholder="+57 300 000 0000" /></label><label class="operator-form-wide">Dirección<input name="address" type="text" placeholder="Dirección o ubicación" /></label></div></section>
+          <section class="operator-panel"><p class="operator-eyebrow">Estado</p><div class="operator-detail-list"><div><span>Estado actual</span><strong data-establishment-status></strong></div></div><p class="operator-copy">Para inactivar o reactivar usa el directorio: exige un motivo y deja trazabilidad. No se configuran habitaciones, platos, menús, cupos, tarifas, disponibilidad ni inventario (RN-ASO-001).</p></section>
+          <p class="operator-form-feedback" data-establishment-feedback>Registra al menos un dato de contacto (correo o teléfono) y adjunta una imagen.</p>
+          <div class="operator-form-actions"><a class="operator-outline" href="admin-gestionar-hospedaje.html">Cancelar</a><button class="operator-primary" type="submit">Guardar establecimiento</button></div>
+        </form>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

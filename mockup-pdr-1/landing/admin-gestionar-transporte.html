@@ -1,1 +1,33 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gestionar transporte | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">Transporte de salidas</p><h1 class="mt-page-header-title mt-h1">Gestionar transporte</h1></div><a class="operator-outline mt-page-header-action" href="admin-catalogos.html">Volver a catálogos</a></header><section class="operator-panel"><h2>Recursos asignables</h2><table class="operator-table"><thead><tr><th>Recurso</th><th>Capacidad</th><th>Estado</th><th>Acción</th></tr></thead><tbody><tr><td>Bus Andino 01</td><td>20 viajeros</td><td>Activo</td><td><a href="admin-configurar-transporte.html">Gestionar</a> · <button>Inactivar</button></td></tr></tbody></table><p class="operator-copy">La capacidad se asigna a una salida concreta y se protege junto con el cupo del tour.</p></section></section></main></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestionar transporte | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-transport-catalog" data-theme="travesia-natural">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a class="is-active" href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Transporte de salidas</p><h1 class="mt-page-header-title mt-h1">Gestionar transporte</h1></div>
+          <span class="mt-page-header-action"><a class="operator-primary" href="admin-nuevo-servicio.html" data-route="operatorNewService" data-role-admin-only>Crear transporte</a> <a class="operator-outline" href="admin-catalogos.html" data-route="operatorCatalogs">Volver a catálogos</a></span>
+        </header>
+        <section class="operator-panel" data-managed-catalog id="transporte-catalog-panel"><p class="operator-eyebrow">Recursos asignables</p><h2>Transporte del operador</h2><p class="operator-copy">El transporte lo presta el operador como parte del tour. Cuando está incluido, su capacidad restringe el cupo de la salida (no hay sobreventa por falta de transporte) y la tarifa se maneja por persona. Solo el Administrador del tenant crea, actualiza, inactiva y reactiva recursos.</p><div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Recurso</th><th>Trayecto</th><th>Capacidad</th><th>Tarifa por persona</th><th>Vigencia</th><th>Estado</th><th>Acción</th></tr></thead><tbody>
+<tr><td data-service-name>Bus Andino 01</td><td data-service-route>Ruta Andina</td><td data-service-capacity>20 viajeros</td><td data-service-tariff>Por configurar</td><td data-service-validity>Sin vencimiento</td><td data-service-status>Activo</td><td><a href="admin-configurar-transporte.html?record=Bus%20Andino%2001" data-role-admin-only>Gestionar</a> | <button data-toggle-service="deactivate" type="button" data-role-admin-only>Inactivar</button></td></tr>
+</tbody></table></div></section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

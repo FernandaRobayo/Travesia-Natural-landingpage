@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="tour-checkout" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -19,18 +19,18 @@
       <header class="travel-profile-topbar">
         <a class="travel-tours-back" href="reservar-tour.html" data-tour-checkout-back>
           <span aria-hidden="true">&larr;</span>
-          <span>Volver a fecha y viajeros</span>
+          <span>Volver a salida y viajeros</span>
         </a>
-        <h1>Finalizar reserva de tour</h1>
+        <h1 data-checkout-title>Finalizar reserva de tour</h1>
         <div class="travel-profile-topbar-spacer"></div>
       </header>
 
       <section class="travel-checkout-content">
-        <div class="travel-checkout-secure-pill">Selecciona el tipo y medio de pago habilitados para esta reserva.</div>
+        <div class="travel-checkout-secure-pill" data-checkout-secure-pill>Tu reserva se crea Pendiente de pago. Elige por separado el tipo de pago y el medio de pago habilitados.</div>
 
         <div class="mt-dashboard-layout">
           <div class="mt-dashboard-main">
-            <article class="travel-booking-card">
+            <article class="travel-booking-card" data-checkout-holder-section>
               <div class="travel-checkout-section-title">
                 <h2 class="mt-h3">Cliente titular</h2>
               </div>
@@ -43,7 +43,7 @@
               </div>
             </article>
 
-            <article class="travel-booking-card">
+            <article class="travel-booking-card" data-checkout-travelers-section>
               <div class="travel-checkout-section-title">
                 <h2 class="mt-h3">Viajeros</h2>
                 <span data-checkout-companions-count>Sin acompañantes requeridos</span>
@@ -60,11 +60,11 @@
               <div data-checkout-risk-fields></div>
             </article>
 
-            <article class="travel-booking-card">
+            <article class="travel-booking-card" data-checkout-conditions-section>
               <div class="travel-checkout-section-title">
                 <h2 class="mt-h3">Condiciones de reserva</h2>
               </div>
-              <p class="travel-transfer-reference-copy">Reserva únicamente el tour y la salida seleccionada. La alimentación indicada forma parte del paquete cuando corresponda; hospedaje y alimentación no son servicios reservables.</p>
+              <p class="travel-transfer-reference-copy">Reservas únicamente el tour y la salida seleccionada. La alimentación indicada forma parte del paquete cuando corresponda; el hospedaje y los restaurantes asociados no se reservan en Multitour.</p>
               <ul data-checkout-conditions-list></ul>
               <label class="travel-checkout-consent"><input type="checkbox" required data-checkout-conditions-accept /> Confirmo que acepto las condiciones aplicables a esta reserva.</label>
               <label class="travel-checkout-consent"><input type="checkbox" required data-checkout-terms-accept /> Acepto los términos y condiciones.</label>
@@ -72,24 +72,33 @@
 
             <article class="travel-booking-card">
               <div class="travel-checkout-section-title">
-                <h2 class="mt-h3">Método y plazo de pago</h2>
+                <h2 class="mt-h3">Tipo de pago, medio de pago y plazo</h2>
               </div>
 
+              <p class="travel-transfer-reference-copy" data-checkout-existing-type hidden></p>
               <div class="travel-checkout-payment-list" data-checkout-payment-list>
-                <p class="travel-transfer-reference-copy"><strong>Tipo de pago</strong></p>
-                <label class="travel-checkout-payment-option" data-payment-type-option data-payment-type-value="Pago total"><input type="radio" name="payment-type" value="total" /><div><strong>Pago total</strong><span>Completa el valor final de la reserva.</span></div></label>
-                <label class="travel-checkout-payment-option" data-payment-type-option data-payment-type-value="Abono"><input type="radio" name="payment-type" value="deposit" /><div><strong>Abono</strong><span>Confirma según el abono mínimo parametrizado y conserva el saldo pendiente.</span></div></label>
-                <p class="travel-transfer-reference-copy"><strong>Medio de pago</strong></p>
-                <label class="travel-checkout-payment-option" data-payment-medium-option data-payment-medium-value="Transferencia"><input type="radio" name="payment-medium" value="bank" /><div><strong>Transferencia</strong><span>Presenta el comprobante para revisión del operador.</span></div></label>
-                <label class="travel-checkout-payment-option" data-payment-medium-option data-payment-medium-value="Efectivo"><input type="radio" name="payment-medium" value="cash" /><div><strong>Efectivo</strong><span>El pago en efectivo será registrado por el equipo del operador.</span></div></label>
+                <div data-checkout-type-group>
+                  <p class="travel-transfer-reference-copy"><strong>Tipo de pago</strong> (la condición económica de la reserva)</p>
+                  <label class="travel-checkout-payment-option" data-payment-type-option data-payment-type-value="Pago total"><input type="radio" name="payment-type" value="total" /><div><strong>Pago total</strong><span>Se confirma cuando se valida el 100 % del valor final, en uno o varios pagos.</span></div></label>
+                  <label class="travel-checkout-payment-option" data-payment-type-option data-payment-type-value="Abono"><input type="radio" name="payment-type" value="deposit" /><div><strong>Abono</strong><span>Se confirma cuando se valida como mínimo el abono mínimo del servicio; el saldo queda pendiente con plazo propio.</span></div></label>
+                </div>
+                <p class="travel-transfer-reference-copy"><strong>Medio de pago</strong> (cómo se recibe el dinero)</p>
+                <label class="travel-checkout-payment-option" data-payment-medium-option data-payment-medium-value="Transferencia"><input type="radio" name="payment-medium" value="bank" /><div><strong>Transferencia</strong><span>Subes el comprobante; queda En validación hasta que un usuario autorizado lo revise (hasta 24 horas).</span></div></label>
+                <label class="travel-checkout-payment-option" data-payment-medium-option data-payment-medium-value="Efectivo"><input type="radio" name="payment-medium" value="cash" /><div><strong>Efectivo</strong><span>Se registra cuando el equipo del operador recibe el dinero. La promesa de pago no confirma la reserva.</span></div></label>
               </div>
 
               <div class="travel-companion-grid" data-checkout-deposit-fields hidden>
-                <label>Monto a abonar<input type="number" min="1" data-checkout-deposit-amount placeholder="Ej. 500000" /></label>
+                <label><span data-checkout-amount-label>Monto a abonar</span><input type="number" min="1" data-checkout-deposit-amount placeholder="Ej. 500000" /></label>
                 <p class="travel-transfer-reference-copy" data-checkout-deposit-hint></p>
               </div>
-            <p class="travel-transfer-reference-copy" data-checkout-cash-hint hidden>El pago en efectivo no confirma la reserva hasta que el dinero sea recibido y registrado por el equipo del operador.</p>
-              <p class="travel-transfer-reference-copy" data-checkout-transfer-hint hidden>La transferencia queda pendiente de revisión mediante comprobante.</p>
+
+              <div class="client-info-block" data-checkout-credit-box hidden>
+                <label class="travel-checkout-consent"><input type="checkbox" data-checkout-credit-apply /> <span data-checkout-credit-label>Aplicar mi saldo a favor disponible.</span></label>
+              </div>
+
+              <div class="client-info-block" data-checkout-deadline-box aria-live="polite"></div>
+              <p class="travel-transfer-reference-copy" data-checkout-cash-hint hidden>Elegir efectivo registra solo una promesa de pago: no es un pago validado, no confirma la reserva y no aparta cupo. La reserva queda Pendiente de pago y únicamente cuenta cuando el equipo del operador reciba y registre el dinero dentro del plazo.</p>
+              <p class="travel-transfer-reference-copy" data-checkout-transfer-hint hidden>La reserva sigue Pendiente de pago hasta que un usuario autorizado valide tu pago. El comprobante (PDF, JPG, JPEG o PNG, máximo 5 MB) queda En validación únicamente cuando lo envías.</p>
             </article>
 
             <p class="travel-transfer-reference-copy" data-checkout-feedback aria-live="polite"></p>
@@ -106,23 +115,32 @@
 
                 <div class="travel-checkout-summary-copy">
                   <strong data-checkout-tour-name>Tour destino ejemplo</strong>
-                  <span data-checkout-date>09 Sep 2026</span>
+                  <span data-checkout-date>Salida</span>
+                  <span data-checkout-departure-detail></span>
                   <span data-checkout-guests>2 viajeros</span>
                 </div>
               </div>
 
               <div class="travel-checkout-pricing">
-                <div>
+                <div data-checkout-subtotal-row>
                   <span data-checkout-subtotal-label>Precio base x2</span>
-                  <strong data-checkout-subtotal>$2.598.000</strong>
+                  <strong data-checkout-subtotal>$0</strong>
                 </div>
                 <div data-checkout-discount-row hidden>
                   <span>Descuentos aplicables</span>
                   <strong data-checkout-discount>-$0</strong>
                 </div>
+                <div data-checkout-paid-row hidden>
+                  <span>Valores validados</span>
+                  <strong data-checkout-paid>$0</strong>
+                </div>
+                <div data-checkout-balance-row hidden>
+                  <span>Saldo pendiente</span>
+                  <strong data-checkout-balance>$0</strong>
+                </div>
                 <div class="travel-checkout-pricing-total">
                   <span>Valor final</span>
-                  <strong class="mt-summary-metric-value" data-checkout-total>$2.806.000</strong>
+                  <strong class="mt-summary-metric-value" data-checkout-total>$0</strong>
                 </div>
               </div>
             </article>
@@ -134,7 +152,7 @@
 
               <div class="travel-checkout-help-copy">
                 <strong>Asistencia comercial</strong>
-                <span>El equipo del operador puede ayudarte a continuar el proceso.</span>
+                <span>El equipo del operador puede ayudarte a continuar el proceso de reserva y pago; no es un medio de pago.</span>
               </div>
             </article>
           </aside>
@@ -150,13 +168,13 @@
         </div>
         <div>
           <span>Total</span>
-          <strong data-checkout-total-sticky>$2.806.000</strong>
+          <strong data-checkout-total-sticky>$0</strong>
         </div>
       </div>
 
       <div class="travel-booking-sticky-selection">
         <span>Seleccionado</span>
-        <strong data-checkout-selection>09 Sep 2026 - 2 viajeros</strong>
+        <strong data-checkout-selection>Salida y viajeros</strong>
       </div>
 
       <button type="button" class="travel-booking-continue mt-btn mt-btn-primary" data-checkout-pay>

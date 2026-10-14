@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="client-payments" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -31,15 +31,16 @@
         <div class="mt-page-header-main">
           <p class="mt-page-header-eyebrow mt-caption">Portal cliente</p>
           <h1 id="payments-title" class="mt-page-header-title mt-h1">Mis pagos</h1>
-          <p class="mt-page-header-desc mt-body">Consulta pagos, abonos, saldos y soportes de tus reservas propias. Esta consulta no permite validar ni rechazar soportes.</p>
+          <p class="mt-page-header-desc mt-body">Consulta el tipo y medio de pago, el estado de cada comprobante, la situación financiera, el saldo pendiente, los valores devueltos y tu saldo a favor. Esta consulta no permite validar ni rechazar comprobantes.</p>
         </div>
       </section>
 
       <section class="travel-dashboard-section" aria-labelledby="payments-list">
         <div class="travel-dashboard-section-head">
-          <h2 id="payments-list">Estado económico de mis reservas</h2>
+          <h2 id="payments-list">Estado económico de mis reservas y saldo a favor</h2>
         </div>
 
+        <div data-credit-panel></div>
         <div class="travel-dashboard-reservation-grid" data-payments-list></div>
         <p class="travel-dashboard-copy" data-payments-empty hidden>Todavía no tienes pagos ni reservas registradas.</p>
       </section>

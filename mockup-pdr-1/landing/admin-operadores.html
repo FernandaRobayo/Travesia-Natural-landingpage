@@ -7,36 +7,47 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="platform-operators" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
     <main class="platform-shell">
       <aside class="platform-sidebar">
         <a class="platform-brand" href="admin-plataforma.html" data-route="platformAdmin">MULTI<span>TOUR</span></a>
         <p class="platform-role">Administrador de plataforma</p>
-        <nav class="platform-nav" aria-label="Navegacion de plataforma">
+        <nav class="platform-nav" aria-label="Navegación de plataforma">
           <a href="admin-plataforma.html" data-route="platformAdmin">Resumen</a>
           <a class="is-active" href="admin-operadores.html" data-route="platformOperators">Operadores</a>
-          <a href="admin-auditoria.html" data-route="platformAudit">Auditoria</a>
+          <a href="admin-auditoria.html" data-route="platformAudit">Auditoría</a>
         </nav>
-        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesion</a>
+        <a class="platform-signout" href="login.html" data-route="login">Cerrar sesión</a>
       </aside>
-      <section class="platform-content">
+      <section class="platform-content" id="contenido">
         <header class="mt-page-header">
-          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Gestion de operadores</p><h1 class="mt-page-header-title mt-h1">Operadores</h1></div>
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Gestión de operadores</p><h1 class="mt-page-header-title mt-h1">Operadores</h1></div>
           <a class="platform-primary mt-page-header-action" href="admin-crear-operador.html" data-route="platformCreate">Crear operador</a>
         </header>
         <section class="platform-panel">
-          <div class="platform-panel-head"><div><p class="platform-eyebrow">Directorio</p><h2>Empresas operadoras</h2></div><span class="platform-table-note">Cada operador mantiene su informacion y operacion aisladas dentro de Multitour.</span></div>
+          <div class="platform-panel-head"><div><p class="platform-eyebrow">Directorio</p><h2>Empresas operadoras</h2></div><span class="platform-table-note">Cada operador mantiene su información y operación aisladas dentro de Multitour.</span></div>
           <div class="platform-table-wrap">
             <table class="platform-table">
-              <thead><tr><th>Operador</th><th>Identificador</th><th>Primer administrador</th><th>Estado</th><th></th></tr></thead>
+              <thead><tr><th>Operador</th><th>Identificador</th><th>País y zona horaria</th><th>Primer Administrador</th><th>Credencial inicial</th><th>Estado</th><th>Acciones</th></tr></thead>
               <tbody data-platform-tenant-table></tbody>
             </table>
           </div>
         </section>
       </section>
     </main>
+    <dialog class="platform-audit-dialog" data-platform-list-state-dialog aria-labelledby="platform-list-state-title">
+      <div class="platform-audit-dialog-head"><div><p class="platform-eyebrow">Confirmación</p><h2 id="platform-list-state-title" data-state-title>Confirmar cambio de estado</h2></div></div>
+      <div class="platform-dialog-body">
+        <p class="platform-section-copy">Esto ocurrirá al confirmar:</p>
+        <ul data-state-body></ul>
+        <label class="platform-dialog-field"><span data-state-reason-label>Motivo</span><textarea data-state-reason rows="3"></textarea></label>
+        <p class="feedback" data-state-feedback aria-live="polite"></p>
+        <div class="platform-dialog-actions"><button class="platform-link" type="button" data-state-cancel>Cancelar</button><button class="platform-primary" type="button" data-state-confirm>Confirmar</button></div>
+      </div>
+    </dialog>
     <script src="app.js"></script>
   </body>
 </html>

@@ -1,1 +1,55 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nuevo registro | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">Administrador del tenant</p><h1 class="mt-page-header-title mt-h1">Nuevo registro</h1></div><a class="operator-outline mt-page-header-action" href="admin-catalogos.html">Volver a catálogos</a></header><section class="operator-panel"><h2>Selecciona qué deseas crear</h2><p class="operator-copy">En Fase 1 se crean tours, salidas, recursos de transporte o establecimientos asociados. Hoteles y restaurantes son informativos y no reservables.</p><div class="operator-form-actions"><a class="operator-primary" href="admin-configurar-catalogo.html">Crear tour</a><a class="operator-outline" href="admin-programar-salida.html">Programar salida</a><a class="operator-outline" href="admin-configurar-hospedaje.html">Crear establecimiento</a></div></section></section></main></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nuevo servicio | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-new-service" data-theme="travesia-natural">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a class="is-active" href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Catálogo operativo · Solo Administrador del tenant</p><h1 class="mt-page-header-title mt-h1">Nuevo servicio</h1></div>
+          <a class="operator-outline mt-page-header-action" href="admin-catalogos.html" data-route="operatorCatalogs">Volver a catálogos</a>
+        </header>
+        <form class="operator-reservation-form" data-new-service-form novalidate>
+          <section class="operator-panel"><p class="operator-eyebrow">01. Producto</p><h2>¿Qué vas a registrar?</h2>
+            <p class="operator-copy">En Fase 1 se gestionan tours (con salidas y cupo), recursos de transporte y establecimientos asociados. Los hoteles y restaurantes son informativos: no se reservan, no tienen cupos, tarifas ni inventario.</p>
+            <div class="operator-form-grid">
+              <label class="operator-form-wide">¿Qué quieres crear?<select data-service-kind><option value="operational">Tour o recurso de transporte</option><option value="establishment">Establecimiento asociado (alojamiento o restaurante)</option></select></label>
+              <label>Nombre comercial<input data-service-name required type="text" placeholder="Nombre del producto" /></label>
+              <label data-operational-field>Tipo<select data-service-type required><option value="tour">Tour o actividad</option><option value="transport">Transporte</option></select></label>
+              <label data-establishment-field hidden>Tipo de establecimiento<select data-establishment-type><option value="hotel">Alojamiento asociado</option><option value="restaurant">Restaurante asociado</option></select></label>
+            </div></section>
+          <section class="operator-panel"><p class="operator-eyebrow">02. Condiciones y publicación</p><h2>Tarifa, vigencia e imagen</h2>
+            <div class="operator-form-grid">
+              <label data-operational-field>Tarifa base<input data-service-price required type="number" min="1" inputmode="numeric" /></label>
+              <label data-operational-field>Política de cupo<select data-service-policy required><option>Cupo apartado con el primer pago válido</option></select></label>
+              <label data-operational-field>Vigencia desde<input data-service-start required type="date" /></label>
+              <label data-operational-field>Vigencia hasta<input data-service-end required type="date" /></label>
+              <label class="operator-form-wide" data-establishment-field hidden>Descripción comercial<textarea data-establishment-info placeholder="Información comercial básica visible para los clientes del tenant"></textarea></label>
+              <label data-establishment-field hidden>Correo de contacto<input data-establishment-email type="email" placeholder="contacto@establecimiento.co" /></label>
+              <label data-establishment-field hidden>Teléfono<input data-establishment-phone type="tel" placeholder="+57 300 000 0000" /></label>
+              <label class="operator-form-wide" data-establishment-field hidden>Dirección<input data-establishment-address type="text" placeholder="Dirección o ubicación" /></label>
+              <label class="operator-form-wide">Imagen del servicio<input data-service-image required type="file" accept="image/*" /></label>
+              <img class="operator-establishment-preview" data-service-preview hidden alt="Vista previa del producto" />
+            </div></section>
+          <p class="operator-form-feedback" data-service-feedback>Completa la información para publicar el producto en el catálogo del cliente.</p>
+          <div class="operator-form-actions"><a class="operator-outline" href="admin-catalogos.html" data-route="operatorCatalogs">Cancelar</a><button class="operator-primary" type="submit">Guardar y publicar</button></div>
+        </form>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

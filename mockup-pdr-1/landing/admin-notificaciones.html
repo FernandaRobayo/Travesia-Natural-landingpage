@@ -1,1 +1,44 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notificaciones | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">RF-019</p><h1 class="mt-page-header-title mt-h1">Centro de notificaciones</h1></div></header><section class="operator-panel"><h2>Alertas del tenant</h2><div class="mt-divider-list"><div class="mt-divider-list-item"><span class="mt-divider-list-icon">SA</span><span class="mt-divider-list-copy"><strong>Salida SAL-014 pendiente de regularización</strong><span>Superó la hora de finalización estimada. También se notificó por correo.</span></span></div><div class="mt-divider-list-item"><span class="mt-divider-list-icon">DV</span><span class="mt-divider-list-copy"><strong>Devolución pendiente de decisión</strong><span>Quedan 18 h 42 min para decidir. También se notificó por correo.</span></span></div><div class="mt-divider-list-item"><span class="mt-divider-list-icon">CP</span><span class="mt-divider-list-copy"><strong>Comprobante con revisión vencida</strong><span>Requiere atención prioritaria del Administrador del tenant.</span></span></div></div></section></section></main></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notificaciones | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-notifications" data-theme="travesia-natural">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a class="is-active" href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">RF-019</p><h1 class="mt-page-header-title mt-h1">Centro de notificaciones</h1></div>
+          
+        </header>
+        <p class="operator-access-note" data-notification-role-note></p>
+        <section class="operator-panel"><p class="operator-eyebrow">Alertas del tenant</p><h2>Pendientes según tu rol y permisos</h2><div class="mt-divider-list" data-notification-alerts></div></section>
+        <section class="operator-panel"><p class="operator-eyebrow">Auditoría del tenant</p><h2>Reglas automáticas por tiempo</h2><p class="operator-copy">Cancelaciones, determinaciones y cierres que Multitour aplica sin intervención cuando se cumple un plazo. Cada efecto conserva fecha, hora y regla aplicada.</p><div class="mt-divider-list" data-time-events-log></div></section>
+        <section class="operator-panel" data-role-admin-only><p class="operator-eyebrow">Soporte de Multitour</p><h2>Acceso excepcional a tu tenant</h2><p class="operator-copy">El Administrador de plataforma no tiene acceso ordinario a tus datos. Si necesita acceder para soporte, un Administrador del tenant debe autorizarlo; la autorización dura como máximo 24 horas y expira sola.</p><div class="mt-divider-list" data-notification-access></div></section>
+        <section class="operator-panel"><p class="operator-eyebrow">Referencia · RF-019 / CA-022</p><h2>Correos transaccionales mínimos al cliente</h2><p class="operator-copy">El panel del cliente es la fuente principal de información; además Multitour envía estos correos. Una falla de entrega no modifica el estado registrado y el fallo queda registrado (C-05).</p>
+          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Evento</th><th>Correo al cliente</th></tr></thead><tbody>
+            <tr><td>Comprobante aprobado o rechazado</td><td>Se informa el resultado y, si fue rechazado, el motivo para volver a presentarlo.</td></tr>
+            <tr><td>Confirmación de reserva</td><td>La reserva pasa a Confirmada al verificarse el abono mínimo.</td></tr>
+            <tr><td>Cancelación por incumplimiento de pago</td><td>Se informa la cancelación y la liberación del cupo.</td></tr>
+            <tr><td>Devolución procesada</td><td>Se informa el monto devuelto una vez ejecutada.</td></tr>
+            <tr><td>Registro de saldo a favor</td><td>Se informa el valor registrado a favor del cliente.</td></tr>
+            <tr><td>Cancelación o reprogramación de la salida por causa no atribuible al cliente</td><td>Incluye la propuesta de reprogramación que requiere su aceptación.</td></tr>
+            <tr><td>Recuperación de contraseña</td><td>Código o enlace de un solo uso con vigencia de 30 minutos.</td></tr>
+          </tbody></table></div></section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
