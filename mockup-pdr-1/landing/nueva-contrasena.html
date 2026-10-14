@@ -10,36 +10,40 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="reset" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
     <main id="contenido" class="travel-login-shell">
       <header class="travel-login-header travel-login-header-centered">
-        <a class="travel-login-brand" href="index.html" data-route="home">Multi Tour</a>
+        <a class="travel-login-brand" href="index.html" data-route="home">Multitour</a>
       </header>
 
       <section class="travel-login-stage">
         <div class="travel-login-card travel-reset-card">
           <div class="travel-login-copy travel-recover-copy">
             <h1 class="mt-h1">Definir nueva contraseña</h1>
-            <p class="mt-body">Define una nueva contraseña para completar la recuperación de tu cuenta.</p>
+            <p class="mt-body">Ingresa tu correo, el código de recuperación que recibiste, la nueva contraseña y su confirmación.</p>
           </div>
 
-          <p class="feedback" data-reset-feedback aria-live="polite">El enlace o código vence en 30 minutos y solo puede usarse una vez.</p>
+          <div data-client-tenant-box></div>
+
+          <p class="feedback" data-reset-feedback aria-live="polite">El código vence en 30 minutos y solo puede usarse una vez.</p>
 
           <form class="travel-login-form" data-reset-form>
+            <label class="mth-login-field">Correo electrónico<input type="email" name="email" autocomplete="email" required /></label>
+            <label class="mth-login-field">Código de recuperación<input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" placeholder="6 dígitos" required /></label>
             <label class="mth-login-field">Nueva contraseña<input type="password" name="password" autocomplete="new-password" minlength="8" required /></label>
             <label class="mth-login-field">Confirmar contraseña<input type="password" name="password-confirmation" autocomplete="new-password" minlength="8" required /></label>
-            <p class="mt-body">Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial.</p>
+            <p class="mt-body">La contraseña debe tener mínimo 8 caracteres, con al menos una mayúscula, una minúscula, un número y un carácter especial.</p>
             <button class="travel-login-submit mt-btn mt-btn-primary" type="submit"><span>Guardar nueva contraseña</span></button>
             <a class="travel-login-submit mt-btn mt-btn-secondary" data-reset-login href="login.html" data-route="login" hidden><span>Ir al inicio de sesión</span></a>
           </form>
 
-          <a class="travel-login-submit mt-btn mt-btn-secondary" data-reset-request-new href="recuperar.html" hidden>Solicitar un nuevo enlace</a>
+          <a class="travel-login-submit mt-btn mt-btn-secondary" data-reset-request-new href="recuperar.html" hidden>Solicitar un nuevo código</a>
 
-          <p class="travel-recover-back">Los cambios de contraseña administrativa quedan auditados y notificados por correo.</p>
+          <p class="travel-recover-back">Al cambiar tu contraseña se cierran tus sesiones activas.</p>
         </div>
       </section>
     </main>

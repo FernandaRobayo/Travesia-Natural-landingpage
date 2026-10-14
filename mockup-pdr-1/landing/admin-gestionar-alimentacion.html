@@ -1,1 +1,38 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Establecimientos de alimentación | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">RF-018 · Administrador del tenant</p><h1 class="mt-page-header-title mt-h1">Establecimientos de alimentación</h1></div><a class="operator-outline mt-page-header-action" href="admin-catalogos.html">Volver a catálogos</a></header><p class="operator-access-note">Gestiona asociaciones y datos de contacto. La comida solo se informa como incluida en el paquete de un tour; no se reservan mesas ni se administra inventario.</p><section class="operator-panel"><div class="operator-panel-head"><div><p class="operator-eyebrow">Directorio asociado</p><h2>Activar, inactivar o reactivar</h2></div><a class="operator-primary" href="admin-configurar-alimentacion.html">Agregar establecimiento</a></div><div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Establecimiento</th><th>Contacto</th><th>Estado</th><th>Acción</th></tr></thead><tbody><tr><td>Sabores de la Montaña</td><td>reservas@saboresmontana.co<br>+57 310 555 0220</td><td><span class="operator-status is-confirmed">Activo</span></td><td><a href="admin-configurar-alimentacion.html">Gestionar</a> · <button type="button">Inactivar</button></td></tr></tbody></table></div></section></section></main></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurantes asociados | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-manage-establishments" data-theme="travesia-natural" data-establishment-kind="restaurant" data-configure-page="admin-configurar-alimentacion.html" data-manage-page="admin-gestionar-alimentacion.html">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a class="is-active" href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Alimentación asociada</p><h1 class="mt-page-header-title mt-h1">Restaurantes asociados</h1></div>
+          <span class="mt-page-header-action"><a class="operator-primary" href="admin-configurar-alimentacion.html" data-establishment-add>Agregar establecimiento</a> <a class="operator-outline" href="admin-catalogos.html" data-route="operatorCatalogs">Volver a catálogos</a></span>
+        </header>
+        <p class="operator-access-note">Los restaurantes son establecimientos asociados por convenio, de carácter informativo: no se reservan mesas ni se administra inventario. La comida incluida en un paquete forma parte del tour. Solo el Administrador del tenant gestiona esta información (RF-018); el Colaborador operativo no tiene acceso. Cada establecimiento conserva nombre, descripción, imagen, contacto y estado; nunca cupos, tarifas, habitaciones, platos ni inventario.</p>
+        <section class="operator-panel"><div class="operator-panel-head"><div><p class="operator-eyebrow">Directorio asociado</p><h2>Restaurantes asociados al tenant</h2></div><span class="operator-status is-confirmed" data-establishments-count></span></div><p class="operator-copy">Inactivar deja de mostrar el establecimiento a los clientes del tenant en nuevas consultas y conserva su información e histórico. Reactivar restaura su visibilidad. Ambas acciones exigen motivo y quedan en la bitácora.</p>
+          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Establecimiento</th><th>Contacto</th><th>Estado y último cambio</th><th>Acción</th></tr></thead><tbody data-establishments-body></tbody></table></div></section>
+        <section class="operator-panel"><p class="operator-eyebrow">Trazabilidad</p><h2>Bitácora de cambios</h2><div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Fecha y hora</th><th>Establecimiento</th><th>Evento</th><th>Responsable</th><th>Motivo</th></tr></thead><tbody data-establishments-audit></tbody></table></div></section>
+        <dialog class="platform-audit-dialog" data-establishment-dialog aria-labelledby="establishment-dialog-title">
+          <div class="platform-audit-dialog-head"><div><p class="platform-eyebrow">Confirmación</p><h2 id="establishment-dialog-title" data-establishment-dialog-title>Cambiar estado</h2></div><button class="platform-dialog-close" type="button" data-establishment-cancel aria-label="Cerrar">Cerrar</button></div>
+          <div class="operator-dialog-body"><p class="operator-copy" data-establishment-dialog-copy></p><label>Motivo (obligatorio)<textarea data-establishment-reason placeholder="Motivo para la bitácora"></textarea></label><p class="operator-form-feedback" data-establishment-dialog-feedback></p><div class="operator-form-actions"><button class="operator-outline" type="button" data-establishment-cancel>Cancelar</button><button class="operator-primary" type="button" data-establishment-confirm>Confirmar</button></div></div>
+        </dialog>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

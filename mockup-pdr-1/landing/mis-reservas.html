@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="client-reservations" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -31,7 +31,7 @@
         <div class="mt-page-header-main">
           <p class="mt-page-header-eyebrow mt-caption">Portal cliente</p>
           <h1 id="reservations-title" class="mt-page-header-title mt-h1">Mis reservas</h1>
-          <p class="mt-page-header-desc mt-body">Consulta el estado de tus reservas propias, activas y pasadas, dentro del operador actual.</p><p class="travel-dashboard-copy">Para cambios o cancelaciones, comunícate con el operador.</p>
+          <p class="mt-page-header-desc mt-body">Consulta el estado de tus reservas propias, activas y pasadas, dentro del operador actual: salida, saldo, plazos y comprobantes.</p><p class="travel-dashboard-copy">Desde este portal no puedes modificar ni cancelar reservas: para cambios o cancelaciones, comunícate con el operador.</p>
         </div>
       </section>
 
@@ -40,6 +40,7 @@
           <h2 id="reservations-list">Historial de reservas</h2>
         </div>
 
+        <p class="client-info-block" data-reservations-notice hidden aria-live="polite"></p>
         <div class="travel-dashboard-reservation-grid" data-reservations-list></div>
         <p class="travel-dashboard-copy" data-reservations-empty hidden>Todavía no tienes reservas registradas. Explora el catálogo para crear la primera.</p>
       </section>

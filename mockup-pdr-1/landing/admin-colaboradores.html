@@ -1,3 +1,61 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Colaboradores | Multitour</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" /><link rel="stylesheet" href="main.css?v=20260901-3" /></head>
-<body data-screen="operator-collaborators" data-theme="travesia-natural"><main class="operator-shell"><aside class="operator-sidebar"><a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a><p class="operator-role">Administrador del tenant</p><nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a class="is-active" href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav><a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a></aside><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Gestión del equipo</p><h1 class="mt-page-header-title mt-h1">Colaboradores</h1></div><a class="operator-primary mt-page-header-action" href="admin-registrar-colaborador.html" data-route="operatorRegisterCollaborator">Registrar colaborador</a></header><section class="operator-hero operator-hero-compact"><div><p class="operator-eyebrow">Equipo interno</p><h2>Usuarios internos de tu operador.</h2></div><p>Gestiona los usuarios internos que apoyan la operación de tu empresa.</p></section><section class="operator-panel"><div class="operator-panel-head"><div><p class="operator-eyebrow">Equipo del operador</p><h2>Colaboradores registrados</h2></div></div><p class="operator-copy" data-collaborators-empty hidden>Aún no se han registrado colaboradores.</p><div class="operator-table-wrap" data-collaborators-wrap><table class="operator-table"><thead><tr><th>Nombre</th><th>Correo / usuario de acceso</th><th>Rol</th><th>Acción</th></tr></thead><tbody data-collaborators-list></tbody></table></div></section><section class="operator-panel"><div class="operator-panel-head"><div><p class="operator-eyebrow">Permisos del equipo</p><h2>Validación de soportes de transferencia</h2></div><span class="operator-status" data-collaborator-support-status></span></div><p class="operator-copy">Cuando está habilitado, el Colaborador operativo puede validar o rechazar soportes de transferencia en Pagos (PDR RF-015A). Deshabilitado por defecto: el Colaborador solo consulta el soporte.</p><button class="operator-outline" type="button" data-toggle-collaborator-support></button></section></section></main><script src="app.js"></script></body></html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Colaboradores | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-collaborators" data-theme="travesia-natural">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a class="is-active" href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Gestión del equipo</p><h1 class="mt-page-header-title mt-h1">Colaboradores</h1></div>
+          <a class="operator-primary mt-page-header-action" href="admin-registrar-colaborador.html" data-route="operatorRegisterCollaborator">Registrar colaborador</a>
+        </header>
+        <section class="operator-hero operator-hero-compact"><div><p class="operator-eyebrow">Equipo interno</p><h2>Usuarios internos de tu operador.</h2></div><p>Registra Administradores del tenant adicionales, Gerentes, Contadores, Analistas y Colaboradores operativos. El tenant siempre debe conservar al menos un Administrador activo.</p></section>
+        <section class="operator-panel">
+          <div class="operator-panel-head"><div><p class="operator-eyebrow">Equipo del operador</p><h2>Usuarios registrados</h2></div><span class="operator-status is-confirmed" data-collaborators-summary></span></div>
+          <label class="operator-table-filter"><span>Mostrar</span><select data-collaborators-filter><option value="todos">Todos</option><option value="activos">Activos</option><option value="inactivos">Inactivos</option></select></label>
+          <p class="operator-copy" data-collaborators-empty hidden>No hay usuarios para el filtro seleccionado.</p>
+          <div class="operator-table-wrap" data-collaborators-wrap><table class="operator-table"><thead><tr><th>Nombre</th><th>Correo / usuario de acceso</th><th>Rol y permisos</th><th>Estado</th><th>Acción</th></tr></thead><tbody data-collaborators-list></tbody></table></div>
+        </section>
+        <section class="operator-panel" id="roles-opcionales" data-optional-roles>
+          <div class="operator-panel-head"><div><p class="operator-eyebrow">Configuración del tenant</p><h2>Roles opcionales del tenant</h2></div></div>
+          <p class="operator-copy">Gerente, Contador y Analista son opcionales y de solo consulta. Habilita solo los que tu operación necesite: el formulario de registro solo ofrece los habilitados. Cada cambio queda auditado.</p>
+          <ul class="optional-roles-list" data-optional-roles-list></ul>
+          <p class="operator-form-feedback" data-optional-roles-feedback aria-live="polite"></p>
+        </section>
+        <section class="operator-panel">
+          <div class="operator-panel-head"><div><p class="operator-eyebrow">Permisos del equipo</p><h2>Permisos especiales por usuario</h2></div></div>
+          <p class="operator-copy">Validar comprobantes, Gestionar caja, Gestionar ejecución de salidas y Consultar datos sensibles se asignan o retiran de forma individual desde el detalle de cada usuario y quedan auditados. El Administrador del tenant dispone por perfil de los tres primeros; Consultar datos sensibles debe asignarse de forma explícita. Gerente, Contador y Analista son de solo consulta y no pueden recibir permisos.</p>
+        </section>
+        <section class="operator-panel" id="configuracion-regional" data-regional-settings>
+          <div class="operator-panel-head"><div><p class="operator-eyebrow">Configuración del tenant</p><h2>País y zona horaria</h2></div></div>
+          <p class="operator-copy">Los define el Administrador de plataforma al crear el tenant y los modificas tú. El cambio es solo prospectivo: no reinterpreta históricos, cajas existentes ni plazos ya iniciados, y queda auditado. La zona horaria no se puede cambiar con una caja Abierta o Pendiente de cierre.</p>
+          <form class="operator-inline-form" data-regional-form novalidate>
+            <div class="operator-form-grid">
+              <label>País<select data-regional-country></select></label>
+              <label>Zona horaria oficial<select data-regional-timezone></select></label>
+              <label class="operator-form-wide">Motivo del cambio<input data-regional-reason type="text" placeholder="Motivo para la auditoría" /></label>
+            </div>
+            <p class="operator-form-feedback" data-regional-feedback></p>
+            <div class="operator-form-actions"><button class="operator-primary" type="submit">Guardar cambio</button></div>
+          </form>
+          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Fecha y hora</th><th>Campo</th><th>Anterior</th><th>Nuevo</th><th>Responsable</th><th>Motivo</th></tr></thead><tbody data-regional-history></tbody></table></div>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

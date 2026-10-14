@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
     <link rel="stylesheet" href="recuperar.css?v=20260918-1" />
     <style>
       .mth-recover-form { margin-top: 24px; }
@@ -54,35 +54,37 @@
           alt="Cordillera iluminada por la luz dorada del atardecer, vista desde un sendero de montaña"
         />
         <div class="mth-recover-visual-content">
-          <a class="mth-recover-visual-brand" href="index.html" data-route="home">Multi Tour</a>
+          <a class="mth-recover-visual-brand" href="index.html" data-route="home">Multitour</a>
         </div>
       </aside>
 
       <section class="mth-recover-panel">
         <header class="mth-recover-header">
-          <a class="mth-recover-brand" href="index.html" data-route="home">Multi Tour</a>
+          <a class="mth-recover-brand" href="index.html" data-route="home">Multitour</a>
           <a class="mth-recover-back" href="index.html" data-route="home">Volver al inicio</a>
         </header>
 
         <div class="mth-recover-stage">
           <div class="mth-recover-card">
             <div class="mth-recover-copy">
-              <span class="mth-recover-eyebrow">Multi Tour</span>
+              <span class="mth-recover-eyebrow">Multitour</span>
               <h1 class="mth-recover-title">Recuperar acceso</h1>
-              <p class="mth-recover-subtitle">Solicita un enlace seguro para recuperar el acceso a tu cuenta.</p>
+              <p class="mth-recover-subtitle">Solicita un código de recuperación para definir una nueva contraseña de tu cuenta de cliente.</p>
             </div>
+
+            <div data-client-tenant-box></div>
 
             <form class="mth-recover-form" data-recover-form>
               <label class="mth-recover-field">Correo electrónico registrado<input type="email" name="email" autocomplete="email" required /></label>
-              <p class="mth-recover-note" data-recover-feedback aria-live="polite">Si existe una cuenta con ese correo, enviaremos un enlace de un solo uso que vence en 30 minutos.</p>
-              <a class="mth-recover-simulate" data-recover-simulate href="nueva-contrasena.html" hidden>Simular apertura del enlace del correo</a>
+              <p class="mth-recover-note" data-recover-feedback aria-live="polite">Si existe una cuenta con ese correo en el operador elegido, enviaremos un código de recuperación que vence en 30 minutos y solo puede usarse una vez.</p>
+              <div class="client-simulated-mail" data-recover-simulate hidden>Simulación del correo recibido: tu código de recuperación es <strong data-recover-code></strong>. <a class="mth-recover-simulate" data-recover-continue href="nueva-contrasena.html">Ingresar el código y definir la nueva contraseña</a></div>
               <div class="mth-recover-actions">
-                <button class="mth-recover-submit" type="submit"><span>Enviar enlace de recuperación</span></button>
+                <button class="mth-recover-submit" type="submit"><span>Enviar código de recuperación</span></button>
                 <a class="mth-recover-secondary" href="login.html" data-route="login"><span>Volver al inicio de sesión</span></a>
               </div>
             </form>
 
-            <p class="mth-recover-note">La recuperación de una cuenta administrativa queda auditada y notificada por correo.</p>
+            <p class="mth-recover-note">Por seguridad, el mensaje es el mismo exista o no una cuenta con ese correo.</p>
           </div>
         </div>
       </section>

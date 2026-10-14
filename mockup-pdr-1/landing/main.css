@@ -101,8 +101,8 @@ body[data-theme="travesia-natural"] {
   justify-content: space-between;
   gap: var(--space-4);
 }
-.mt-site-header-brand { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
-.mt-site-header-brand span { color: var(--cta); }
+.mt-site-header-brand { font-family: "Manrope", sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #111111; text-decoration: none; }
+.mt-site-header-brand span { font-weight: 700; color: inherit; }
 .mt-site-header-nav { display: flex; align-items: center; gap: var(--space-5); }
 .mt-site-header-nav a { color: var(--text-soft); font-weight: 700; font-size: 0.94rem; }
 .mt-site-header-nav a:hover { color: var(--accent-strong); }
@@ -177,15 +177,16 @@ body[data-theme="travesia-natural"] {
 
 /* El pie usa el mismo .mt-container que el resto de la pagina (mismo margen/ancho
    maximo), en vez de columnas repartidas en todo el ancho del viewport. */
-.mt-site-footer { background: #0c1a16; color: #9fb3ac; padding-block: var(--space-7) var(--space-5); }
-.mt-site-footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--space-6); max-width: 760px; padding-bottom: var(--space-6); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-.mt-site-footer-brand { display: block; margin-bottom: var(--space-2); color: #ffffff; font-family: "Bricolage Grotesque", sans-serif; font-size: 1.2rem; font-weight: 800; }
-.mt-site-footer-brand span { color: var(--cta); }
+.mt-site-footer { background: #ffffff; color: #4b5a60; border-top: 1px solid #e3e7e6; padding-block: var(--space-6) var(--space-4); padding-inline: max(24px, calc((100% - 1320px) / 2)); }
+.mt-site-footer p { color: #4b5a60 !important; font-size: 0.88rem; line-height: 1.55; }
+.mt-site-footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--space-6); max-width: 900px; padding-bottom: var(--space-5); border-bottom: 1px solid #e3e7e6; }
+.mt-site-footer-brand { display: block; margin-bottom: var(--space-2); color: #111111; font-family: "Manrope", sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+.mt-site-footer-brand span { font-weight: 700; color: inherit; }
 .mt-site-footer-col { display: grid; gap: var(--space-2); align-content: start; }
-.mt-site-footer-col strong { color: #ffffff; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
-.mt-site-footer-col a { color: #9fb3ac; font-size: 0.92rem; }
-.mt-site-footer-col a:hover { color: #ffffff; }
-.mt-site-footer-bottom { padding-top: var(--space-4); font-size: 0.82rem; color: #718a82; }
+.mt-site-footer-col strong { color: #102a32; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.mt-site-footer-col a { color: #4b5a60; font-size: 0.88rem; font-weight: 500; }
+.mt-site-footer-col a:hover { color: #111111; text-decoration: underline; }
+.mt-site-footer-bottom { padding-top: var(--space-4); font-size: 0.78rem; color: #6b7a80; }
 
 @media (max-width: 720px) {
   .mt-site-header { padding-block: 12px; }
@@ -2076,6 +2077,7 @@ button {
   display: flex;
   align-items: center;
   gap: 14px;
+  margin-left: auto;
 }
 
 .travel-dashboard-header-link {
@@ -6082,3 +6084,624 @@ body {
   .mt-page-header { align-items: flex-start; flex-direction: column; }
   .mt-editorial-block p { max-width: none; }
 }
+
+/* Canal cliente (Fase 2): tenant, salidas programadas y bloques informativos de pago. */
+.client-tenant-box { margin: 0 0 18px; padding: 12px 14px; border: 1px solid #dce9e2; border-radius: 10px; background: #f4faf7; color: #3f4f4d; font-size: 0.85rem; line-height: 1.45; }
+.client-tenant-label { display: grid; gap: 6px; font-weight: 700; }
+.client-tenant-select { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid #cbd5d1; border-radius: 6px; background: #fff; font: inherit; font-weight: 500; color: inherit; }
+.client-tenant-note { margin: 8px 0 0; font-size: 0.78rem; color: #5c6c6b; }
+.client-departure-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.client-departure-option { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #dce9e2; border-radius: 10px; background: #fff; cursor: pointer; }
+.client-departure-option.is-active { border-color: #148179; box-shadow: 0 0 0 2px rgba(20, 129, 121, 0.14); }
+.client-departure-option.is-full { background: #f6f2f2; color: #7a5656; }
+.client-departure-main { display: grid; gap: 2px; }
+.client-departure-main small, .client-departure-seats { font-size: 0.8rem; color: #5c6c6b; }
+.client-departure-option.is-full .client-departure-seats { color: #a03b3b; font-weight: 700; }
+.client-departure-row { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid #dce9e2; border-radius: 10px; background: #fff; font-size: 0.88rem; }
+.client-departure-row span { color: #5c6c6b; font-size: 0.8rem; }
+.client-info-block { margin: 0 0 12px; padding: 12px 14px; border: 1px solid #dce9e2; border-radius: 10px; background: #f4faf7; font-size: 0.85rem; line-height: 1.5; color: #3f4f4d; }
+.client-info-block p { margin: 0 0 6px; }
+.client-info-block p:last-child { margin-bottom: 0; }
+.client-info-block.is-warning { border-color: #ecd7a6; background: #fff8e8; }
+.client-info-block.is-error { border-color: #e4b9b9; background: #fff1f1; }
+.client-simulated-mail { margin: 12px 0; padding: 12px 14px; border: 1px dashed #148179; border-radius: 10px; background: #f4faf7; font-size: 0.85rem; line-height: 1.5; }
+.client-simulated-mail strong { letter-spacing: 0.12em; }
+.client-reservation-details { margin-top: 10px; font-size: 0.85rem; }
+.client-reservation-details summary { cursor: pointer; font-weight: 700; color: #117166; }
+.client-reservation-details dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px 16px; margin: 10px 0 0; }
+.client-reservation-details dt { font-size: 0.74rem; color: #69777a; }
+.client-reservation-details dd { margin: 0; font-weight: 600; }
+.client-receipt-list { margin: 8px 0 0; padding-left: 18px; font-size: 0.82rem; color: #3f4f4d; }
+/* Fase 3A - pantallas administrativas de salidas, ejecución, caja y reservas */
+.operator-check-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 4px 18px; margin-top: 8px; }
+.operator-check-group .operator-check { margin-top: 10px; align-items: flex-start; }
+.operator-check-group small { color: #a34a38; font-weight: 700; }
+.operator-inline-filter { display: flex; align-items: center; gap: 8px; color: #536367; font-size: 0.78rem; font-weight: 700; }
+.operator-inline-filter select { min-height: 36px; border: 1px solid #cddad4; border-radius: 8px; background: #fff; padding: 0 10px; }
+.operator-companion-card + .operator-companion-card { margin-top: 14px; }
+.operator-companion-card .operator-status { margin-left: 8px; }
+.operator-form-feedback[hidden], .operator-access-note[hidden], .operator-copy[hidden] { display: none; }
+.operator-panel h3 { margin: 22px 0 8px; font-size: 0.95rem; color: #264341; }
+.operator-panel ul.operator-copy { padding-left: 18px; display: grid; gap: 8px; }
+.operator-form-feedback.is-error { color: #a34a38; font-weight: 700; }
+
+/* ---- Fase 3B: pantallas administrativas (plataforma, tenant, establecimientos, descuentos) ---- */
+.platform-state-form input,
+.platform-state-form select { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid #d7dfda; border-radius: 9px; outline: none; background: #ffffff; color: #233236; font: inherit; }
+.platform-state-form input:focus,
+.platform-state-form select:focus { border-color: #18867d; box-shadow: 0 0 0 3px rgba(24, 134, 125, 0.12); }
+.platform-check { display: flex !important; align-items: flex-start; gap: 10px; font-weight: 600 !important; }
+.platform-check input { width: auto !important; min-height: 0 !important; margin-top: 3px; }
+.platform-stack { display: grid; gap: 18px; margin-top: 18px; }
+.platform-detail-wide { display: grid; gap: 18px; margin-top: 18px; }
+.platform-info-list { display: grid; gap: 10px; margin: 14px 0 0; padding: 0; list-style: none; color: #4c5a5f; font-size: 0.88rem; line-height: 1.5; }
+.platform-info-list li { padding-left: 16px; position: relative; }
+.platform-info-list li::before { position: absolute; left: 0; content: "•"; color: #2f6b57; }
+.platform-access-list { display: grid; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.platform-access-item { display: grid; grid-template-columns: 150px 1fr; gap: 14px; padding: 14px; border: 1px solid #e0e8e3; border-radius: 10px; background: #f8faf7; font-size: 0.84rem; line-height: 1.5; }
+.platform-access-item p { margin: 0 0 8px; color: #4c5a5f; }
+.platform-status.is-pending { background: #fff1dc; color: #a4621e; }
+.platform-recover { display: grid; gap: 14px; margin-top: 18px; padding-top: 18px; border-top: 1px solid #dde7e2; }
+.platform-recover[hidden], .platform-recover form[hidden], .platform-recover p[hidden] { display: none; }
+.platform-recover-mock { margin: 0; padding: 10px 12px; border-radius: 8px; background: #fff7e6; color: #8a5a14; font-size: 0.8rem; }
+.platform-dialog-body { display: grid; gap: 14px; padding: 22px 28px 26px; }
+.platform-dialog-body ul { display: grid; gap: 9px; margin: 0; padding-left: 18px; color: #4c5a5f; font-size: 0.88rem; line-height: 1.5; }
+.platform-dialog-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 6px; }
+.platform-table small { display: block; margin-top: 3px; color: #6c7a7e; font-size: 0.76rem; }
+.platform-filter { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: #334348; font-size: 0.84rem; font-weight: 800; }
+.platform-filter select { min-height: 40px; padding: 0 12px; border: 1px solid #d7dfda; border-radius: 9px; background: #fff; font: inherit; }
+.platform-password-policy ul { margin: 6px 0 0; }
+
+.operator-dialog-body { display: grid; gap: 14px; padding: 22px 28px 26px; }
+.operator-dialog-body label { display: grid; gap: 7px; color: #334547; font-size: 0.82rem; font-weight: 800; }
+.operator-dialog-body textarea { min-height: 80px; padding: 10px 12px; border: 1px solid #d2dfd8; border-radius: 9px; font: inherit; }
+.operator-inline-form { display: grid; gap: 12px; margin-top: 14px; }
+.operator-inline-form label { display: grid; gap: 7px; color: #334547; font-size: 0.8rem; font-weight: 800; }
+.operator-inline-form input, .operator-inline-form textarea, .operator-inline-form select { width: 100%; box-sizing: border-box; min-height: 44px; padding: 0 12px; border: 1px solid #d2dfd8; border-radius: 9px; background: #fffefa; color: #26383a; font: inherit; font-size: 0.86rem; font-weight: 500; }
+.operator-inline-form textarea { min-height: 80px; padding-block: 10px; resize: vertical; }
+.operator-reasons-list { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+.operator-reasons-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid #e0ebe5; border-radius: 9px; background: #fbfdfb; font-size: 0.86rem; }
+.operator-table small { display: block; margin-top: 3px; color: #718084; font-size: 0.74rem; line-height: 1.4; }
+.operator-table-filter { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; color: #334547; font-size: 0.8rem; font-weight: 800; }
+.operator-table-filter select { min-height: 38px; padding: 0 12px; border: 1px solid #d2dfd8; border-radius: 9px; background: #fffefa; font: inherit; }
+.operator-notify-grid { display: grid; gap: 14px; }
+.operator-establishment-preview { max-width: 240px; border-radius: 12px; }
+
+@media (max-width: 720px) {
+  .platform-access-item { grid-template-columns: 1fr; }
+  .platform-dialog-body, .operator-dialog-body { padding: 18px 18px 22px; }
+}
+
+.client-bell { position: relative; }
+.client-bell-button { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid #d7e0de; border-radius: 50%; background: #ffffff; color: #17252b; cursor: pointer; }
+.client-bell-button:hover, .client-bell-button:focus-visible { background: #eef4f2; }
+.client-bell-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #c0392b; color: #ffffff; font-size: 0.7rem; font-weight: 800; line-height: 18px; text-align: center; }
+.client-bell-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 40; width: min(380px, calc(100vw - 32px)); max-height: 70vh; overflow-y: auto; padding: 16px; border: 1px solid #d7e0de; border-radius: 14px; background: #ffffff; box-shadow: 0 16px 40px rgba(23, 37, 43, 0.18); }
+.client-bell-title { margin: 0 0 10px; font-size: 1rem; font-weight: 800; }
+.client-bell-list p { margin: 0; padding: 10px 0; border-top: 1px solid #e6edeb; font-size: 0.88rem; line-height: 1.45; }
+.client-bell-list p:first-child { border-top: 0; padding-top: 0; }
+
+/* Encabezado de página dentro del portal cliente: mismo margen lateral (20px) que las
+   secciones, para que el título y el texto no queden pegados al borde de la pantalla. */
+.travel-dashboard-shell > .mt-page-header { padding-inline: 20px; padding-top: 26px; }
+@media (max-width: 720px) {
+  .travel-dashboard-shell > .mt-page-header { padding-inline: 16px; }
+}
+
+/* Catálogo (Tours, Gastronomía, Alojamiento, Restaurantes): encabezado centrado y buscador
+   en forma de píldora, con lupa y botón integrado. */
+.travel-tours-topbar .mt-page-header { flex-direction: column; align-items: center; gap: 22px; text-align: center; border-bottom: 0; padding-bottom: 0; margin-bottom: 4px; }
+.travel-tours-topbar .mt-page-header-main { justify-items: center; }
+.travel-tours-topbar .mt-page-header-action { width: 100%; display: flex; justify-content: center; }
+.travel-tours-topbar .travel-tours-search-row { display: flex; align-items: center; gap: 8px; width: min(680px, 100%); max-width: none; padding: 6px; border: 1px solid #d7e0de; border-radius: 999px; background: #ffffff; box-shadow: 0 10px 28px rgba(23, 37, 43, 0.08); transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.travel-tours-topbar .travel-tours-search-row:focus-within { border-color: #17252b; box-shadow: 0 10px 28px rgba(23, 37, 43, 0.14); }
+.travel-tours-topbar .travel-tours-search-row input { flex: 1; min-width: 0; min-height: 46px; padding: 0 12px 0 48px; border: 0; border-radius: 999px; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23627177' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 18px center; box-shadow: none; font-size: 0.95rem; }
+.travel-tours-topbar .travel-tours-search-row input:focus { border: 0; box-shadow: none; }
+.travel-tours-topbar .travel-tours-search-row button { min-height: 46px; padding: 0 26px; border-radius: 999px; background: #17252b; color: #ffffff; font-weight: 700; letter-spacing: 0.02em; cursor: pointer; transition: background 0.15s ease; }
+.travel-tours-topbar .travel-tours-search-row button:hover { background: #000000; }
+.travel-tours-topbar .travel-catalog-filter-row { justify-content: center; }
+@media (max-width: 720px) {
+  .travel-tours-topbar .travel-tours-search-row button { padding: 0 18px; }
+  .travel-tours-topbar .travel-tours-search-row input { padding-left: 42px; background-position: 14px center; }
+}
+
+/* Enlace "Volver ...": flecha fina (chevron) en lugar del círculo con "←", y texto discreto. */
+.travel-tours-back { gap: 6px; min-height: 36px; color: #4b5a60; font-size: 0.88rem; font-weight: 600; letter-spacing: 0; }
+.travel-tours-back > span:first-child { width: 18px; height: 18px; border: 0; border-radius: 0; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234b5a60' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 5 8 12l7 7'/%3E%3C/svg%3E") no-repeat center / 18px 18px; font-size: 0; color: transparent; transition: transform 0.18s ease; }
+.travel-tours-back:hover { color: #111111; transform: none; }
+.travel-tours-back:hover > span:first-child { transform: translateX(-3px); }
+.travel-tours-back:focus-visible { border-radius: 6px; outline: 2px solid rgba(23, 37, 43, 0.25); outline-offset: 3px; }
+
+/* Aviso de convenio (Alojamiento, Gastronomía, Restaurantes): nota compacta, no un bloque grande. */
+.travel-tours-shell > .operator-panel { margin: 14px 20px 0; padding: 12px 16px; border: 1px solid #e3e7e6; border-left: 3px solid #17252b; border-radius: 10px; background: #f7f9f8; box-shadow: none; }
+.travel-tours-shell > .operator-panel .operator-eyebrow { margin: 0 0 2px; font-size: 0.68rem; letter-spacing: 0.1em; color: #6b7a80; }
+.travel-tours-shell > .operator-panel h2 { margin: 0 0 4px; font-size: 0.95rem; font-weight: 700; line-height: 1.3; color: #17252b; }
+.travel-tours-shell > .operator-panel .operator-copy { margin: 0; max-width: 86ch; font-size: 0.82rem; line-height: 1.5; color: #4b5a60; }
+
+/* ---- Refinamiento a zoom 100 %: tarjetas más compactas y delicadas ---------------------- */
+/* Tarjetas de reserva (Mis reservas y panel del cliente) */
+.travel-dashboard-reservation-grid { gap: 12px; }
+.travel-dashboard-reservation-card { padding: 16px 18px; border-radius: 14px; border-color: #e3e7e6; box-shadow: 0 2px 10px rgba(23, 37, 43, 0.04); }
+.travel-dashboard-reservation-main { grid-template-columns: minmax(0, 1fr) 190px; gap: 16px; padding-bottom: 14px; border-bottom-color: #eef1f0; }
+.travel-dashboard-reservation-copy { gap: 3px; }
+.travel-dashboard-reservation-copy strong { font-size: 1rem; font-weight: 700; }
+.travel-dashboard-reservation-copy p { font-size: 0.86rem; }
+.travel-dashboard-reservation-copy small, .travel-dashboard-reservation-status small { font-size: 0.8rem; line-height: 1.45; }
+.travel-dashboard-reservation-status { gap: 5px; }
+.travel-dashboard-status-badge { min-height: 24px; padding: 0 10px; font-size: 0.72rem; font-weight: 700; }
+.travel-dashboard-reservation-status strong { font-size: 0.9rem; font-weight: 700; letter-spacing: 0; }
+.travel-dashboard-reservation-values small { font-size: 0.78rem; font-weight: 600; }
+.travel-dashboard-reservation-actions { gap: 8px; padding-top: 12px; }
+.travel-dashboard-reservation-actions a, .travel-dashboard-reservation-actions button, .travel-dashboard-reservation-actions a.mt-btn { min-height: 34px; padding: 0 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; }
+.client-reservation-details { margin-top: 8px; font-size: 0.8rem; }
+.client-reservation-details summary { font-weight: 600; }
+.client-reservation-details dl { gap: 6px 14px; }
+.client-reservation-details dt { font-size: 0.7rem; }
+.client-info-block { padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; }
+
+/* Tarjetas de tour, alojamiento y restaurante */
+.travel-tours-grid, .travel-restaurant-grid { gap: 14px; }
+.travel-tour-card { border-radius: 14px; border-color: #e3e7e6; box-shadow: 0 2px 10px rgba(23, 37, 43, 0.04); transition: box-shadow 0.18s ease, transform 0.18s ease; }
+.travel-tour-card:hover { box-shadow: 0 8px 22px rgba(23, 37, 43, 0.09); transform: translateY(-2px); }
+.travel-tour-media { min-height: 140px; height: 140px; }
+.travel-tour-body { gap: 8px; padding: 12px 14px 14px; }
+.travel-tour-body strong { font-size: 0.95rem; font-weight: 700; line-height: 1.35; }
+.travel-tour-body .travel-dashboard-copy, .travel-tour-body p { font-size: 0.82rem; line-height: 1.45; }
+.travel-tour-location, .travel-tour-duration { font-size: 0.8rem; }
+.travel-catalog-tags { gap: 6px; }
+.travel-catalog-tags span { min-height: 24px; padding: 0 9px; font-size: 0.72rem; font-weight: 600; }
+.travel-tour-meta { gap: 10px; padding-top: 10px; border-top-color: #eef1f0; }
+.travel-tour-meta small { font-size: 0.74rem; }
+.travel-tour-meta em { font-size: 1.15rem; letter-spacing: -0.02em; }
+.travel-tour-meta button, .travel-tour-meta a { min-height: 32px; padding: 0 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; }
+@media (max-width: 720px) {
+  .travel-dashboard-reservation-card { padding: 14px; }
+  .travel-dashboard-reservation-main { grid-template-columns: 1fr; }
+  .travel-tour-media { min-height: 160px; height: 160px; }
+}
+
+/* Marca en la cabecera del portal cliente: mismo estilo que el resto (MULTITOUR, negro, sobrio). */
+.travel-dashboard-brand { color: #111111; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none; }
+
+/* Pie del portal cliente sin la columna "Cuenta": la sesión ya está iniciada. */
+.mt-site-footer-grid { grid-template-columns: 1.6fr 1fr; }
+@media (max-width: 720px) { .mt-site-footer-grid { grid-template-columns: 1fr; } }
+
+/* ---- Administración de plataforma con la misma paleta que el Administrador del tenant ---- */
+.platform-shell { grid-template-columns: 226px minmax(0, 1fr); }
+.platform-sidebar { padding: 22px 14px 18px; background: var(--surface); border-right: 1px solid var(--line); color: var(--text); }
+.platform-brand { color: var(--text); font-size: 0.9rem; letter-spacing: 0.12em; }
+.platform-brand span { color: var(--cta); }
+.platform-sidebar .platform-role { margin: 10px 0 26px; color: var(--text-soft); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; }
+.platform-nav { gap: 2px; }
+.platform-nav a, .platform-signout { padding: 9px 11px; border-radius: 7px; color: var(--text-soft); font-size: 0.85rem; }
+.platform-nav a:hover { color: var(--text); background: var(--surface-muted); border-left-color: transparent; }
+.platform-nav a.is-active { color: var(--accent-strong); background: var(--accent-soft); border-left-color: var(--accent); font-weight: 800; }
+.platform-signout { padding-left: 11px; color: var(--text-soft); }
+.platform-signout:hover { color: #b34a4a; background: transparent; border-left-color: transparent; }
+.platform-content { width: min(100%, 1420px); padding: 32px clamp(20px, 4vw, 56px) 56px; }
+.platform-primary { border: 1px solid #2f6b57; background: #2f6b57; color: #ffffff; }
+.platform-primary:hover { background: #1f4d3d; }
+.platform-link { color: #1f4d3d; }
+.platform-table-link { background: var(--accent-soft); color: var(--accent-strong); }
+.platform-metrics article, .platform-panel, .platform-form > section { border-color: #dce5df; background: rgba(255, 254, 251, 0.94); box-shadow: 0 13px 26px rgba(25, 52, 47, 0.035); }
+.platform-tenant-hero { background: #193d3a; }
+.platform-tenant-hero p { color: #cbe3dc; }
+.platform-form input:focus, .platform-form select:focus, .platform-state-form textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47, 107, 87, 0.14); }
+@media (max-width: 860px) {
+  .platform-shell { grid-template-columns: 1fr; }
+  .platform-sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+}
+
+/* ---- Detalle del tour: versión más delicada (zoom 100 %) ------------------------------- */
+.travel-detail-shell { margin-top: 12px; padding-bottom: 28px; }
+.travel-detail-topbar, .travel-detail-gallery, .travel-detail-intro, .travel-detail-section { padding-inline: 20px; }
+.travel-detail-topbar { padding-top: 18px; }
+.travel-detail-topbar .mt-page-header-main { gap: 4px; }
+.travel-detail-screen-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; color: #6b7a80; }
+.travel-detail-intro { padding-top: 14px; }
+.travel-detail-copy-head h1 { font-size: clamp(1.5rem, 1.3rem + 0.7vw, 2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.travel-detail-section { padding-top: 22px; }
+.travel-detail-section h2 { margin-bottom: 10px; font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; }
+.travel-detail-layout { grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; margin-top: 16px; }
+.travel-detail-main { gap: 2px; }
+
+.travel-detail-info-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.travel-detail-info-card { gap: 3px; padding: 10px 14px; border-color: #e3e7e6; border-radius: 10px; background: #fafbfa; }
+.travel-detail-info-card span { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; color: #6b7a80; }
+.travel-detail-info-card strong { font-size: 0.9rem; font-weight: 600; line-height: 1.35; }
+
+.travel-detail-section .travel-transfer-reference-copy { margin: 0 0 10px; font-size: 0.82rem; line-height: 1.5; color: #5a6b70; }
+.client-departure-list { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.client-departure-row { gap: 3px; padding: 10px 14px; border-color: #e3e7e6; border-radius: 10px; background: #ffffff; }
+.client-departure-row strong { font-size: 0.9rem; font-weight: 700; }
+.client-departure-row span { font-size: 0.76rem; line-height: 1.4; color: #5a6b70; }
+
+.travel-detail-conditions-card { padding: 14px 18px; border-color: #e3e7e6; border-radius: 12px; background: #f7f9f8; }
+.travel-detail-conditions-card h2 { font-size: 0.95rem; }
+.travel-detail-conditions-card ul { padding-left: 18px; font-size: 0.84rem; line-height: 1.6; color: #4b5a60; }
+.travel-detail-risk-note { border-radius: 10px; font-size: 0.84rem; }
+
+.travel-detail-summary-card { top: 80px; gap: 12px; padding: 18px; border-color: #e3e7e6; border-radius: 14px; box-shadow: 0 4px 16px rgba(23, 37, 43, 0.06); }
+.travel-detail-summary-media { min-height: 120px; margin: -18px -18px 0; border-radius: 14px 14px 0 0; }
+.travel-detail-sticky-eyebrow { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; color: #6b7a80; }
+.travel-detail-summary-card .travel-detail-price strong { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; color: #17252b; }
+.travel-detail-price small { font-size: 0.78rem; font-weight: 600; }
+.travel-detail-discount-tag { min-height: 22px; padding: 0 9px; font-size: 0.68rem; font-weight: 700; }
+.travel-detail-summary-card > p { margin: 0; font-size: 0.8rem; line-height: 1.45; color: #5a6b70; }
+.travel-detail-book-button { min-height: 42px; padding: 0 20px; border-radius: 8px; background: #17252b; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.01em; transition: background 0.15s ease; }
+.travel-detail-book-button:hover:not(:disabled) { background: #000000; }
+@media (max-width: 980px) {
+  .travel-detail-layout { grid-template-columns: 1fr; }
+  .travel-detail-summary-card { position: static; }
+}
+
+/* Marca MULTITOUR de la administración de plataforma: una sola tinta, negro. */
+.platform-brand { color: #111111; font-weight: 700; letter-spacing: 0.16em; font-size: 0.95rem; }
+.platform-brand span { color: inherit; font-weight: 700; }
+
+/* Atención pendiente: fichas delicadas, de una línea de acento y texto liviano. */
+[data-platform-attention] { display: grid; gap: 8px; }
+[data-platform-attention] .platform-tenant-row { grid-template-columns: minmax(0, 1fr) 16px; gap: 12px; padding: 10px 14px; border: 1px solid #e3e7e6; border-left: 3px solid #d9a441; border-radius: 10px; background: #fcfcfb; transition: background 0.15s ease, border-color 0.15s ease; }
+[data-platform-attention] .platform-tenant-row:first-child { border-top: 1px solid #e3e7e6; }
+[data-platform-attention] .platform-tenant-row:hover { background: #f6f8f7; border-color: #cfd8d5; border-left-color: #d9a441; }
+[data-platform-attention] .platform-tenant-row strong { font-size: 0.84rem; font-weight: 500; line-height: 1.5; color: #3d4c52; }
+[data-platform-attention] .platform-row-arrow { font-size: 0.9rem; color: #9aa7ab; transition: transform 0.15s ease, color 0.15s ease; }
+[data-platform-attention] .platform-tenant-row:hover .platform-row-arrow { transform: translateX(2px); color: #17252b; }
+.platform-panel-head .platform-eyebrow { font-size: 0.66rem; letter-spacing: 0.1em; }
+.platform-panel-head h2 { font-size: 1.02rem; font-weight: 700; }
+
+/* ---- Pantallas del cliente: tipografía más contenida (zoom 100 %) -------------------- */
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) { --fs-h1: clamp(1.5rem, 1.3rem + 0.6vw, 1.9rem); --fs-h2: clamp(1.1rem, 1.02rem + 0.3vw, 1.3rem); --fs-h3: 1.02rem; --fs-body: 0.92rem; --fs-label: 0.8rem; --fs-small: 0.78rem; font-size: 0.92rem; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-copy h1 { font-size: clamp(1.6rem, 1.4rem + 0.8vw, 2.1rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-copy p { font-size: 0.9rem; line-height: 1.55; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-section-head h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-action-card strong, body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-promo strong { font-size: 0.95rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-destination-body strong { font-size: 1rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-destination-meta em { font-size: 1.2rem; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-credit-head strong { font-size: 1.3rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-dashboard-booking-head strong { font-size: 1.05rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-tours-intro h1 { font-size: clamp(1.5rem, 1.3rem + 0.7vw, 1.9rem); font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-profile-topbar h1 { font-size: 1.5rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-profile-info-head h2, body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-profile-section-headline h2 { font-size: 1.1rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-profile-identity strong { font-size: 1.05rem; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-booking-card-head strong, body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-booking-calendar-head strong { font-size: 1.05rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-booking-sticky-selection strong { font-size: 0.98rem; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-checkout-section-title h2 { font-size: 1.1rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-checkout-summary-copy strong, body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-checkout-pricing-total strong { font-size: 1.3rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-payment-success-copy h1 { font-size: 1.5rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-payment-success-details strong { font-size: 1rem; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-companions-summary strong { font-size: 1.05rem; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-transfer-heading h2 { font-size: 1.4rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-transfer-alert strong { font-size: 0.98rem; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-transfer-total-card strong { font-size: 2.1rem; font-weight: 700; }
+body:is([data-screen="companions"], [data-screen="lodging"], [data-screen="gastronomy-detail"], [data-screen="tour-detail"], [data-screen="tour-checkout"], [data-screen="gastronomy"], [data-screen="client-payments"], [data-screen="client-reservations"], [data-screen="tour-payment-success"], [data-screen="tour-payment-failed"], [data-screen="tour-payment-transfer"], [data-screen="client-dashboard"], [data-screen="profile"], [data-screen="client-reprogramming-proposal"], [data-screen="restaurants"], [data-screen="tours"], [data-screen="tour-booking"]) .travel-detail-review-copy strong { font-size: 1.15rem; }
+
+/* Detalle del operador: secciones en pestañas para no mostrar toda la información a la vez. */
+.platform-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 18px; border-bottom: 1px solid var(--line); }
+.platform-tabs button { margin-bottom: -1px; padding: 9px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-soft); font: inherit; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease; }
+.platform-tabs button:hover { color: var(--text); }
+.platform-tabs button.is-active { color: var(--accent-strong); border-bottom-color: var(--accent); font-weight: 700; }
+[data-tab][hidden] { display: none !important; }
+.platform-detail-grid > [data-tab] { max-width: 760px; }
+
+/* Condiciones de reserva: el recuadro estaba pegado al borde porque la sección es la propia
+   tarjeta. Ahora respeta el mismo margen lateral que el resto de bloques de la ficha. */
+.travel-detail-section.travel-detail-conditions-card { margin: 22px 20px 0; padding: 16px 22px 18px; }
+.travel-detail-section.travel-detail-conditions-card h2 { margin-bottom: 8px; }
+@media (max-width: 720px) {
+  .travel-detail-section.travel-detail-conditions-card { margin-inline: 16px; padding: 14px 16px; }
+}
+
+/* Directorio de operadores: "Inactivar/Reactivar" abre un diálogo; el botón se ve como los enlaces de la tabla. */
+.platform-table-action { border: 0; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+.platform-table-action:hover { background: rgba(47, 107, 87, 0.16); }
+.platform-dialog-field { display: grid; gap: 6px; color: #334348; font-size: 0.84rem; font-weight: 700; }
+.platform-dialog-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d7dfda; border-radius: 9px; font: inherit; font-size: 0.88rem; resize: vertical; outline: none; }
+.platform-dialog-field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47, 107, 87, 0.14); }
+
+/* Establecimientos asociados (alojamiento y restaurantes): foto de la categoría cuando el
+   establecimiento aún no tiene imagen propia (archivos locales en img/). */
+.establishment-media { background-color: #e8eeec; background-repeat: no-repeat; background-position: center; background-size: cover; }
+.establishment-media-hotel { background-image: linear-gradient(180deg, rgba(20, 28, 32, 0.02), rgba(20, 28, 32, 0.12)), url("img/alojamiento-asociado.jpg"); }
+.establishment-media-restaurant { background-image: linear-gradient(180deg, rgba(20, 28, 32, 0.02), rgba(20, 28, 32, 0.12)), url("img/restaurante-asociado.jpg"); }
+.establishment-media-hero { min-height: 260px; border-radius: 14px; }
+
+/* Ficha de un establecimiento asociado: el contenido respeta el mismo margen lateral que el resto. */
+.travel-detail-shell > .mt-split { padding-inline: 20px; margin-top: 14px; gap: 22px; }
+.travel-detail-shell > .mt-split .travel-detail-copy { gap: 10px; }
+.travel-detail-shell > .mt-split .mt-h1 { font-size: clamp(1.4rem, 1.25rem + 0.6vw, 1.8rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.travel-detail-shell > .mt-split .travel-detail-description p { font-size: 0.9rem; line-height: 1.55; }
+.travel-detail-shell > .mt-split .operator-panel { margin-top: 16px; padding: 14px 18px; border: 1px solid #e3e7e6; border-left: 3px solid #17252b; border-radius: 10px; background: #f7f9f8; box-shadow: none; }
+.travel-detail-shell > .mt-split .operator-panel h2 { margin: 0 0 6px; font-size: 0.98rem; font-weight: 700; }
+.travel-detail-shell > .mt-split .operator-panel p { margin: 0 0 6px; font-size: 0.84rem; line-height: 1.55; color: #4b5a60; }
+.travel-detail-shell > .mt-split .operator-panel p:last-child { margin-bottom: 0; }
+
+/* Acciones del directorio de operadores: botones discretos en lugar de enlaces separados por "·". */
+.platform-row-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.platform-action { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 12px; border: 1px solid #d7e0de; border-radius: 8px; background: #ffffff; color: #17252b; font: inherit; font-size: 0.78rem; font-weight: 600; line-height: 1; white-space: nowrap; text-decoration: none; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+.platform-action:hover { background: #f3f6f5; border-color: #b9c6c2; }
+.platform-action:focus-visible { outline: 2px solid rgba(23, 37, 43, 0.3); outline-offset: 2px; }
+.platform-action-view { color: #17252b; }
+.platform-action-deactivate { border-color: #ecd0cb; color: #a34a38; background: #fffafa; }
+.platform-action-deactivate:hover { background: #fbeeeb; border-color: #dfb3aa; }
+.platform-action-activate { border-color: #c5ddd1; color: #1f6a4d; background: #f9fcfa; }
+.platform-action-activate:hover { background: #e9f4ee; border-color: #a9cdb9; }
+
+/* ---- Barra superior del portal cliente: marca a la izquierda, navegación centrada en píldoras,
+   acciones a la derecha. ------------------------------------------------------------------- */
+.mt-site-header { min-height: 64px; padding-block: 10px; border-bottom: 1px solid #e6ebe9; background: rgba(255, 255, 255, 0.92); box-shadow: 0 1px 0 rgba(23, 37, 43, 0.02), 0 6px 18px rgba(23, 37, 43, 0.04); }
+@media (min-width: 721px) {
+  .mt-site-header-inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .mt-site-header-actions { justify-self: end; }
+}
+.mt-site-header-nav { gap: 4px; padding: 4px; border: 1px solid #e6ebe9; border-radius: 999px; background: #f7f9f8; }
+.mt-site-header-nav a { padding: 7px 16px; border-radius: 999px; color: #4b5a60; font-size: 0.88rem; font-weight: 600; letter-spacing: 0; transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
+.mt-site-header-nav a:hover { background: #ffffff; color: #111111; }
+.mt-site-header-nav a.is-active { background: #ffffff; color: #111111; font-weight: 700; box-shadow: 0 1px 4px rgba(23, 37, 43, 0.1); }
+.mt-site-header-actions { gap: 8px; }
+.mt-site-header-actions .mt-btn { min-height: 38px; padding: 0 16px; border-radius: 999px; font-size: 0.86rem; font-weight: 600; letter-spacing: 0; text-decoration: none; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+.mt-site-header-actions .mt-btn-ghost { border: 1px solid #d7e0de; background: #ffffff; color: #17252b; }
+.mt-site-header-actions .mt-btn-ghost:hover { border-color: #17252b; color: #111111; text-decoration: none; }
+.mt-site-header-actions .mt-btn-ghost:last-child { border-color: #17252b; background: #17252b; color: #ffffff; }
+.mt-site-header-actions .mt-btn-ghost:last-child:hover { background: #000000; color: #ffffff; }
+@media (max-width: 720px) {
+  .mt-site-header-nav { width: 100%; justify-content: center; border: 0; background: transparent; padding: 10px 0 0; margin-top: 10px; border-top: 1px solid #e6ebe9; border-radius: 0; }
+}
+
+/* ---- Mi perfil: ficha centrada y más liviana ------------------------------------------------ */
+body[data-screen="profile"] .travel-profile-topbar { grid-template-columns: 1fr auto 1fr; max-width: 920px; margin: 0 auto; padding: 16px 20px; border-bottom: 0; }
+body[data-screen="profile"] .travel-profile-topbar h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
+body[data-screen="profile"] .travel-profile-content { width: min(calc(100% - 40px), 920px); padding: 4px 0 48px; gap: 18px; }
+body[data-screen="profile"] .travel-profile-content > .travel-dashboard-copy { max-width: 70ch; margin: 0 0 2px; font-size: 0.84rem; line-height: 1.55; color: #5a6b70; }
+
+/* Tarjeta de cuenta: identidad arriba (avatar + nombre), datos en dos columnas debajo. */
+body[data-screen="profile"] .travel-profile-info-card { padding: 20px 22px; border-color: #e3e7e6; border-radius: 14px; box-shadow: 0 2px 10px rgba(23, 37, 43, 0.04); }
+body[data-screen="profile"] .travel-profile-info-grid { display: block; }
+body[data-screen="profile"] .travel-profile-identity { display: grid; grid-template-columns: auto 1fr; justify-items: start; align-items: center; column-gap: 14px; row-gap: 2px; padding-bottom: 18px; margin-bottom: 4px; border-bottom: 1px solid #eef1f0; text-align: left; }
+body[data-screen="profile"] .travel-profile-photo-wrap { grid-row: 1 / span 2; }
+body[data-screen="profile"] .travel-profile-avatar-large { width: 56px; height: 56px; font-size: 1.05rem; font-weight: 700; background: #17252b; }
+body[data-screen="profile"] .travel-profile-badge-dot { width: 13px; height: 13px; right: 0; bottom: 1px; border-width: 2px; }
+body[data-screen="profile"] .travel-profile-identity strong { align-self: end; font-size: 1rem; font-weight: 700; }
+body[data-screen="profile"] .travel-profile-identity p { align-self: start; font-size: 0.84rem; }
+body[data-screen="profile"] .mt-form-section { gap: 12px; padding: 16px 0 0; border-top: 0; }
+body[data-screen="profile"] .mt-form-section-title { margin: 0; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b7a80; }
+body[data-screen="profile"] .travel-profile-form-grid { gap: 12px 16px; }
+body[data-screen="profile"] .travel-profile-field-block { gap: 5px; }
+body[data-screen="profile"] .travel-profile-field-block span { font-size: 0.78rem; font-weight: 600; color: #4b5a60; }
+body[data-screen="profile"] .travel-profile-field-block input { min-height: 40px; padding: 0 12px; border-color: #e3e7e6; border-radius: 8px; background: #fafbfa; font-size: 0.88rem; }
+body[data-screen="profile"] .travel-profile-field-block input:not([readonly]) { background: #ffffff; border-color: #b9c6c2; }
+body[data-screen="profile"] .travel-profile-field-block input:not([readonly]):focus { outline: none; border-color: #17252b; box-shadow: 0 0 0 3px rgba(23, 37, 43, 0.08); }
+
+/* Resumen: tres tarjetas pequeñas en lugar de columnas con barra lateral. */
+body[data-screen="profile"] .mt-summary-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0; border: 0; }
+body[data-screen="profile"] .mt-summary-metric { gap: 2px; padding: 12px 16px; border: 1px solid #e3e7e6; border-left: 1px solid #e3e7e6; border-radius: 12px; background: #fafbfa; }
+body[data-screen="profile"] .mt-summary-metric-value { font-family: "Manrope", sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
+body[data-screen="profile"] .mt-summary-metric-label { font-size: 0.76rem; color: #5a6b70; }
+@media (max-width: 640px) { body[data-screen="profile"] .mt-summary-row { grid-template-columns: 1fr; } }
+
+/* Seguridad: filas con icono suave. */
+body[data-screen="profile"] .travel-profile-stack { gap: 10px; }
+body[data-screen="profile"] .travel-profile-list-panel { border-color: #e3e7e6; border-radius: 14px; box-shadow: 0 2px 10px rgba(23, 37, 43, 0.04); }
+body[data-screen="profile"] .travel-profile-list-row { grid-template-columns: 38px minmax(0, 1fr) 16px; gap: 12px; padding: 12px 16px; transition: background 0.15s ease; }
+body[data-screen="profile"] .travel-profile-list-row:hover { background: #f7f9f8; }
+body[data-screen="profile"] .travel-profile-list-row + .travel-profile-list-row { border-top-color: #eef1f0; }
+body[data-screen="profile"] .travel-profile-row-icon { width: 34px; height: 34px; border-radius: 50%; background-color: #eef2f1; background-repeat: no-repeat; background-position: center; background-size: 17px 17px; font-size: 0; color: transparent; }
+body[data-screen="profile"] .travel-profile-list-row:nth-child(1) .travel-profile-row-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317252b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E"); }
+body[data-screen="profile"] .travel-profile-list-row:nth-child(2) .travel-profile-row-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317252b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E"); }
+body[data-screen="profile"] .travel-profile-list-row:nth-child(3) .travel-profile-row-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317252b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 11 9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3C/svg%3E"); }
+body[data-screen="profile"] .travel-profile-row-copy strong { font-size: 0.9rem; font-weight: 600; }
+body[data-screen="profile"] .travel-profile-row-copy span { font-size: 0.78rem; line-height: 1.4; }
+body[data-screen="profile"] .travel-profile-row-arrow { font-size: 1.1rem; color: #9aa7ab; }
+body[data-screen="profile"] .travel-profile-footer { padding-top: 2px; }
+body[data-screen="profile"] .travel-profile-logout { min-height: 36px; padding: 0 16px; border-color: #e6c3be; border-radius: 999px; font-size: 0.82rem; font-weight: 600; background: #fffafa; }
+body[data-screen="profile"] .travel-profile-logout:hover { background: #fbeeeb; }
+
+/* ---- Finalizar reserva: formulario más compacto y ordenado ----------------------------------- */
+body[data-screen="tour-checkout"] .travel-booking-page { margin-top: 8px; border: 0; box-shadow: none; }
+body[data-screen="tour-checkout"] .travel-profile-topbar { grid-template-columns: 1fr auto 1fr; max-width: 1040px; margin: 0 auto; padding: 14px 16px; border-bottom: 0; }
+body[data-screen="tour-checkout"] .travel-profile-topbar h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
+body[data-screen="tour-checkout"] .travel-checkout-content { width: min(calc(100% - 40px), 1040px); padding: 4px 0 40px; gap: 14px; }
+body[data-screen="tour-checkout"] .travel-checkout-secure-pill { justify-self: start; display: block; min-height: 0; padding: 9px 14px; border: 1px solid #dfeae4; border-radius: 10px; background: #f4f8f6; color: #3d5a4c; font-size: 0.8rem; font-weight: 600; line-height: 1.5; }
+body[data-screen="tour-checkout"] .mt-dashboard-layout { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+body[data-screen="tour-checkout"] .mt-dashboard-main { gap: 14px; }
+body[data-screen="tour-checkout"] .mt-dashboard-aside { gap: 14px; position: sticky; top: 16px; }
+
+body[data-screen="tour-checkout"] .travel-booking-card { padding: 16px 18px; border-color: #e3e7e6; border-radius: 14px; box-shadow: 0 2px 10px rgba(23, 37, 43, 0.04); }
+body[data-screen="tour-checkout"] .travel-checkout-section-title { margin-bottom: 10px; }
+body[data-screen="tour-checkout"] .travel-checkout-section-title h2 { font-size: 0.98rem; font-weight: 700; }
+body[data-screen="tour-checkout"] .travel-checkout-section-title > span { font-size: 0.74rem; font-weight: 600; color: #6b7a80; }
+body[data-screen="tour-checkout"] .travel-companion-grid { gap: 10px 14px; }
+body[data-screen="tour-checkout"] .travel-companion-grid label { gap: 4px; }
+body[data-screen="tour-checkout"] .travel-companion-grid span, body[data-screen="tour-checkout"] .travel-companion-grid label { font-size: 0.78rem; font-weight: 600; color: #4b5a60; }
+body[data-screen="tour-checkout"] .travel-companion-grid input { min-height: 38px; padding: 0 12px; border-color: #e0e5e3; border-radius: 8px; font-size: 0.88rem; }
+body[data-screen="tour-checkout"] .travel-companion-grid input:focus { border-color: #17252b; box-shadow: 0 0 0 3px rgba(23, 37, 43, 0.08); }
+body[data-screen="tour-checkout"] .travel-companion-card { padding: 12px 14px; border: 1px solid #eef1f0; border-radius: 10px; background: #fafbfa; box-shadow: none; }
+body[data-screen="tour-checkout"] .travel-companion-card h2 { font-size: 0.86rem; font-weight: 700; }
+body[data-screen="tour-checkout"] .travel-companion-card + .travel-companion-card { margin-top: 10px; }
+body[data-screen="tour-checkout"] .travel-transfer-reference-copy { margin: 0 0 8px; font-size: 0.8rem; line-height: 1.5; color: #5a6b70; }
+
+body[data-screen="tour-checkout"] .travel-checkout-consent { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; font-size: 0.8rem; line-height: 1.45; color: #4b5a60; }
+body[data-screen="tour-checkout"] input[type="checkbox"], body[data-screen="tour-checkout"] input[type="radio"] { accent-color: #2f6b57; }
+body[data-screen="tour-checkout"] [data-checkout-conditions-list] { margin: 6px 0 4px; padding-left: 18px; font-size: 0.8rem; line-height: 1.6; color: #4b5a60; }
+
+body[data-screen="tour-checkout"] .travel-checkout-payment-list { gap: 8px; }
+body[data-screen="tour-checkout"] .travel-checkout-payment-option { gap: 10px; padding: 11px 14px; border-color: #e3e7e6; border-radius: 10px; }
+body[data-screen="tour-checkout"] .travel-checkout-payment-option:hover { border-color: #b9c6c2; }
+body[data-screen="tour-checkout"] .travel-checkout-payment-option input { margin-top: 3px; }
+body[data-screen="tour-checkout"] .travel-checkout-payment-option div { gap: 2px; }
+body[data-screen="tour-checkout"] .travel-checkout-payment-option strong { font-size: 0.88rem; font-weight: 700; }
+body[data-screen="tour-checkout"] .travel-checkout-payment-option span { font-size: 0.78rem; line-height: 1.4; }
+body[data-screen="tour-checkout"] .travel-checkout-payment-option.is-active { border-color: #2f6b57; background: #f6faf8; box-shadow: none; }
+body[data-screen="tour-checkout"] .client-info-block { margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; font-size: 0.78rem; line-height: 1.5; }
+body[data-screen="tour-checkout"] .client-info-block p { margin: 0 0 6px; }
+
+body[data-screen="tour-checkout"] .travel-checkout-summary-media { min-height: 110px; border-radius: 10px; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-copy { gap: 3px; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-copy span { font-size: 0.8rem; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing > div { padding: 7px 0; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing span { font-size: 0.8rem; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing strong { font-size: 0.88rem; font-weight: 600; }
+body[data-screen="tour-checkout"] .travel-checkout-help-copy strong { font-size: 0.88rem; }
+body[data-screen="tour-checkout"] .travel-checkout-help-copy span { font-size: 0.78rem; line-height: 1.45; }
+
+body[data-screen="tour-checkout"] .travel-booking-sticky-bar { gap: 18px; padding: 9px 12px 9px 18px; border-color: #e3e7e6; border-radius: 14px; box-shadow: 0 8px 24px rgba(23, 37, 43, 0.12); }
+body[data-screen="tour-checkout"] .travel-booking-sticky-pricing span, body[data-screen="tour-checkout"] .travel-booking-sticky-selection span { font-size: 0.68rem; letter-spacing: 0.06em; }
+body[data-screen="tour-checkout"] .travel-booking-sticky-pricing strong { font-size: 0.92rem; }
+body[data-screen="tour-checkout"] .travel-booking-continue.mt-btn { min-height: 40px; padding: 0 22px; border-color: #17252b; border-radius: 8px; background: #17252b; color: #ffffff; font-size: 0.86rem; font-weight: 700; }
+body[data-screen="tour-checkout"] .travel-booking-continue.mt-btn:hover { background: #000000; border-color: #000000; }
+@media (max-width: 900px) {
+  body[data-screen="tour-checkout"] .mt-dashboard-layout { grid-template-columns: 1fr; }
+  body[data-screen="tour-checkout"] .mt-dashboard-aside { position: static; }
+}
+
+/* ---- Colaboradores y Notificaciones: misma densidad que el resto del panel del tenant ---------- */
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-hero { gap: 20px; margin-bottom: 14px; padding: 16px 20px; border-radius: 14px; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-hero h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-hero > p { font-size: 0.82rem; line-height: 1.55; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-panel { margin-top: 14px; padding: 18px 20px; border-radius: 14px; box-shadow: 0 2px 10px rgba(25, 52, 47, 0.04); }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-panel-head { margin-bottom: 12px; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-panel h2 { margin-top: 2px; font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-eyebrow { font-size: 0.66rem; letter-spacing: 0.1em; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-copy { font-size: 0.82rem; line-height: 1.55; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-table th { padding: 0 10px 8px; font-size: 0.66rem; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-table td { padding: 10px; font-size: 0.82rem; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-status { padding: 4px 9px; font-size: 0.68rem; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-table-filter { margin-bottom: 10px; font-size: 0.76rem; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-notifications"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-table-filter select { min-height: 32px; font-size: 0.8rem; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-inline-form input, body:is([data-screen="operator-collaborators"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-inline-form select { min-height: 38px; font-size: 0.86rem; }
+body:is([data-screen="operator-collaborators"], [data-screen="operator-register-collaborator"], [data-screen="operator-collaborator-detail"]) .operator-form-grid label { font-size: 0.78rem; }
+body[data-screen="operator-collaborators"] .mt-page-header-action, body[data-screen="operator-collaborators"] .operator-primary { min-height: 36px; padding: 0 14px; font-size: 0.82rem; }
+
+/* Notificaciones: aviso de rol y alertas compactas. */
+body[data-screen="operator-notifications"] .operator-access-note { margin: 0 0 4px; padding: 9px 14px; font-size: 0.78rem; }
+body[data-screen="operator-notifications"] .mt-divider-list-item { gap: 12px; padding: 12px 0; align-items: center; }
+body[data-screen="operator-notifications"] .mt-divider-list-icon { width: 32px; height: 32px; font-size: 0.7rem; font-weight: 700; }
+body[data-screen="operator-notifications"] .mt-divider-list-copy { gap: 2px; }
+body[data-screen="operator-notifications"] .mt-divider-list-copy strong { font-size: 0.88rem; font-weight: 700; }
+body[data-screen="operator-notifications"] .mt-divider-list-copy p, body[data-screen="operator-notifications"] .mt-divider-list-copy span { margin: 0; font-size: 0.8rem; line-height: 1.5; color: #5a6b70; }
+
+/* Resumen de reserva: imagen arriba a todo el ancho, datos debajo y desglose de valores limpio. */
+body[data-screen="tour-checkout"] .travel-checkout-summary { grid-template-columns: minmax(0, 1fr); gap: 12px; padding-bottom: 14px; border-bottom-color: #eef1f0; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-media { width: 100%; min-height: 120px; height: 120px; border-radius: 10px; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-copy { gap: 3px; padding-top: 0; min-width: 0; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-copy strong { font-size: 0.98rem; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-copy span { font-size: 0.78rem; line-height: 1.45; color: #5a6b70; overflow-wrap: anywhere; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-copy span:first-of-type { margin-top: 2px; font-weight: 600; color: #17252b; }
+body[data-screen="tour-checkout"] .travel-checkout-summary-copy span:empty { display: none; }
+
+body[data-screen="tour-checkout"] .travel-checkout-pricing { gap: 0; padding-top: 10px; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing > div { padding: 8px 0; border-bottom: 1px dashed #e6ebe9; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing > div:last-child { border-bottom: 0; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing span { font-size: 0.8rem; color: #5a6b70; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing strong { font-size: 0.86rem; font-weight: 600; }
+body[data-screen="tour-checkout"] [data-checkout-discount] { color: #1f6a4d; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing-total { margin-top: 4px; padding: 12px 14px; border: 0; border-radius: 10px; background: #f4f7f6; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing-total span { font-size: 0.82rem; font-weight: 700; color: #17252b; }
+body[data-screen="tour-checkout"] .travel-checkout-pricing-total strong { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; }
+
+/* El atributo hidden debe ocultar siempre, aunque la clase del elemento defina display. */
+[hidden] { display: none !important; }
+
+/* ---- Correcciones detectadas en el recorrido completo contra el PDR ----------------------------- */
+button, input, select, textarea { font-family: inherit; }
+
+/* Mis pagos: los datos de cada reserva en cuadrícula legible (antes salían pegados en una línea). */
+body[data-screen="client-payments"] .travel-dashboard-reservation-card { padding: 14px 18px; border-radius: 14px; border-color: #e3e7e6; box-shadow: 0 2px 10px rgba(23, 37, 43, 0.04); }
+body[data-screen="client-payments"] .travel-dashboard-reservation-card > p:first-child { margin: 0; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; color: #6b7a80; }
+body[data-screen="client-payments"] .travel-dashboard-reservation-card h3 { margin: 2px 0; font-size: 1rem; font-weight: 700; }
+body[data-screen="client-payments"] .travel-dashboard-reservation-card > p { margin: 0 0 8px; font-size: 0.82rem; color: #5a6b70; }
+body[data-screen="client-payments"] .travel-dashboard-card-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 20px; margin: 8px 0 12px; padding: 10px 0; border-top: 1px solid #eef1f0; border-bottom: 1px solid #eef1f0; }
+body[data-screen="client-payments"] .travel-dashboard-card-meta span { font-size: 0.8rem; line-height: 1.45; color: #4b5a60; }
+body[data-screen="client-payments"] .client-receipt-list { margin: 6px 0 0; padding-left: 18px; font-size: 0.8rem; line-height: 1.6; }
+
+/* Pago por transferencia: campos del comprobante con el mismo estilo que el resto de formularios. */
+body[data-screen="tour-payment-transfer"] .travel-booking-card { padding: 16px 20px; border-color: #e3e7e6; border-radius: 14px; box-shadow: 0 2px 10px rgba(23, 37, 43, 0.04); }
+body[data-screen="tour-payment-transfer"] .travel-booking-card h2 { margin: 0 0 12px; font-size: 1rem; font-weight: 700; }
+body[data-screen="tour-payment-transfer"] .travel-booking-card > label { display: grid; gap: 5px; margin: 0 0 12px; font-size: 0.8rem; font-weight: 600; color: #4b5a60; }
+body[data-screen="tour-payment-transfer"] .travel-booking-card > label input { width: 100%; min-height: 40px; padding: 0 12px; border: 1px solid #e0e5e3; border-radius: 8px; background: #ffffff; color: #17252b; font-size: 0.88rem; box-sizing: border-box; }
+body[data-screen="tour-payment-transfer"] .travel-booking-card > label input[type="file"] { padding: 6px 8px; }
+body[data-screen="tour-payment-transfer"] .travel-booking-card > label input[type="file"]::file-selector-button { margin-right: 10px; padding: 6px 12px; border: 1px solid #d7e0de; border-radius: 6px; background: #f3f6f5; color: #17252b; font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+body[data-screen="tour-payment-transfer"] .travel-booking-card > p { margin: 0 0 8px; font-size: 0.82rem; line-height: 1.55; }
+
+/* Reservar: salidas en tarjetas anchas (la fecha ya no se parte en dos líneas). */
+body[data-screen="tour-booking"] .client-departure-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+body[data-screen="tour-booking"] .client-departure-option { grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border-radius: 10px; }
+body[data-screen="tour-booking"] .client-departure-option > input { grid-row: 1 / span 2; align-self: center; }
+body[data-screen="tour-booking"] .client-departure-main strong { white-space: nowrap; font-size: 0.92rem; }
+body[data-screen="tour-booking"] .client-departure-main small { font-size: 0.78rem; line-height: 1.4; }
+body[data-screen="tour-booking"] .client-departure-seats { grid-column: 2; font-size: 0.78rem; font-weight: 600; }
+
+/* Propuesta de reprogramación: el enlace de regreso respeta el margen de la página. */
+body[data-screen="client-reprogramming-proposal"] main > p, body[data-screen="client-reprogramming-proposal"] main > a { margin-left: 20px; }
+
+/* Detalle de reserva (administración): el botón de reprogramación no se solapa con la fila anterior. */
+.operator-form-actions[data-reservation-reprogram-box] { margin-top: 14px; justify-content: flex-end; }
+
+/* Crear reserva (administración): el buscador de cliente existente con estilo de formulario. */
+.operator-form-wide > input[data-customer-search] { display: block; width: 100%; box-sizing: border-box; min-height: 40px; margin-top: 6px; padding: 0 12px; border: 1px solid #d2dfd8; border-radius: 9px; background: #fffefa; font-size: 0.88rem; }
+
+/* Reloj de demostración: control discreto para avanzar el tiempo del mockup */
+.demo-clock { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line, rgba(128, 128, 128, 0.25)); font-size: 0.72rem; line-height: 1.35; color: var(--text-soft, #7a8591); }
+.demo-clock time { font-weight: 700; }
+.demo-clock-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.demo-clock button { padding: 2px 7px; border: 1px solid var(--line, rgba(128, 128, 128, 0.35)); border-radius: 5px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.demo-clock button:hover { background: var(--surface-muted, rgba(128, 128, 128, 0.12)); }
+.platform-sidebar .demo-clock { color: #8fa39c; border-top-color: rgba(143, 163, 156, 0.3); padding-left: 14px; padding-right: 8px; }
+.platform-sidebar .demo-clock button { border-color: rgba(143, 163, 156, 0.4); }
+.demo-clock-sidebar { padding-left: 11px; margin-top: 22px; }
+.demo-clock-footer { max-width: 1180px; margin: 24px auto 28px; padding: 10px 16px 0; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+
+/* Operador (tenant) en pantallas de acceso: línea discreta; el selector solo aparece al pulsar "Cambiar". */
+.client-tenant-line { margin: 4px 0 14px; font-size: 0.8rem; line-height: 1.4; color: #6b7775; }
+.client-tenant-line strong { font-weight: 600; color: #3f4f4d; }
+.client-tenant-change { padding: 0; border: 0; background: none; color: #2d6a58; font: inherit; font-size: 0.8rem; text-decoration: underline; cursor: pointer; }
+.client-tenant-line .client-tenant-select { display: block; width: 100%; max-width: 280px; min-height: 34px; margin-top: 6px; padding: 4px 8px; border: 1px solid #cbd5d1; border-radius: 6px; background: #fff; font: inherit; font-size: 0.82rem; color: inherit; }
+.client-tenant-line .client-tenant-select[hidden] { display: none; }
+
+/* Operador inactivo: acceso restringido (administración) y aviso del canal cliente. */
+.operator-inactive-banner { margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e3b4b0; border-left: 4px solid #b3382f; border-radius: 8px; background: #fdf1f0; color: #4a1f1c; font-size: 0.88rem; line-height: 1.5; }
+.operator-inactive-banner strong { display: block; margin-bottom: 4px; font-size: 0.95rem; color: #8f2820; }
+.operator-inactive-banner p { margin: 0; }
+.operator-nav .operator-nav-locked { display: block; padding: 9px 11px; border-left: 3px solid transparent; color: var(--text-soft); opacity: 0.45; font-size: 0.85rem; font-weight: 700; cursor: not-allowed; }
+.operator-content a.is-locked { opacity: 0.45; cursor: not-allowed; pointer-events: none; text-decoration: none; }
+.operator-obligations { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+.operator-obligations a { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid #e5e7e6; border-radius: 10px; background: #fff; color: inherit; text-decoration: none; }
+.operator-obligations strong { font-size: 1.5rem; line-height: 1.1; }
+.operator-obligations span { font-size: 0.82rem; color: #5c6c6b; }
+.client-inactive-banner { max-width: 1180px; margin: 12px auto; padding: 12px 16px; border: 1px solid #e3b4b0; border-left: 4px solid #b3382f; border-radius: 8px; background: #fdf1f0; color: #4a1f1c; font-size: 0.88rem; line-height: 1.5; }
+.client-tenant-line + .client-inactive-banner { margin: 0 0 14px; }
+a.is-locked[data-route], main a.is-locked { opacity: 0.5; cursor: not-allowed; }
+.platform-obligations { margin: 12px 0; padding: 12px 14px; border: 1px solid #e5e7e6; border-radius: 10px; background: rgba(179, 56, 47, 0.06); }
+.platform-obligations ul { margin: 6px 0; padding-left: 18px; }
+
+/* Primer acceso: cambio de contraseña temporal en el login. */
+.mth-login-first-access { display: grid; gap: 10px; }
+.mth-login-first-access-title { margin: 0; font-size: 1.35rem; }
+
+/* Roles opcionales del tenant (administración > colaboradores). */
+.optional-roles-list { display: grid; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.optional-role-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px; border: 1px solid #e5e7e6; border-radius: 10px; background: #fff; }
+.optional-role-row small { display: block; margin-top: 2px; color: #5c6c6b; font-size: 0.8rem; }
+.optional-role-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.optional-role-switch input { width: 38px; height: 22px; accent-color: #2d6a58; cursor: pointer; }
+
+/* Fase C: saldo a favor, parámetros de pago, contexto comercial y retención (compacto, sobrio) */
+.mt-compact-panel { padding: 16px 18px; margin-bottom: 14px; }
+.mt-compact-panel h2 { font-size: 0.95rem; margin: 2px 0 10px; }
+.mt-compact-table th, .mt-compact-table td { font-size: 0.82rem; padding: 7px 9px; vertical-align: middle; }
+.mt-compact-table input { width: 78px; padding: 5px 7px; font-size: 0.82rem; border: 1px solid var(--line-strong, #cfd8d6); border-radius: 8px; background: #fff; }
+.mt-compact-table input::placeholder { color: #8a9a97; }
+.mt-compact-list > div { font-size: 0.84rem; }
+.mt-btn-sm { padding: 6px 12px !important; font-size: 0.8rem !important; min-height: 0 !important; }
+.mt-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 14px 0; }
+.mt-stat-row .mt-summary-metric { padding: 10px 14px; border: 1px solid #e3e7e6; border-left: 1px solid #e3e7e6; border-radius: 12px; background: #fafbfa; }
+.mt-stat-row .mt-summary-metric-value { font-size: 1.2rem; }
+.mt-inline-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 12px 0 4px; }
+.mt-inline-form label { display: grid; gap: 4px; font-size: 0.8rem; }
+.mt-inline-form input, .mt-inline-form select { padding: 6px 8px; font-size: 0.82rem; }
+.mt-inline-links { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.mt-muted { font-size: 0.78rem; color: #5a6b70; margin: 8px 0 0; }
+.mt-details { margin-top: 10px; font-size: 0.82rem; }
+.mt-details summary { cursor: pointer; color: #36524f; font-weight: 600; }
+.mt-compact-table .operator-outline { border: 1px solid var(--line-strong, #cfd8d6); border-radius: 999px; background: #fff; }

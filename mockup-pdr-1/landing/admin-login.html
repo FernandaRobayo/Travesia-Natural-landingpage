@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="platform-login" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -16,38 +16,55 @@
         <div class="travel-auth-visual-media"></div>
         <div class="travel-auth-visual-overlay"></div>
         <div class="travel-auth-visual-content">
-          <a class="travel-auth-visual-brand" href="index.html" data-route="home">Multi Tour</a>
+          <a class="travel-auth-visual-brand" href="index.html" data-route="home">Multitour</a>
           <span class="travel-auth-visual-kicker mt-caption">Entorno interno</span>
-          <h2 class="travel-auth-visual-title">Administra operadores y tenants de Multi Tour de forma centralizada.</h2>
+          <h2 class="travel-auth-visual-title">Administra operadores y tenants de Multitour de forma centralizada.</h2>
         </div>
       </aside>
 
       <section class="travel-login-panel">
         <header class="travel-login-header">
-          <a class="travel-login-brand" href="index.html" data-route="home">Multi Tour</a>
+          <a class="travel-login-brand" href="index.html" data-route="home">Multitour</a>
         </header>
         <div class="travel-login-stage">
           <div class="travel-login-card travel-platform-login-card">
             <div class="travel-login-copy">
-              <p class="travel-platform-login-kicker mt-caption">Multi Tour / entorno interno</p>
+              <p class="travel-platform-login-kicker mt-caption">Multitour / entorno interno</p>
               <h1 class="mt-h1">Acceso de plataforma</h1>
-              <p class="mt-body">Ingresa para administrar los operadores de Multi Tour.</p>
+              <p class="mt-body">Ingresa para administrar los operadores de Multitour.</p>
             </div>
             <form class="travel-login-form" data-form="login" novalidate>
               <div class="travel-login-field">
-                <label for="login-id">Correo Electronico</label>
+                <label for="login-id">Correo electrónico</label>
                 <input id="login-id" name="email" type="email" autocomplete="email" placeholder="correo@ejemplo.com" />
               </div>
               <div class="travel-login-field">
-                <div class="travel-login-field-head"><label for="login-password">Contrasena</label></div>
+                <div class="travel-login-field-head"><label for="login-password">Contraseña</label><a href="#recuperar" data-platform-recover-open>¿Olvidaste tu contraseña?</a></div>
                 <div class="travel-login-password-wrap">
-                  <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="..........." />
+                  <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••••" />
                   <button class="travel-login-visibility" type="button" data-toggle="#login-password">Ver</button>
                 </div>
               </div>
               <p class="feedback" data-feedback="login" aria-live="polite"></p>
               <button class="travel-login-submit mt-btn mt-btn-primary" type="submit"><span>Ingresar a plataforma</span></button>
             </form>
+            <div class="platform-recover" id="recuperar" data-platform-recover hidden>
+              <h2 class="mt-h3">Recuperar contraseña administrativa</h2>
+              <p class="mt-body">Te enviaremos al correo registrado un código de un solo uso que vence en 30 minutos. Nunca se muestra la contraseña anterior; al completar el cambio se cierran las sesiones activas y recibirás una notificación.</p>
+              <form class="travel-login-form" data-platform-recover-request novalidate>
+                <div class="travel-login-field"><label for="recover-email">Correo electrónico registrado</label><input id="recover-email" name="email" type="email" autocomplete="email" placeholder="correo@ejemplo.com" /></div>
+                <button class="travel-login-submit mt-btn mt-btn-primary" type="submit"><span>Enviar código</span></button>
+              </form>
+              <p class="platform-recover-mock" data-platform-recover-mock hidden></p>
+              <form class="travel-login-form" data-platform-recover-reset novalidate hidden>
+                <div class="travel-login-field"><label for="recover-code">Código recibido</label><input id="recover-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" /></div>
+                <div class="travel-login-field"><label for="recover-password">Nueva contraseña</label><input id="recover-password" name="password" type="password" autocomplete="new-password" /></div>
+                <div class="travel-login-field"><label for="recover-confirmation">Confirmar nueva contraseña</label><input id="recover-confirmation" name="confirmation" type="password" autocomplete="new-password" /></div>
+                <div class="password-policy platform-password-policy" aria-label="Requisitos de la contraseña"><p>La contraseña debe contener:</p><ul><li>Mínimo 8 caracteres</li><li>Al menos una letra mayúscula</li><li>Al menos una letra minúscula</li><li>Al menos un número</li><li>Al menos un carácter especial</li></ul></div>
+                <button class="travel-login-submit mt-btn mt-btn-primary" type="submit"><span>Restablecer contraseña</span></button>
+              </form>
+              <p class="feedback" data-feedback="platform-recover" aria-live="polite"></p>
+            </div>
             <p class="travel-recover-back"><a href="login.html" data-route="login">Volver al acceso general</a></p>
           </div>
         </div>

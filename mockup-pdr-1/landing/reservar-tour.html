@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="tour-booking" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -26,40 +26,18 @@
       </header>
 
       <section class="travel-booking-content">
-        <article class="travel-booking-card">
+        <article class="travel-booking-card" data-booking-departures-card>
           <div class="travel-booking-card-head">
             <div>
-              <h2 data-booking-tour-name>Tour destino ejemplo - montañas</h2>
-              <p data-booking-tour-category>Naturaleza y trekking</p>
+              <h2 data-booking-tour-name>Tour</h2>
+              <p data-booking-tour-category>Elige una de las salidas programadas.</p>
             </div>
-            <span class="travel-booking-price-tag" data-booking-tour-price>Desde $1.299.000</span>
+            <span class="travel-booking-price-tag" data-booking-tour-price>Desde $0</span>
           </div>
 
-          <div class="travel-booking-calendar">
-            <div class="travel-booking-calendar-head">
-              <div class="travel-booking-calendar-title-wrap">
-                <strong data-booking-month-label>Septiembre 2026</strong>
-                <span>Salidas disponibles</span>
-              </div>
-
-              <div class="travel-booking-calendar-nav">
-                <button type="button" data-booking-month-nav="prev" aria-label="Mes anterior">&lsaquo;</button>
-                <button type="button" data-booking-month-nav="next" aria-label="Mes siguiente">&rsaquo;</button>
-              </div>
-            </div>
-
-            <div class="travel-booking-weekdays" aria-hidden="true">
-              <span>D</span>
-              <span>L</span>
-              <span>M</span>
-              <span>M</span>
-              <span>J</span>
-              <span>V</span>
-              <span>S</span>
-            </div>
-
-            <div class="travel-booking-days" data-booking-days></div>
-          </div>
+          <h3 class="mt-h3">Salidas programadas</h3>
+          <p class="travel-transfer-reference-copy">Cada salida tiene fecha, hora de inicio, hora de finalización estimada y cupos propios. Cada reserva corresponde a una única salida; si quieres viajar en otra salida, crea otra reserva.</p>
+          <div class="client-departure-list" data-booking-departures role="radiogroup" aria-label="Salidas programadas"></div>
         </article>
 
         <article class="travel-booking-note-card">
@@ -89,8 +67,7 @@
             </div>
           </div>
           <p class="travel-booking-capacity-message" data-booking-capacity-message aria-live="polite"></p>
-          <p class="travel-transfer-reference-copy"><strong>Salida seleccionada:</strong> 18 sep 2026 · inicio 06:30 · finalización estimada 18:00. Cada reserva corresponde a una única salida.</p>
-          <p class="travel-transfer-reference-copy"><strong>Incluido en el paquete:</strong> alimentación incluida según el tour. No se reservan habitaciones ni mesas desde Multitour.</p>
+          <p class="travel-transfer-reference-copy"><strong>Incluido en el paquete:</strong> la alimentación indicada en el tour forma parte del paquete. Multitour no reserva habitaciones ni mesas: hoteles y restaurantes asociados se consultan solo como información de contacto.</p>
         </article>
       </section>
     </main>
@@ -99,21 +76,21 @@
       <div class="travel-booking-sticky-pricing">
         <div>
           <span>Valor proyectado</span>
-          <strong data-booking-projected-value>$2.598.000</strong>
+          <strong data-booking-projected-value>$0</strong>
         </div>
         <div data-booking-discount-block hidden>
           <span>Descuento vigente</span>
-          <strong data-booking-discount-value>-$519.600</strong>
+          <strong data-booking-discount-value>-$0</strong>
         </div>
         <div>
           <span>Valor final</span>
-          <strong data-booking-final-value>$2.078.400</strong>
+          <strong data-booking-final-value>$0</strong>
         </div>
       </div>
 
       <div class="travel-booking-sticky-selection">
         <span>Seleccionado</span>
-        <strong data-booking-selection>15 sep 2026 - 2 viajeros</strong>
+        <strong data-booking-selection>Sin salida seleccionada</strong>
       </div>
 
       <button type="button" class="travel-booking-continue mt-btn mt-btn-primary" data-booking-continue>

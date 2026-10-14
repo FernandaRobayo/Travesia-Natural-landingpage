@@ -1,1 +1,75 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Restaurantes asociados | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="platform"><header class="mt-site-header"><div class="mt-container mt-site-header-inner"><a class="mt-site-header-brand" href="index.html">MULTI<span>TOUR</span></a><nav class="mt-site-header-nav"><a href="tours.html">Explorar tours</a><a href="alojamiento.html">Alojamiento asociado</a><a class="is-active" href="gastronomia.html">Gastronomía</a></nav><div class="mt-site-header-actions"><a class="mt-btn mt-btn-ghost" href="panel-cliente.html">Mis reservas</a><a class="mt-btn mt-btn-ghost" href="profile.html">Perfil</a></div></div></header><main class="travel-tours-shell"><section class="travel-tours-topbar"><a class="travel-tours-back" href="gastronomia.html">← Volver a gastronomía</a><div class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">Establecimientos asociados</p><h1 class="mt-page-header-title">Restaurantes</h1><p class="mt-page-header-desc">Datos de contacto para coordinar directamente tu visita.</p></div></div></section><section class="operator-panel"><p class="operator-eyebrow">Información del convenio</p><h2>Coordina directamente con el establecimiento</h2><p class="operator-copy">Multitour no genera reservas de mesa, no administra tarifas, disponibilidad ni inventario de alimentación.</p></section><section class="travel-restaurant-grid"><article class="travel-dashboard-destination-card"><div class="travel-dashboard-destination-media dashboard-media-two"></div><div class="travel-dashboard-destination-body"><strong>Sabores de la Montaña</strong><span>Restaurante asociado</span><p>Contacto: reservas@saboresmontana.co<br>+57 310 555 0220<br>Plaza principal, local 4</p><a href="detalle-gastronomia.html?venue=sabores-montana">Ver contacto</a></div></article></section></main><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurantes asociados | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="restaurants" data-theme="platform">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <header class="mt-site-header">
+      <div class="mt-container mt-site-header-inner">
+        <a class="mt-site-header-brand" href="index.html" data-route="home">MULTI<span>TOUR</span></a>
+        <nav class="mt-site-header-nav" aria-label="Navegación principal del cliente">
+          <a href="tours.html" data-route="tours">Explorar</a>
+          <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+          <a class="is-active" href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
+        </nav>
+        <div class="mt-site-header-actions">
+          <a class="mt-btn mt-btn-ghost" href="panel-cliente.html" data-route="dashboard">Mis reservas</a>
+          <a class="mt-btn mt-btn-ghost" href="profile.html" data-route="profile">Perfil</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="travel-tours-shell">
+      <section class="travel-tours-topbar">
+        <a class="travel-tours-back" href="gastronomia.html" data-route="gastronomy">
+          <span aria-hidden="true">&larr;</span>
+          <span>Volver a gastronomía</span>
+        </a>
+        <div class="mt-page-header">
+          <div class="mt-page-header-main">
+            <p class="mt-page-header-eyebrow">Establecimientos asociados</p>
+            <h1 class="mt-page-header-title">Restaurantes</h1>
+            <p class="mt-page-header-desc">Datos de contacto de los restaurantes asociados para que coordines directamente tu visita.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="operator-panel">
+        <p class="operator-eyebrow">Información del convenio</p>
+        <h2>Coordina directamente con el establecimiento</h2>
+        <p class="operator-copy">Multitour no genera reservas de mesa ni administra tarifas, disponibilidad o inventario de alimentación. Las condiciones de reserva, cambio o cancelación se acuerdan directamente entre tú y el restaurante.</p>
+      </section>
+
+      <section class="travel-tours-grid" aria-label="Restaurantes asociados" data-restaurant-grid></section>
+    </main>
+
+    <footer class="mt-site-footer">
+      <div class="mt-site-footer-grid">
+        <div>
+          <span class="mt-site-footer-brand">MULTI<span>TOUR</span></span>
+          <p class="mt-body" style="color: #9fb3ac; max-width: 34ch;">Plataforma para descubrir, reservar y gestionar experiencias de turismo con operadores locales.</p>
+        </div>
+        <nav class="mt-site-footer-col" aria-label="Explorar">
+          <strong>Explorar</strong>
+          <a href="tours.html" data-route="tours">Tours</a>
+          <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
+          <a href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
+        </nav>
+      </div>
+      <p class="mt-site-footer-bottom">© 2026 Multitour. Plataforma para operadores de turismo.</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

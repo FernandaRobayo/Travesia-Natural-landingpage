@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="profile" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -49,8 +49,13 @@
                 </label>
 
                 <label class="travel-profile-field-block">
-                  <span>Correo electronico</span>
+                  <span>Correo electrónico</span>
                   <input type="email" readonly data-profile-email-input />
+                </label>
+
+                <label class="travel-profile-field-block">
+                  <span>Operador (tenant)</span>
+                  <input type="text" readonly data-profile-tenant-input />
                 </label>
 
                 <label class="travel-profile-field-block">
@@ -64,7 +69,7 @@
               <h2 class="mt-form-section-title mt-label">Datos personales</h2>
               <div class="travel-profile-form-grid mt-form-grid-2">
                 <label class="travel-profile-field-block">
-                  <span>Numero de telefono</span>
+                  <span>Número de teléfono (obligatorio)</span>
                   <input type="text" readonly data-profile-phone-input />
                 </label>
               </div>
@@ -90,7 +95,7 @@
 
             <div class="mt-summary-metric">
               <strong class="mt-summary-metric-value" data-profile-last-reservation>No registrado</strong>
-              <span class="mt-summary-metric-label">Ultima reserva</span>
+              <span class="mt-summary-metric-label">Última reserva</span>
             </div>
           </div>
         </section>
@@ -107,7 +112,7 @@
               <div class="travel-profile-row-icon">EP</div>
               <div class="travel-profile-row-copy">
                 <strong data-profile-edit-label>Editar perfil</strong>
-                <span>Actualiza tu nombre completo y numero de telefono.</span>
+                <span>Actualiza tu nombre completo y tu número de teléfono.</span>
               </div>
               <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
             </a>
@@ -116,7 +121,7 @@
               <div class="travel-profile-row-icon">CC</div>
               <div class="travel-profile-row-copy">
                 <strong>Cambiar contraseña</strong>
-                <span>Reutiliza el flujo de recuperación de contraseña ya existente.</span>
+                <span>Recibirás un código de recuperación por correo (vence en 30 minutos y solo se usa una vez).</span>
               </div>
               <span class="travel-profile-row-arrow" aria-hidden="true">&rsaquo;</span>
             </a>
@@ -133,7 +138,7 @@
         </section>
 
         <div class="travel-profile-footer">
-          <a class="travel-profile-logout" href="login.html" data-route="login">Cerrar sesion</a>
+          <a class="travel-profile-logout" href="login.html" data-route="login">Cerrar sesión</a>
         </div>
       </section>
     </main>

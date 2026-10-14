@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pago exitoso | Multitour</title>
+    <title>Comprobante recibido | Multitour</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="tour-payment-success" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -18,37 +18,53 @@
     <main id="contenido" class="travel-booking-page travel-payment-page">
       <section class="travel-payment-success-shell">
         <article class="travel-payment-success-card">
-          <div class="travel-payment-success-icon" aria-hidden="true">✓</div>
+          <div class="travel-payment-success-icon" aria-hidden="true">&#10003;</div>
 
           <div class="travel-payment-success-copy">
-            <h1 class="mt-h1" data-success-title>Pago exitoso</h1>
+            <h1 class="mt-h1" data-success-title>Comprobante recibido</h1>
             <p class="mt-body" data-success-message>
-              Gracias por tu compra. Hemos enviado una confirmacion al correo
-              registrado dentro del mockup.
+              Recibimos tu comprobante y quedó En validación. Esto no confirma tu reserva:
+              un usuario del operador con el permiso Validar comprobantes lo revisará en un
+              plazo máximo de 24 horas corridas. La reserva se confirma solo cuando el pago sea validado.
             </p>
           </div>
 
-          <div class="travel-payment-success-summary">
-            <div class="travel-payment-success-media" data-success-image></div>
+          <div data-success-details>
+            <div class="travel-payment-success-summary">
+              <div class="travel-payment-success-media" data-success-image></div>
 
-            <div class="travel-payment-success-details">
-              <strong data-success-tour-name>Tour destino ejemplo</strong>
-              <span data-success-date>09 Sep 2026</span>
-              <span data-success-travelers>2 viajeros</span>
+              <div class="travel-payment-success-details">
+                <strong data-success-tour-name>Tour</strong>
+                <span data-success-date>Salida</span>
+                <span data-success-travelers>1 viajero</span>
+              </div>
             </div>
-          </div>
 
-          <div class="travel-payment-success-ref">
-            <span>Ref. reserva:</span>
-            <strong data-success-code>#RES-000000</strong>
+            <div class="travel-payment-success-ref">
+              <span>Reserva:</span>
+              <strong data-success-code>-</strong>
+            </div>
+            <div class="travel-payment-success-ref">
+              <span>Estado del comprobante:</span>
+              <strong data-success-receipt-status>En validación</strong>
+            </div>
+            <div class="travel-payment-success-ref">
+              <span>Estado de la reserva:</span>
+              <strong data-success-reservation-status>Pendiente de pago</strong>
+            </div>
+            <div class="travel-payment-success-ref">
+              <span>Situación financiera:</span>
+              <strong data-success-financial>Sin pago</strong>
+            </div>
+            <p class="mt-body" data-success-deadline></p>
           </div>
 
           <div class="travel-payment-success-actions">
-            <a class="travel-booking-continue mt-btn mt-btn-primary" href="panel-cliente.html" data-route="dashboard">
-              Ver mis tickets
+            <a class="travel-booking-continue mt-btn mt-btn-primary" href="mis-reservas.html" data-route="clientReservations" data-success-reservations-link>
+              Ver mis reservas
             </a>
-            <a class="travel-payment-secondary mt-btn mt-btn-secondary" href="index.html" data-route="home">
-              Volver al inicio
+            <a class="travel-payment-secondary mt-btn mt-btn-secondary" href="panel-cliente.html" data-route="dashboard">
+              Volver al panel
             </a>
           </div>
         </article>

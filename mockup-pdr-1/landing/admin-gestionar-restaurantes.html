@@ -1,1 +1,25 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="main.css"><title>Gestionar restaurantes asociados</title></head><body data-screen="operator-manage-restaurants" data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Catálogos</p><h1 class="mt-page-header-title mt-h1">Gestionar restaurantes asociados</h1></div><a class="operator-outline mt-page-header-action" href="admin-catalogos.html">Volver a catálogos</a></header><section class="operator-panel" id="restaurantes-catalog-panel"><p class="operator-eyebrow">Establecimientos</p><h2>Restaurantes asociados del tenant</h2><p class="operator-copy">Desactivar evita que aparezcan en Gastronomía Cliente; el registro se conserva (histórico).</p><div class="operator-table-wrap"><table class="operator-table" data-restaurants-table><thead><tr><th>Nombre comercial</th><th>Información comercial</th><th>Estado</th><th>Acción</th></tr></thead><tbody data-restaurants-body></tbody></table></div></section></section></main><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurantes asociados | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-theme="travesia-natural">
+    <main style="padding:32px;font-family:Manrope,sans-serif">
+      <p>Esta pantalla se unificó con <a href="admin-gestionar-alimentacion.html" id="destino">Restaurantes asociados</a>. Redirigiendo…</p>
+    </main>
+    <script>
+      (function () {
+        var destino = document.getElementById("destino");
+        var url = "admin-gestionar-alimentacion.html" + window.location.search;
+        destino.setAttribute("href", url);
+        window.location.replace(url);
+      })();
+    </script>
+  </body>
+</html>

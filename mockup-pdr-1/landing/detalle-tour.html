@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
   </head>
   <body data-screen="tour-detail" data-theme="platform">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -18,7 +18,7 @@
     <header class="mt-site-header">
       <div class="mt-container mt-site-header-inner">
       <a class="mt-site-header-brand" href="index.html" data-route="home">MULTI<span>TOUR</span></a>
-      <nav class="mt-site-header-nav" aria-label="Navegacion principal del cliente">
+      <nav class="mt-site-header-nav" aria-label="Navegación principal del cliente">
         <a class="is-active" href="tours.html" data-route="tours">Explorar</a>
         <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
         <a href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
@@ -56,6 +56,12 @@
           <section class="travel-detail-section">
             <h2>Vigencia, capacidad y restricciones</h2>
             <div class="travel-detail-info-grid" data-tour-info-grid></div>
+          </section>
+
+          <section class="travel-detail-section" data-tour-departures-section>
+            <h2>Salidas programadas</h2>
+            <p class="travel-transfer-reference-copy">Cada reserva corresponde a una única salida. El cupo se controla por salida y se aparta con tu primer pago.</p>
+            <div class="client-departure-list" data-tour-departures></div>
           </section>
 
           <aside class="travel-detail-risk-note" data-tour-risk-note hidden>
@@ -112,13 +118,8 @@
           <a href="alojamiento.html" data-route="lodging">Alojamiento</a>
           <a href="gastronomia.html" data-route="gastronomy">Gastronomía</a>
         </nav>
-        <nav class="mt-site-footer-col" aria-label="Cuenta">
-          <strong>Cuenta</strong>
-          <a href="login.html" data-route="login">Ingresar</a>
-          <a href="crear-cuenta.html" data-route="crear-cuenta">Crear cuenta</a>
-        </nav>
       </div>
-      <p class="mt-site-footer-bottom">© 2026 Multi Tour. Plataforma para operadores de turismo.</p>
+      <p class="mt-site-footer-bottom">© 2026 Multitour. Plataforma para operadores de turismo.</p>
     </footer>
 
     <script src="app.js"></script>

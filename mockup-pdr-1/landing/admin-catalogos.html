@@ -1,1 +1,38 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogos | Multitour</title><link rel="stylesheet" href="main.css"></head><body data-theme="travesia-natural"><main class="operator-shell"><section class="operator-content"><header class="mt-page-header"><div class="mt-page-header-main"><p class="mt-page-header-eyebrow">Configuración operativa</p><h1 class="mt-page-header-title mt-h1">Catálogos</h1></div><a class="operator-outline mt-page-header-action" href="admin-operador.html">Resumen</a></header><p class="operator-access-note">El Colaborador operativo consulta la operación, pero no gestiona establecimientos asociados, tenants ni roles avanzados. El Administrador del tenant gestiona estos convenios.</p><section class="operator-catalog-grid"><article><span>TOURS</span><strong>4 activos</strong><p>La reserva y el cupo corresponden al tour y a una salida concreta.</p><a href="admin-gestionar-catalogo.html">Gestionar tours</a></article><article><span>SALIDAS</span><strong>Programadas</strong><p>Fechas, horas, vehículos y estados de ejecución.</p><a href="admin-salidas.html">Gestionar salidas</a></article><article><span>ALOJAMIENTO ASOCIADO</span><strong>2 registros</strong><p>Contactos informativos, sin habitaciones, tarifas ni inventario.</p><a href="admin-gestionar-hospedaje.html">Gestionar establecimientos</a></article><article><span>ALIMENTACIÓN ASOCIADA</span><strong>1 registro</strong><p>Contactos y convenios; la comida puede estar incluida en el paquete del tour.</p><a href="admin-gestionar-alimentacion.html">Gestionar establecimientos</a></article><article><span>TRANSPORTE</span><strong>1 activo</strong><p>Capacidad asignada a salidas del tour.</p><a href="admin-gestionar-transporte.html">Gestionar transporte</a></article></section></section></main></body></html>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catálogos | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-catalogs" data-theme="travesia-natural">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a class="is-active" href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Configuración operativa</p><h1 class="mt-page-header-title mt-h1">Catálogos</h1></div>
+          <a class="operator-primary mt-page-header-action" href="admin-nuevo-servicio.html" data-route="operatorNewService" data-role-admin-only>Nuevo servicio</a>
+        </header>
+        <p class="operator-access-note">El único servicio con reserva y cupo es el tour (por salida). Los hoteles y restaurantes son establecimientos asociados de carácter informativo: solo el Administrador del tenant los registra, inactiva y reactiva. El Colaborador operativo consulta los catálogos sin modificarlos.</p>
+        <section class="operator-catalog-grid">
+          <article><span>TOURS</span><strong data-catalog-count="tours">4 tours activos</strong><p>La reserva y el cupo corresponden al tour y a una salida concreta.</p><a href="admin-gestionar-catalogo.html" data-route="operatorTourCatalog">Ver tours</a></article>
+          <article><span>SALIDAS</span><strong>Programación</strong><p>Fechas, horas, vehículos y estados de ejecución.</p><a href="admin-salidas.html">Ver salidas</a></article>
+          <article><span>TRANSPORTE</span><strong data-catalog-count="transport">1 recurso activo</strong><p>Su capacidad restringe el cupo de la salida; la tarifa es por persona.</p><a href="admin-gestionar-transporte.html" data-route="operatorTransportCatalog">Ver transporte</a></article>
+          <article data-role-admin-only><span>ALOJAMIENTO ASOCIADO</span><strong data-catalog-count="hotel">1 establecimiento activo</strong><p>Contactos informativos, sin habitaciones, tarifas ni inventario.</p><a href="admin-gestionar-hospedaje.html" data-route="operatorLodgingCatalog">Gestionar establecimientos</a></article>
+          <article data-role-admin-only><span>RESTAURANTES ASOCIADOS</span><strong data-catalog-count="restaurant">1 establecimiento activo</strong><p>Contactos y convenios; la comida puede estar incluida en el paquete del tour.</p><a href="admin-gestionar-alimentacion.html" data-route="operatorFoodCatalog">Gestionar establecimientos</a></article>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

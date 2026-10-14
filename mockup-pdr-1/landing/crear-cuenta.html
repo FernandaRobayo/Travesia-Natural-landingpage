@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="main.css?v=20260901-3" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
     <link rel="stylesheet" href="crear-cuenta.css?v=20260918-1" />
   </head>
   <body data-screen="signup" data-theme="platform">
@@ -25,25 +25,27 @@
             alt="Cordillera iluminada por la luz dorada del atardecer, vista desde un sendero de montaña"
           />
           <div class="mth-signup-visual-content">
-            <a class="mth-signup-visual-brand" href="index.html" data-route="home">Multi Tour</a>
-            <h2 class="mth-signup-visual-title">Crea tu cuenta y empieza a planear tu proxima experiencia.</h2>
+            <a class="mth-signup-visual-brand" href="index.html" data-route="home">Multitour</a>
+            <h2 class="mth-signup-visual-title">Crea tu cuenta y empieza a planear tu próxima experiencia.</h2>
           </div>
         </div>
       </aside>
 
       <section class="mth-signup-panel">
         <header class="mth-signup-header">
-          <a class="mth-signup-brand" href="index.html" data-route="home">Multi Tour</a>
+          <a class="mth-signup-brand" href="index.html" data-route="home">Multitour</a>
           <a class="mth-signup-back" href="index.html" data-route="home">Volver al inicio</a>
         </header>
 
         <div class="mth-signup-stage">
           <div class="mth-signup-card">
             <div class="mth-signup-copy">
-              <span class="mth-signup-eyebrow">Multi Tour</span>
+              <span class="mth-signup-eyebrow">Multitour</span>
               <h1 class="mth-signup-title">Crear Cuenta</h1>
-              <p class="mth-signup-subtitle">Unete a la plataforma y crea tu acceso para comenzar.</p>
+              <p class="mth-signup-subtitle" data-signup-form-copy>Únete y crea tu acceso dentro del operador que elijas. Tu cuenta quedará inactiva hasta que verifiques tu correo.</p>
             </div>
+
+            <div data-client-tenant-box></div>
 
             <form class="mth-signup-form" data-form="signup" novalidate>
               <div class="mth-signup-section">
@@ -69,12 +71,12 @@
                       name="last_name"
                       type="text"
                       autocomplete="family-name"
-                      placeholder="Ej. Perez"
+                      placeholder="Ej. Pérez"
                     />
                   </div>
 
                   <div class="mth-signup-field mth-signup-wide">
-                    <label for="signup-email">Correo Electronico</label>
+                    <label for="signup-email">Correo Electrónico</label>
                     <input
                       class="mth-signup-input"
                       id="signup-email"
@@ -86,13 +88,14 @@
                   </div>
 
                   <div class="mth-signup-field mth-signup-wide">
-                    <label for="signup-phone">Numero de telefono <span class="mth-signup-optional">(Opcional)</span></label>
+                    <label for="signup-phone">Número de teléfono</label>
                     <input
                       class="mth-signup-input"
                       id="signup-phone"
                       name="phone"
                       type="tel"
                       autocomplete="tel"
+                      required
                       placeholder="300 000 0000"
                     />
                   </div>
@@ -103,7 +106,7 @@
                 <p class="mth-signup-section-title">Seguridad</p>
                 <div class="mth-signup-grid-2">
                   <div class="mth-signup-field">
-                    <label for="signup-password">Contrasena</label>
+                    <label for="signup-password">Contraseña</label>
                     <div class="mth-signup-password-wrap">
                       <input
                         class="mth-signup-input"
@@ -118,7 +121,7 @@
                   </div>
 
                   <div class="mth-signup-field">
-                    <label for="signup-confirm">Confirmar Contrasena</label>
+                    <label for="signup-confirm">Confirmar Contraseña</label>
                     <div class="mth-signup-password-wrap">
                       <input
                         class="mth-signup-input"
@@ -132,9 +135,9 @@
                     </div>
                   </div>
 
-                  <div class="mth-signup-rules mth-signup-wide" aria-label="Requisitos de la contrasena">
-                    <p>La contrasena debe contener:</p>
-                    <ul><li>Minimo 8 caracteres</li><li>Al menos una letra mayuscula</li><li>Al menos una letra minuscula</li><li>Al menos un numero</li><li>Al menos un caracter especial</li></ul>
+                  <div class="mth-signup-rules mth-signup-wide" aria-label="Requisitos de la contraseña">
+                    <p>La contraseña debe contener:</p>
+                    <ul><li>Mínimo 8 caracteres</li><li>Al menos una letra mayúscula</li><li>Al menos una letra minúscula</li><li>Al menos un número</li><li>Al menos un carácter especial</li></ul>
                   </div>
                 </div>
               </div>
@@ -142,12 +145,27 @@
               <p class="feedback" data-feedback="signup" aria-live="polite"></p>
 
               <button class="mth-signup-submit" type="submit">
-                <span>Registrarse</span>
+                <span>Crear cuenta y verificar correo</span>
               </button>
             </form>
 
+            <section class="mth-signup-verify" data-signup-verify hidden aria-labelledby="signup-verify-title">
+              <h2 id="signup-verify-title" class="mth-signup-section-title">Verifica tu correo</h2>
+              <p>Creamos tu cuenta en <strong data-signup-verify-tenant></strong> y enviamos un código de verificación a <strong data-signup-verify-email></strong>. Tu cuenta permanece <strong>inactiva</strong> hasta que verifiques el correo.</p>
+              <div class="client-simulated-mail">Simulación del correo recibido: tu código de verificación es <strong data-signup-verify-code></strong>.</div>
+              <form class="mth-signup-form" data-signup-verify-form novalidate>
+                <div class="mth-signup-field">
+                  <label for="signup-verify-input">Código de verificación</label>
+                  <input class="mth-signup-input" id="signup-verify-input" data-signup-verify-input type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6 dígitos" />
+                </div>
+                <p class="feedback" data-feedback="signup-verify" aria-live="polite"></p>
+                <button class="mth-signup-submit" type="submit"><span>Verificar correo</span></button>
+                <button class="mth-signup-visibility" type="button" data-signup-resend>Reenviar código</button>
+              </form>
+            </section>
+
             <p class="mth-signup-footer-note">
-              Ya tienes una cuenta? <a href="login.html" data-route="login">Inicia sesion</a>
+              ¿Ya tienes una cuenta? <a href="login.html" data-route="login">Inicia sesión</a>
             </p>
           </div>
         </div>
