@@ -276,6 +276,7 @@ function applyRoutes(theme) {
     operatorLodgingCatalog: "admin-gestionar-hospedaje.html",
     operatorTransportCatalog: "admin-gestionar-transporte.html",
     operatorDiscounts: "admin-descuentos.html",
+    operatorAudit: "admin-auditoria-tenant.html",
     operatorPayments: "admin-pagos.html",
     operatorCash: "admin-caja.html",
     operatorOperations: "admin-operacion.html",
@@ -590,6 +591,10 @@ function setupLoginForm(themeConfig, theme) {
         return;
       }
       const sessionRole = registeredUser ? getOperatorRoleIdByLabel(registeredUser.role) : (OPERATOR_ROLES[staffRole] ? staffRole : "admin");
+      if (!registeredUser && !isOperatorOptionalRoleEnabled(sessionRole)) {
+        setFeedback("login", `El rol ${OPERATOR_ROLES[sessionRole].label} no está habilitado para este tenant. Un Administrador del tenant debe habilitarlo primero en Colaboradores > Roles opcionales del tenant.`, "is-error");
+        return;
+      }
       const inactiveTenantBlock = getOperatorLoginInactiveTenantError("staff", sessionRole);
       if (inactiveTenantBlock) {
         setFeedback("login", inactiveTenantBlock, "is-error");
@@ -821,8 +826,28 @@ function guardOperatorPermissionScreen(permission, fallbackPath) {
 function setupOperatorRoleChrome() {
   const roleLabel = document.querySelector(".operator-sidebar .operator-role");
   if (roleLabel) roleLabel.textContent = getOperatorRoleLabel();
+  const nav = document.querySelector(".operator-nav");
+  if (nav && isOperatorAdmin() && !nav.querySelector('[data-route="operatorAudit"]')) {
+    const link = document.createElement("a");
+    link.href = withTheme("admin-auditoria-tenant.html", getTheme());
+    link.dataset.route = "operatorAudit";
+    link.textContent = "Auditoría";
+    if (document.body.dataset.screen === "operator-audit") link.classList.add("is-active");
+    const collaborators = nav.querySelector('[data-route="operatorCollaborators"]');
+    if (collaborators) nav.insertBefore(link, collaborators); else nav.append(link);
+  }
+  const content = document.querySelector(".operator-content");
+  if (content && operatorRoleBlockedNotice) {
+    const notice = document.createElement("p");
+    notice.className = "operator-access-note";
+    notice.setAttribute("role", "status");
+    notice.textContent = operatorRoleBlockedNotice;
+    content.prepend(notice);
+  }
   if (!isOperatorAdmin()) {
-    document.querySelector('.operator-nav [data-route="operatorDiscounts"]')?.remove();
+    if (!OPERATOR_QUERY_ROLE_ALLOWED[getOperatorRole()]?.includes("discounts")) {
+      document.querySelector('.operator-nav [data-route="operatorDiscounts"]')?.remove();
+    }
     document.querySelector('.operator-nav [data-route="operatorCollaborators"]')?.remove();
     document.querySelectorAll("[data-role-admin-only]").forEach((el) => el.remove());
   }
@@ -1369,8 +1394,8 @@ function setupRoleSwitch() {
 
   syncSignupAccess(document.querySelector("[data-role-option].is-active")?.dataset.roleOption);
 
-  // Roles base del PDR dentro del equipo del operador (seccion 14): Administrador y
-  // Colaborador operativo. No se inventa un rol nuevo.
+  // Roles del PDR dentro del equipo del operador (seccion 14): Administrador y Colaborador
+  // operativo, mas los opcionales de solo consulta Gerente, Contador y Analista.
   const staffOptions = document.querySelectorAll("[data-staff-role-option]");
   staffOptions.forEach((option) => {
     option.addEventListener("click", () => {
@@ -7675,6 +7700,7 @@ function setupOperatorAdminCatalogScreens() {
   else if (screen === "operator-configure-tour") setupOperatorConfigureTour();
   else if (screen === "operator-configure-transport") setupOperatorConfigureTransport();
   else if (screen === "operator-notifications") setupOperatorNotifications();
+  else if (screen === "operator-audit") setupOperatorTenantAudit();
 }
 
 function setupOperatorEstablishmentsManager() {
@@ -7934,9 +7960,12 @@ function setupOperatorDiscountReasons() {
   const form = document.querySelector("[data-discount-reasons-form]");
   if (!list || !form) return;
   const feedback = form.querySelector("[data-discount-reasons-feedback]");
+  // Los roles de solo consulta ven los motivos autorizables sin poder agregarlos ni quitarlos.
+  const readOnly = isOperatorQueryOnlyRole();
+  if (readOnly) form.remove();
   const render = () => {
     const reasons = getOperatorDiscountReasons();
-    list.innerHTML = reasons.map((reason, index) => `<li><span>${escapeHtml(reason)}</span><button class="operator-row-toggle" type="button" data-discount-reason-remove="${index}"${reasons.length === 1 ? " disabled" : ""}>Quitar</button></li>`).join("");
+    list.innerHTML = reasons.map((reason, index) => `<li><span>${escapeHtml(reason)}</span>${readOnly ? "" : `<button class="operator-row-toggle" type="button" data-discount-reason-remove="${index}"${reasons.length === 1 ? " disabled" : ""}>Quitar</button>`}</li>`).join("");
     list.querySelectorAll("[data-discount-reason-remove]").forEach((button) => button.addEventListener("click", () => {
       const next = getOperatorDiscountReasons().filter((_, index) => index !== Number(button.dataset.discountReasonRemove));
       if (!next.length) return;
@@ -8081,9 +8110,12 @@ function getOperatorCatalogServiceOptions() {
 
 function setupOperatorDiscounts() {
   if (document.body.dataset.screen !== "operator-discounts") return;
-  guardOperatorAdminOnlyScreen("admin-operador.html");
+  // Gerente, Contador y Analista consultan los descuentos aplicados, sin configurarlos (PDR v1.9 sección 9).
+  const readOnly = isOperatorQueryOnlyRole();
+  if (!readOnly) guardOperatorAdminOnlyScreen("admin-operador.html");
   const createButton = document.querySelector(".operator-topbar .operator-primary, .mt-page-header .operator-primary");
-  if (createButton) createButton.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-descuento.html", getTheme()); });
+  if (createButton && readOnly) createButton.remove();
+  else if (createButton) createButton.addEventListener("click", () => { window.location.href = withTheme("admin-nuevo-descuento.html", getTheme()); });
   const existingPromo = document.querySelector(".operator-promo");
   const promoPanel = existingPromo?.closest(".operator-panel");
   const counter = promoPanel?.querySelector(".operator-panel-head .operator-status");
@@ -8102,6 +8134,7 @@ function setupOperatorDiscounts() {
     promoPanel?.appendChild(promo);
   });
   document.querySelectorAll(".operator-promo button").forEach((button) => {
+    if (readOnly) { button.remove(); return; }
     const id = button.closest(".operator-promo")?.dataset.discountId;
     if (!id) return;
     button.addEventListener("click", () => { window.location.href = withTheme(`admin-editar-descuento.html?id=${encodeURIComponent(id)}`, getTheme()); });
@@ -13038,11 +13071,18 @@ function setupOperatorOptionalRolesPanel() {
   const render = () => {
     list.innerHTML = OPTIONAL_OPERATOR_ROLE_IDS.map((id) => {
       const enabled = isOperatorOptionalRoleEnabled(id);
-      return `<li class="optional-role-row"><div><strong>${escapeHtml(OPERATOR_ROLES[id].label)}</strong><small>${escapeHtml(hints[id])} Solo consulta.</small></div><label class="optional-role-switch"><input type="checkbox" role="switch" data-optional-role="${id}"${enabled ? " checked" : ""} aria-label="Habilitar ${escapeHtml(OPERATOR_ROLES[id].label)}" /><span>${enabled ? "Habilitado" : "Deshabilitado"}</span></label></li>`;
+      return `<li class="optional-role-row"><div><strong>${escapeHtml(OPERATOR_ROLES[id].label)}</strong><small>${escapeHtml(hints[id])} Solo consulta.</small></div><label class="optional-role-switch"><input type="checkbox" role="switch" data-optional-role="${id}"${enabled ? " checked" : ""} aria-label="Habilitar ${escapeHtml(OPERATOR_ROLES[id].label)}" /><span>${enabled ? "Habilitado" : "Deshabilitado"}</span></label><label class="optional-role-switch"><input type="checkbox" role="switch" data-audit-access="${id}"${isOperatorAuditAccessEnabled(id) ? " checked" : ""} aria-label="Acceso a auditoría de ${escapeHtml(OPERATOR_ROLES[id].label)}" /><span>Auditoría del tenant</span></label></li>`;
     }).join("");
   };
   render();
   list.addEventListener("change", (event) => {
+    const auditInput = event.target.closest("[data-audit-access]");
+    if (auditInput) {
+      const result = setOperatorAuditAccessEnabled(auditInput.dataset.auditAccess, auditInput.checked);
+      if (feedback) { feedback.textContent = result.ok ? (result.unchanged ? "Sin cambios." : `Acceso a la auditoría del tenant ${auditInput.checked ? "habilitado" : "deshabilitado"} para ${OPERATOR_ROLES[auditInput.dataset.auditAccess].label}. Cambio auditado.`) : result.error; }
+      render();
+      return;
+    }
     const input = event.target.closest("[data-optional-role]");
     if (!input) return;
     const result = setOperatorOptionalRoleEnabled(input.dataset.optionalRole, input.checked);
@@ -13060,29 +13100,76 @@ const OPERATOR_QUERY_ROLE_GROUPS = {
   departures: ["operator-departures", "operator-schedule-departure", "operator-execution", "operator-reprogram-reservation"],
   notifications: ["operator-notifications"],
   reports: ["operator-reports"],
-  discounts: ["operator-discounts", "operator-new-discount", "operator-edit-discount", "operator-apply-discount"],
+  discounts: ["operator-discounts"],
+  discountsEdit: ["operator-new-discount", "operator-edit-discount", "operator-apply-discount"],
+  audit: ["operator-audit"],
 };
+// Alcance base de cada rol de solo consulta según el PDR v1.9 (sección 9). Descuentos es solo
+// lectura (ningún rol de consulta los configura) y Auditoría exige además que el Administrador
+// del tenant haya habilitado ese acceso (ver getOperatorQueryRoleAllowed).
 const OPERATOR_QUERY_ROLE_ALLOWED = {
-  gerente: ["catalogs", "cash", "operations", "departures", "notifications", "reports"],
-  contador: ["payments", "cash", "reports"],
-  analista: ["catalogs", "payments", "operations", "departures", "reports"],
+  gerente: ["payments", "catalogs", "cash", "operations", "departures", "reports", "discounts", "audit"],
+  contador: ["payments", "cash", "operations", "reports", "discounts", "audit"],
+  analista: ["payments", "catalogs", "operations", "departures", "reports", "discounts", "audit"],
 };
 const OPERATOR_QUERY_ROLE_NAV_GROUP = {
   operatorCatalogs: "catalogs", operatorPayments: "payments", operatorCash: "cash", operatorOperations: "operations",
-  operatorNotifications: "notifications", operatorReports: "reports", operatorDiscounts: "discounts",
+  operatorNotifications: "notifications", operatorReports: "reports", operatorDiscounts: "discounts", operatorAudit: "audit",
 };
 
-// ¿Puede el rol de solo consulta abrir la pantalla? (los demás roles se rigen por sus propias guardas)
-function operatorQueryRoleCanOpen(role, screen) {
+// Acceso a la auditoría del tenant: lo habilita el Administrador del tenant por rol y cada cambio
+// queda auditado. En el mockup viene habilitado de entrada para poder recorrer la pantalla.
+const OPERATOR_AUDIT_ACCESS_KEY = "multitour-operator-audit-access";
+
+function isOperatorAuditAccessEnabled(roleId) {
+  return readOperatorStorage(OPERATOR_AUDIT_ACCESS_KEY, {})[roleId] !== false;
+}
+
+function setOperatorAuditAccessEnabled(roleId, enabled) {
+  if (!isOperatorAdmin()) return { ok: false, error: "Solo el Administrador del tenant habilita el acceso a la auditoría." };
+  if (!OPTIONAL_OPERATOR_ROLE_IDS.includes(roleId)) return { ok: false, error: "Rol no opcional." };
+  if (isOperatorAuditAccessEnabled(roleId) === Boolean(enabled)) return { ok: true, unchanged: true };
+  const stored = readOperatorStorage(OPERATOR_AUDIT_ACCESS_KEY, {});
+  stored[roleId] = Boolean(enabled);
+  writeOperatorStorage(OPERATOR_AUDIT_ACCESS_KEY, stored);
+  const audit = getOperatorOptionalRolesAudit();
+  audit.unshift({ roleId, label: `${OPERATOR_ROLES[roleId].label} (acceso a auditoría)`, action: enabled ? "Habilitado" : "Deshabilitado", actor: getOperatorActorLabel(), at: getOperatorNow().toISOString() });
+  writeOperatorStorage(OPERATOR_OPTIONAL_ROLES_AUDIT_KEY, audit);
+  return { ok: true };
+}
+
+function getOperatorQueryRoleAllowed(role) {
   const allowed = OPERATOR_QUERY_ROLE_ALLOWED[role];
+  if (!allowed) return null;
+  return allowed.filter((group) => group !== "audit" || isOperatorAuditAccessEnabled(role));
+}
+
+// ¿Puede el rol de solo consulta abrir la pantalla? (los demás roles se rigen por sus propias guardas)
+// Pantallas de registro o acción: Gerente, Contador y Analista no registran reservas, pagos, gastos
+// ni movimientos de caja, no validan comprobantes, no autorizan devoluciones ni gestionan salidas
+// (PDR v1.9 sección 9). Se bloquean aunque pertenezcan a una sección que el rol sí consulta.
+const OPERATOR_QUERY_ROLE_WRITE_SCREENS = [
+  "operator-create-reservation", "operator-reservation-created", "operator-cancel-modify-reservation",
+  "operator-reservation-payment", "operator-payment-followup", "operator-validate-support",
+  "operator-manage-refund", "operator-execution", "operator-reprogram-reservation", "operator-schedule-departure",
+];
+const OPERATOR_QUERY_ROLE_WRITE_FILES = [
+  "admin-crear-reserva", "admin-reserva-registrada", "admin-cancelar-modificar-reserva", "admin-gestion-pago",
+  "admin-registrar-seguimiento", "admin-validar-soporte", "admin-gestionar-devolucion", "admin-registrar-ejecucion",
+  "admin-reprogramar-reserva", "admin-programar-salida",
+];
+
+function operatorQueryRoleCanOpen(role, screen) {
+  const allowed = getOperatorQueryRoleAllowed(role);
   if (!allowed) return true;
+  if (OPERATOR_QUERY_ROLE_WRITE_SCREENS.includes(screen)) return false;
   const group = Object.keys(OPERATOR_QUERY_ROLE_GROUPS).find((key) => OPERATOR_QUERY_ROLE_GROUPS[key].includes(screen));
   return !group || allowed.includes(group);
 }
 
 function setupOperatorQueryRoleMenu() {
   const role = getOperatorRole();
-  const allowed = OPERATOR_QUERY_ROLE_ALLOWED[role];
+  const allowed = getOperatorQueryRoleAllowed(role);
   if (!allowed) return;
   if (!operatorQueryRoleCanOpen(role, document.body.dataset.screen || "")) {
     window.location.href = withTheme("admin-operador.html", getTheme());
@@ -13091,8 +13178,9 @@ function setupOperatorQueryRoleMenu() {
   // Enlaces e indicadores del contenido hacia secciones que el rol no tiene (p. ej. el acceso a Pagos del resumen).
   const fileGroups = { "admin-pagos": "payments", "admin-caja": "cash", "admin-operacion": "operations", "admin-reportes": "reports", "admin-notificaciones": "notifications", "admin-catalogos": "catalogs", "admin-salidas": "departures", "admin-descuentos": "discounts" };
   document.querySelectorAll(".operator-content a[href]").forEach((anchor) => {
-    const group = fileGroups[operatorHrefFile(anchor.getAttribute("href"))];
-    if (group && !allowed.includes(group)) anchor.remove();
+    const file = operatorHrefFile(anchor.getAttribute("href"));
+    const group = fileGroups[file];
+    if ((group && !allowed.includes(group)) || OPERATOR_QUERY_ROLE_WRITE_FILES.includes(file)) anchor.remove();
   });
   if (!allowed.includes("payments")) document.querySelector("[data-dashboard-pagos-count]")?.closest(".mt-summary-metric")?.remove();
   if (!allowed.includes("cash")) document.querySelector("[data-dashboard-caja-total]")?.closest(".mt-summary-metric")?.remove();
@@ -13100,7 +13188,85 @@ function setupOperatorQueryRoleMenu() {
     const navGroup = OPERATOR_QUERY_ROLE_NAV_GROUP[anchor.dataset.route] || (operatorHrefFile(anchor.getAttribute("href")) === "admin-salidas" ? "departures" : "");
     if (navGroup && !allowed.includes(navGroup)) anchor.remove();
   });
+  const nav = document.querySelector(".operator-nav");
+  if (nav && allowed.includes("audit") && !nav.querySelector('[data-route="operatorAudit"]')) {
+    const link = document.createElement("a");
+    link.href = withTheme("admin-auditoria-tenant.html", getTheme());
+    link.dataset.route = "operatorAudit";
+    link.textContent = "Auditoría";
+    if (document.body.dataset.screen === "operator-audit") link.classList.add("is-active");
+    nav.append(link);
+  }
 }
+
+// Auditoría del tenant (solo consulta): eventos administrativos del tenant actual. El Contador
+// ve solo los eventos económicos. Acceso: Administrador del tenant, o Gerente, Contador o Analista
+// con el acceso habilitado por el Administrador.
+function setupOperatorTenantAudit() {
+  const role = getOperatorRole();
+  if (role === "colaborador" || (role !== "admin" && !isOperatorAuditAccessEnabled(role))) {
+    window.location.href = withTheme("admin-operador.html", getTheme());
+    return;
+  }
+  const economic = /pago|saldo|devol|caja|gasto|costo|descuento|econ|financ/i;
+  const events = getPlatformAuditAll()
+    .filter((event) => event.tenantId === OPERATOR_CURRENT_TENANT_ID)
+    .filter((event) => role !== "contador" || economic.test(`${event.category} ${event.action}`))
+    .sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+  const note = document.querySelector("[data-tenant-audit-note]");
+  if (note) note.textContent = role === "contador"
+    ? "Solo eventos económicos relevantes del tenant. Acceso de solo consulta habilitado por el Administrador del tenant."
+    : role === "admin"
+      ? "Eventos administrativos del tenant. Tú decides qué roles de consulta acceden a esta vista en Colaboradores."
+      : "Eventos relevantes del tenant. Acceso de solo consulta habilitado por el Administrador del tenant.";
+  const filter = document.querySelector("[data-tenant-audit-filter]");
+  const body = document.querySelector("[data-tenant-audit-table]");
+  if (!body) return;
+  if (filter) {
+    [...new Set(events.map((event) => event.category))].sort().forEach((category) => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      filter.append(option);
+    });
+  }
+  const render = () => {
+    const selected = filter ? filter.value : "todos";
+    const rows = events.filter((event) => selected === "todos" || event.category === selected);
+    body.innerHTML = rows.length
+      ? rows.map((event) => `<tr><td>${escapeHtml(event.date)}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.category)}</td><td>${escapeHtml(event.actorName || "No aplica")}</td><td>${escapeHtml(event.reason || "No aplica")}</td><td>${escapeHtml(event.detail || "No aplica")}</td></tr>`).join("")
+      : '<tr><td colspan="6">No hay eventos registrados para este filtro.</td></tr>';
+  };
+  filter?.addEventListener("change", render);
+  render();
+}
+
+// Acceso directo desde el índice del mockup: ?role=gerente|contador|analista|colaborador|admin
+// fija el rol de la sesión simulada antes de pintar la pantalla del operador. Un rol opcional
+// (Gerente, Contador o Analista) solo se aplica si el Administrador del tenant lo habilitó; si no,
+// se mantiene el rol vigente y la pantalla lo avisa (PDR v1.9 sección 9).
+let operatorRoleBlockedNotice = "";
+
+function applyOperatorRoleFromUrl() {
+  try {
+    const blockedNotice = (roleId) => `El rol ${OPERATOR_ROLES[roleId].label} no está habilitado para este tenant. Un Administrador del tenant debe habilitarlo primero en Colaboradores > Roles opcionales del tenant.`;
+    const requested = new URLSearchParams(window.location.search).get("role");
+    if (requested && OPERATOR_ROLES[requested] && getOperatorRole() !== requested) {
+      if (!isOperatorOptionalRoleEnabled(requested)) operatorRoleBlockedNotice = blockedNotice(requested);
+      else setOperatorRole(requested);
+    }
+    // Revalida en cada pantalla el rol opcional guardado: si el Administrador lo deshabilitó
+    // después de iniciar sesión, la sesión vuelve a Administrador y la pantalla lo avisa.
+    const current = getOperatorRole();
+    if (!isOperatorOptionalRoleEnabled(current)) {
+      setOperatorRole("admin");
+      operatorRoleBlockedNotice = blockedNotice(current);
+    }
+  } catch {
+    /* Sin URL o localStorage: se mantiene el rol vigente. */
+  }
+}
+applyOperatorRoleFromUrl();
 
 const activeTheme = getTheme();
 const activeThemeConfig = THEMES[activeTheme];

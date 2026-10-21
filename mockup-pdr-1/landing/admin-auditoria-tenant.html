@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auditoría del tenant | Multitour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="main.css?v=20260915-clock" />
+  </head>
+  <body data-screen="operator-audit" data-theme="travesia-natural">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+    <main class="operator-shell">
+      <aside class="operator-sidebar">
+        <a class="operator-brand" href="admin-operador.html" data-route="operatorAdmin">MULTITOUR</a>
+        <p class="operator-role">Administrador del tenant</p>
+        <nav class="operator-nav" aria-label="Administración del operador"><a href="admin-operador.html" data-route="operatorAdmin">Resumen</a><a href="admin-reservas.html" data-route="operatorReservations">Reservas</a><a href="admin-catalogos.html" data-route="operatorCatalogs">Catálogos</a><a href="admin-descuentos.html" data-route="operatorDiscounts">Descuentos</a><a href="admin-pagos.html" data-route="operatorPayments">Pagos</a><a href="admin-caja.html" data-route="operatorCash">Caja</a><a href="admin-operacion.html" data-route="operatorOperations">Operación</a><a href="admin-reportes.html" data-route="operatorReports">Reportes</a><a href="admin-notificaciones.html" data-route="operatorNotifications">Notificaciones</a><a class="is-active" href="admin-auditoria-tenant.html" data-route="operatorAudit">Auditoría</a><a href="admin-colaboradores.html" data-route="operatorCollaborators">Colaboradores</a></nav>
+        <a class="operator-signout" href="login.html" data-route="login">Cerrar sesión</a>
+      </aside>
+      <section class="operator-content" id="contenido">
+        <header class="mt-page-header">
+          <div class="mt-page-header-main"><p class="mt-page-header-eyebrow mt-caption">Solo consulta</p><h1 class="mt-page-header-title mt-h1">Auditoría del tenant</h1></div>
+        </header>
+        <p class="operator-access-note" data-tenant-audit-note></p>
+        <section class="operator-panel">
+          <div class="operator-panel-head">
+            <div><p class="operator-eyebrow">Eventos relevantes</p><h2>Trazabilidad de cambios del tenant</h2></div>
+            <label class="operator-copy">Categoría
+              <select data-tenant-audit-filter aria-label="Filtrar por categoría"><option value="todos">Todas</option></select>
+            </label>
+          </div>
+          <p class="operator-copy">Solo metadatos administrativos: nunca datos operativos ni sensibles de los clientes.</p>
+          <div class="operator-table-wrap"><table class="operator-table"><thead><tr><th>Fecha y hora</th><th>Acción</th><th>Categoría</th><th>Responsable</th><th>Motivo</th><th>Detalle</th></tr></thead><tbody data-tenant-audit-table></tbody></table></div>
+        </section>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
