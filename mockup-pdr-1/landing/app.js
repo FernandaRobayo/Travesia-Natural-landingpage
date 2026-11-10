@@ -3677,6 +3677,15 @@ function setupTourCheckout(theme) {
     ? `Aplicar mi saldo a favor disponible (${formatCOP(availableCredit)}) al saldo pendiente de esta reserva. El valor aplicado cuenta como pago validado, sin comprobante.`
     : `Aplicar mi saldo a favor disponible (${formatCOP(availableCredit)}) como pago de esta reserva. El valor aplicado cuenta como pago validado.`);
 
+  // El abono mínimo condiciona la confirmación de la reserva, no el registro del pago: es solo
+  // un aviso informativo (no bloquea). Un abono menor queda registrado y la reserva se confirma
+  // cuando lo validado llegue al mínimo.
+  const depositMinimumNote = () => {
+    const typed = Math.round(Number(amountInput?.value || 0));
+    let note = `Abono mínimo para confirmar la reserva: ${formatCOP(minimumDeposit)} (sobre el valor final después de descuentos). Puedes registrar un abono menor: la reserva se confirma cuando lo validado llegue al mínimo.`;
+    if (typed > 0 && typed < minimumDeposit) note += " La reserva queda Pendiente de pago hasta que lo validado llegue al mínimo.";
+    return note;
+  };
   const syncPaymentCopy = () => {
     const selectedType = currentType();
     const selectedMedium = document.querySelector('input[name="payment-medium"]:checked')?.value || "";
@@ -3689,13 +3698,13 @@ function setupTourCheckout(theme) {
       depositHint.textContent = isExisting
         ? `Saldo pendiente: ${formatCOP(existing.balance)}. Puedes pagar una parte o todo el saldo.`
         : selectedType === "Abono"
-          ? `Abono mínimo del servicio: ${formatCOP(minimumDeposit)} (${minimumPercent} % del valor final después de aplicar descuentos). La reserva se confirma cuando se valida como mínimo ese valor; el saldo restante queda pendiente.`
+          ? depositMinimumNote()
           : "";
     }
     if (!isExisting && amountInput) {
-      amountInput.min = String(minimumDeposit);
+      amountInput.min = "1";
       amountInput.max = String(finalValue);
-      amountInput.placeholder = `Mínimo ${formatCOP(minimumDeposit)}`;
+      amountInput.placeholder = `Abono mínimo para confirmar ${formatCOP(minimumDeposit)}`;
       if (selectedType === "Abono" && !amountInput.value) amountInput.value = String(minimumDeposit);
     }
     const cashHint = document.querySelector("[data-checkout-cash-hint]");
@@ -3712,6 +3721,10 @@ function setupTourCheckout(theme) {
     renderDeadline();
   };
   document.querySelectorAll('input[name="payment-type"], input[name="payment-medium"]').forEach((input) => input.addEventListener("change", syncPaymentCopy));
+  if (!isExisting && amountInput) amountInput.addEventListener("input", () => {
+    const hint = document.querySelector("[data-checkout-deposit-hint]");
+    if (hint && currentType() === "Abono") hint.textContent = depositMinimumNote();
+  });
   const firstType = document.querySelector('input[name="payment-type"]');
   const firstMedium = document.querySelector('input[name="payment-medium"]');
   if (firstType) firstType.checked = true;
@@ -3802,9 +3815,8 @@ function setupTourCheckout(theme) {
     if (selectedType === "Abono") {
       depositAmount = Math.round(Number(amountInput?.value || 0));
       if (!depositAmount || depositAmount <= 0 || depositAmount > finalValue) return say("Ingresa un monto de abono válido (mayor a cero y hasta el valor final).");
-      // El abono debe cubrir como mínimo el abono mínimo del servicio, calculado sobre el valor
-      // final después de aplicar los descuentos (RN-RES-004).
-      if (depositAmount < minimumDeposit) return say(`El abono debe ser como mínimo ${formatCOP(minimumDeposit)} (abono mínimo del servicio sobre el valor final después de descuentos).`);
+      // El abono mínimo (sobre el valor final después de descuentos, RN-RES-004) condiciona la
+      // confirmación, no el registro: un abono menor se acepta y la reserva queda Pendiente de pago.
     }
 
     const inactiveTenantMessage = getClientInactiveTenantMessage();
@@ -10234,7 +10246,7 @@ function setupOperatorReservationPayment() {
     if (support) support.required = isTransfer;
     if (amount) {
       amount.disabled = !hasMedium || Boolean(pendingReceipt) || !departureGate.ok;
-      amount.placeholder = reservation.paymentType === "Abono" ? `Monto del abono (mínimo ${formatCOP(reservation.minDeposit)})` : "Monto recibido";
+      amount.placeholder = reservation.paymentType === "Abono" ? `Monto del abono (mínimo para confirmar ${formatCOP(reservation.minDeposit)})` : "Monto recibido";
     }
     if (submit) {
       submit.hidden = settled || readOnlyRole;
@@ -10269,12 +10281,17 @@ function setupOperatorReservationPayment() {
     else if (readOnlyRole) say("Tu rol es de solo consulta: no puede registrar pagos.", false);
     else if (!departureGate.ok && !pendingReceipt) say(departureGate.error, false);
     else if (pendingReceipt) say("Hay un comprobante En validación. La reserva sigue sin confirmarse hasta su aprobación.", false);
-    else if (reservation.paymentType === "Abono" && !settled) say(`Abono mínimo para confirmar: ${formatCOP(reservation.minDeposit)}. El saldo restante queda pendiente.`, false);
+    else if (reservation.paymentType === "Abono" && !settled) {
+      // Aviso informativo: el abono mínimo condiciona la confirmación, no el registro del pago.
+      const typed = parseCOP(amount?.value);
+      say(`Abono mínimo para confirmar la reserva: ${formatCOP(reservation.minDeposit)} (sobre el valor final después de descuentos). Puedes registrar un abono menor: la reserva se confirma cuando lo validado llegue al mínimo.${typed > 0 && typed < reservation.minDeposit && reservation.status === "Pendiente de pago" ? " La reserva queda Pendiente de pago hasta que lo validado llegue al mínimo." : ""}`, false);
+    }
     else if (!settled) say("Registra el monto para actualizar la situación financiera y el saldo pendiente.", false);
     else if (feedback) feedback.hidden = true;
     return reservation;
   };
   render();
+  amount?.addEventListener("input", render);
 
   const goToValidation = () => { window.location.href = withTheme(`admin-validar-soporte.html?reservation=${encodeURIComponent(code)}`, getTheme()); };
   approve?.addEventListener("click", goToValidation);
