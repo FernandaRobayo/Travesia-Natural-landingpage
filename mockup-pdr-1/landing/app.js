@@ -10115,6 +10115,30 @@ function setupOperatorReservationDetail() {
       refundOriginPanel.hidden = true;
     }
   }
+
+  renderOperatorModificationHistory(reservation.code);
+}
+
+// Historial de modificaciones (AC-MD.6): cada modificación registrada conserva el valor original, el
+// valor recalculado, el saldo resultante, la causal y el usuario. La última modificación guardada va
+// primero; el historial demostrativo de la reserva RES-1842 ya trae una anterior. Sin ninguna, el bloque no se dibuja.
+const OPERATOR_DEMO_MODIFICATION_HISTORY = {
+  "RES-1842": [
+    { previousValue: "$519.600", final: "$1.039.200", balance: "$1.039.200", causal: "Se suma un viajero a la reserva", registeredAt: "2026-08-30T15:30:00-05:00", registeredBy: "Colaborador operativo" },
+  ],
+};
+
+function renderOperatorModificationHistory(code) {
+  const panel = document.querySelector("[data-modification-history-panel]");
+  const body = document.querySelector("[data-modification-history-rows]");
+  if (!panel || !body) return;
+  const registered = getOperatorReservationModification(code);
+  const rows = [
+    ...(registered ? [{ previousValue: registered.previousValue, final: registered.final, balance: registered.balance, causal: registered.causal, registeredAt: registered.registeredAt, registeredBy: registered.registeredBy }] : []),
+    ...(OPERATOR_DEMO_MODIFICATION_HISTORY[code] || []),
+  ];
+  body.innerHTML = rows.map((row) => `<tr><td>${escapeHtml(formatOperatorTenantDateTime(row.registeredAt))}</td><td>${escapeHtml(row.previousValue)}</td><td>${escapeHtml(row.final)}</td><td>${escapeHtml(row.balance)}</td><td>${escapeHtml(row.causal)}</td><td>${escapeHtml(row.registeredBy)}</td></tr>`).join("");
+  panel.hidden = rows.length === 0;
 }
 
 // --- Reserva registrada --------------------------------------------------------------------
