@@ -3695,7 +3695,7 @@ function setupTourCheckout(theme) {
     const depositHint = document.querySelector("[data-checkout-deposit-hint]");
     if (depositHint) {
       depositHint.textContent = isExisting
-        ? `Saldo pendiente: ${formatCOP(existing.balance)}. Puedes pagar una parte o todo el saldo. Si transfieres un valor mayor, el comprobante se registra por el valor declarado y, al validarlo, solo se aplica lo necesario: el excedente queda como saldo a favor.`
+        ? `Saldo pendiente: ${formatCOP(existing.balance)}. Puedes pagar una parte o todo el saldo. Si pagas un valor mayor, se registra por el valor declarado y, al validarlo, solo se aplica lo necesario: el excedente queda como saldo a favor.`
         : selectedType === "Abono"
           ? depositMinimumNote()
           : "";
@@ -3744,10 +3744,9 @@ function setupTourCheckout(theme) {
       const selectedMedium = document.querySelector('input[name="payment-medium"]:checked')?.value || "";
       if (!selectedMedium) return say("Selecciona el medio de pago.");
       const amount = Math.round(Number(amountInput?.value || 0));
-      // Una transferencia por un valor mayor al saldo se registra como declarada: al validarla solo se
-      // aplica lo necesario y el excedente queda como saldo a favor (RN-RES-006A). El tope solo
-      // aplica a la intención de pago en efectivo, que no es un pago registrado.
-      if (!(amount > 0) || (selectedMedium !== "bank" && amount > existing.balance)) return say(`Ingresa un monto válido: mayor a cero y hasta el saldo pendiente (${formatCOP(existing.balance)}).`);
+      // Un valor mayor al saldo no se rechaza, en transferencia ni en efectivo: solo se aplica lo
+      // necesario y el excedente queda como saldo a favor (RN-RES-006A).
+      if (!(amount > 0)) return say("Ingresa un monto válido: mayor a cero.");
       // Saldo a favor aplicado al saldo pendiente (GAP-015): pago validado sin comprobante; si es el
       // primer pago, aparta el cupo en la misma operación.
       let creditUsed = 0;
@@ -3815,9 +3814,9 @@ function setupTourCheckout(theme) {
     let depositAmount = 0;
     if (selectedType === "Abono") {
       depositAmount = Math.round(Number(amountInput?.value || 0));
-      // En transferencia el valor declarado no se limita al valor final: al validar el comprobante solo se
-      // aplica lo necesario y el excedente queda como saldo a favor (RN-RES-006A).
-      if (!depositAmount || depositAmount <= 0 || (selectedMedium !== "bank" && depositAmount > finalValue)) return say("Ingresa un monto de abono válido (mayor a cero y hasta el valor final).");
+      // El valor no se limita al valor final, en transferencia ni en efectivo: solo se aplica lo
+      // necesario y el excedente queda como saldo a favor (RN-RES-006A).
+      if (!depositAmount || depositAmount <= 0) return say("Ingresa un monto de abono válido (mayor a cero).");
       // El abono mínimo (sobre el valor final después de descuentos, RN-RES-004) condiciona la
       // confirmación, no el registro: un abono menor se acepta y la reserva queda Pendiente de pago.
     }
