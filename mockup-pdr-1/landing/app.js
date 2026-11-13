@@ -7681,7 +7681,7 @@ function setOperatorEstablishmentActive(establishment, active, reason = "") {
 }
 
 /// Gestión de establecimientos asociados (RF-018, RN-ASO-001, GAP-10): solo el Administrador del
-// tenant registra, edita, inactiva y reactiva. Cada establecimiento conserva únicamente nombre,
+// tenant registra, inactiva y reactiva. Cada establecimiento conserva únicamente nombre,
 // descripción, imagen, contacto (correo, teléfono, dirección) y estado; nunca cupos, tarifas,
 // habitaciones, platos ni inventario. Inactivar o reactivar exige motivo y queda en la bitácora.
 function saveOperatorAssociatedEstablishments(list) {
@@ -7810,7 +7810,13 @@ function setupOperatorEstablishmentForm() {
     const active = resolveOperatorServiceActive(OPERATOR_ASSOCIATED_ESTABLISHMENTS_CATALOG_ID, existing.id, true);
     if (status) status.innerHTML = `<span class="operator-status ${active ? "is-confirmed" : "is-cancelled"}">${active ? "Activo" : "Inactivo"}</span>`;
     const title = document.querySelector("[data-establishment-form-title]");
-    if (title) title.textContent = `Editar ${OPERATOR_ESTABLISHMENT_KIND_LABELS[kind].toLowerCase()}`;
+    if (title) title.textContent = OPERATOR_ESTABLISHMENT_KIND_LABELS[kind];
+    // RF-018: un establecimiento registrado se consulta, no se edita; cambia de estado desde el directorio (motivo obligatorio y bitácora).
+    form.querySelectorAll("input, textarea").forEach((el) => { el.disabled = true; });
+    form.querySelector('button[type="submit"]')?.remove();
+    if (feedback) feedback.textContent = "";
+    const back = form.querySelector(".operator-form-actions a");
+    if (back) back.textContent = "Volver al directorio";
   } else {
     const status = document.querySelector("[data-establishment-status]");
     if (status) status.innerHTML = '<span class="operator-status is-confirmed">Activo al guardar</span>';
@@ -7837,15 +7843,9 @@ function setupOperatorEstablishmentForm() {
     if (!imageData) { if (feedback) feedback.textContent = "Adjunta una imagen del establecimiento (visible para los clientes del tenant)."; return; }
     const duplicated = all.find((item) => item.kind === kind && item.id !== (existing?.id || "") && item.name.trim().toLowerCase() === name.toLowerCase());
     if (duplicated) { if (feedback) feedback.textContent = "Ya existe un establecimiento asociado con ese nombre."; return; }
-    if (existing) {
-      const updated = { ...existing, name, description, email, phone, address, image: imageData, updatedAt: getOperatorNow().toISOString() };
-      saveOperatorAssociatedEstablishments(all.map((item) => item.id === existing.id ? updated : item));
-      addOperatorEstablishmentAudit(updated, "Datos actualizados");
-    } else {
-      const created = { id: `establishment-${Date.now()}`, kind, name, description, image: imageData, email, phone, address, createdAt: getOperatorNow().toISOString(), createdBy: getOperatorActorLabel() };
-      saveOperatorAssociatedEstablishments([...all, created]);
-      addOperatorEstablishmentAudit(created, "Registrado");
-    }
+    const created = { id: `establishment-${Date.now()}`, kind, name, description, image: imageData, email, phone, address, createdAt: getOperatorNow().toISOString(), createdBy: getOperatorActorLabel() };
+    saveOperatorAssociatedEstablishments([...all, created]);
+    addOperatorEstablishmentAudit(created, "Registrado");
     if (feedback) { feedback.textContent = "Establecimiento guardado."; feedback.classList.add("is-valid"); }
     window.setTimeout(() => { window.location.href = withTheme(backPage, getTheme()); }, 600);
   });
