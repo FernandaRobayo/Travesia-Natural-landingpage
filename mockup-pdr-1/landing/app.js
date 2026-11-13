@@ -5395,6 +5395,8 @@ function setupOperatorRefundDetail() {
     const isTreatment = current.kind === "tratamiento";
     document.querySelectorAll("[data-refund-generic-actions]").forEach((node) => { node.hidden = isTreatment; });
     document.querySelectorAll("[data-refund-treatment-actions]").forEach((node) => { node.hidden = !isTreatment; });
+    // RN-RES-009: solo una solicitud de devolución de saldo a favor puede rechazarse.
+    if (rejectButton) rejectButton.hidden = current.origin !== "saldo-a-favor";
     const overdueNote = document.querySelector("[data-refund-overdue-note]");
     if (overdueNote) overdueNote.hidden = !operatorRefundExecutionOverdue(current);
     if (authorizeButton) authorizeButton.disabled = false;
