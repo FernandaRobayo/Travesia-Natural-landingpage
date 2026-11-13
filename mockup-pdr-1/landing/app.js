@@ -6102,22 +6102,14 @@ function setupOperatorOperation() {
 }
 
 
-// Origen de una solicitud de devolución (RF-015B): solo se habilita cuando la MISMA reserva ya
-// tiene causal y valor a devolver determinados; nunca inventa ninguno.
+// Origen de una devolución (RF-015B, RN-RES-008): solo informa cuando la MISMA reserva ya tiene causal y
+// valor a devolver determinados por una cancelación o modificación; la pantalla no crea solicitudes.
 function setupOperatorManageRefund() {
   if (document.body.dataset.screen !== "operator-manage-refund") return;
   const code = new URLSearchParams(window.location.search).get("reservation") || "";
   const reservation = getUnifiedOperatorReservation(code);
   const feedback = document.querySelector("[data-manage-refund-feedback]");
-  const submitButton = document.querySelector("[data-manage-refund-submit]");
-  const motiveInput = document.querySelector("[data-manage-refund-motive]");
-  const noteInput = document.querySelector("[data-manage-refund-note]");
-  document.querySelector("[data-manage-refund-form]")?.addEventListener("submit", (event) => { event.preventDefault(); submitButton?.click(); });
-  const disableForm = () => {
-    if (submitButton) submitButton.disabled = true;
-    if (motiveInput) motiveInput.disabled = true;
-    if (noteInput) noteInput.disabled = true;
-  };
+  const say = (text) => { if (feedback) { feedback.textContent = text; feedback.hidden = false; } };
 
   document.querySelectorAll("[data-manage-refund-back]").forEach((link) => {
     link.href = withTheme(`admin-detalle-reserva.html?reservation=${encodeURIComponent(code)}`, getTheme());
@@ -6125,13 +6117,7 @@ function setupOperatorManageRefund() {
 
   const origin = getOperatorRefundOrigin(code);
   if (!reservation || !origin) {
-    if (feedback) feedback.textContent = "Esta reserva no tiene una cancelación o modificación con causal y valor a devolver registrados.";
-    disableForm();
-    return;
-  }
-  if (isOperatorQueryOnlyRole()) {
-    if (feedback) feedback.textContent = "Tu rol es de solo consulta: no puede registrar solicitudes de devolución.";
-    disableForm();
+    say("Esta reserva no tiene una cancelación o modificación con causal y valor a devolver registrados.");
     return;
   }
 
@@ -6143,36 +6129,6 @@ function setupOperatorManageRefund() {
   setText("[data-manage-refund-reason]", origin.causal);
   setText("[data-manage-refund-paid]", reservation.paid);
   setText("[data-manage-refund-date]", formatOperatorTenantDateTime(origin.registeredAt));
-  const valueField = document.querySelector("[data-manage-refund-value]");
-  if (valueField) valueField.value = `${origin.potentialAmount}${origin.ruleLabel ? ` · ${origin.ruleLabel}` : ""}`;
-  if (motiveInput) motiveInput.value = origin.causal;
-
-  const existing = getOperatorRefundRequests().find((request) => request.reservationCode === code);
-  if (existing) {
-    if (feedback) feedback.textContent = "Ya existe una solicitud de devolución registrada para esta reserva. Consúltala en Solicitudes de devolución.";
-    disableForm();
-    return;
-  }
-
-  submitButton?.addEventListener("click", () => {
-    const motive = motiveInput?.value.trim() || "";
-    if (!motive) {
-      feedback.textContent = "Registra el motivo de la solicitud de devolución.";
-      feedback.classList.remove("is-valid");
-      return;
-    }
-    const created = createOperatorRefundRequest(code, { motive, note: noteInput?.value.trim() || "" });
-    if (!created.ok) {
-      feedback.textContent = created.error;
-      feedback.classList.remove("is-valid");
-      return;
-    }
-    feedback.textContent = created.request.kind === "automatica"
-      ? "Solicitud registrada: la causa no es atribuible al cliente, por lo que la devolución quedó determinada y autorizada automáticamente. Debe ejecutarse en máximo 5 días hábiles."
-      : "Solicitud de devolución registrada. El Administrador del tenant tiene 24 horas corridas para decidir (devolver el 100 % o registrar saldo a favor); sin decisión, Multitour determina la devolución del 100 %, pendiente de ejecución en 5 días hábiles.";
-    feedback.classList.add("is-valid");
-    disableForm();
-  });
 }
 
 
